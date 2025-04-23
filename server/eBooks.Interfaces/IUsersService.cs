@@ -1,8 +1,8 @@
 ﻿using eBooks.Models;
+using eBooks.Services;
 
 namespace eBooks.Interfaces;
 
-public interface IUsersService
+public interface IUsersService : IBaseService<UserModel, UserSearchObject>
 {
-    List<UsersModel> Get();
 }

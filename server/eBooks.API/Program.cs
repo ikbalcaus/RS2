@@ -26,10 +26,5 @@ app.MapControllers();
 app.Run();
 
 /*
-dotnet ef dbcontext scaffold "Name=Database" Microsoft.EntityFrameworkCore.SqlServer \
-    --output-dir Models \
-    --context-dir . \
-    --force \
-    --project eBooks.Database/eBooks.Database.csproj \
-    --startup-project eBooks.API/eBooks.API.csproj
+dotnet ef dbcontext scaffold "Name=Database" Microsoft.EntityFrameworkCore.SqlServer --output-dir Models --context-dir . --force --project eBooks.Database/eBooks.Database.csproj --startup-project eBooks.API/eBooks.API.csproj
 */

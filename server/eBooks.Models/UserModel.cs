@@ -1,6 +1,6 @@
 namespace eBooks.Models
 {
-    public class UsersModel
+    public class UserModel
     {
         public int UserId { get; set; }
         public string FirstName { get; set; }

@@ -13,11 +13,13 @@ public partial class Book
 
     public DateTime? AddedDate { get; set; }
 
-    public string? Pdfpath { get; set; }
+    public int PublisherId { get; set; }
 
     public int? GenreId { get; set; }
 
-    public int PublisherId { get; set; }
+    public string? Pdfpath { get; set; }
+
+    public string? RejectionReason { get; set; }
 
     public string? StateMachine { get; set; }
 

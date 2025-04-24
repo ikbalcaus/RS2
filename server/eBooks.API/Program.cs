@@ -1,6 +1,7 @@
 using eBooks.Database;
 using eBooks.Interfaces;
 using eBooks.Services;
+using eBooks.Services.BooksStateMachine;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,6 +15,13 @@ builder.Services.AddScoped<IMapper, Mapper>();
 
 builder.Services.AddTransient<IUsersService, UsersService>();
 builder.Services.AddTransient<IBooksService, BooksService>();
+
+builder.Services.AddTransient<BaseBooksState>();
+builder.Services.AddTransient<ApproveBooksState>();
+builder.Services.AddTransient<ArchiveBooksState>();
+builder.Services.AddTransient<AwaitBooksState>();
+builder.Services.AddTransient<DraftBooksState>();
+builder.Services.AddTransient<RejectBooksState>();
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())

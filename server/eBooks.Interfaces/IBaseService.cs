@@ -1,10 +1,12 @@
 ﻿using eBooks.Models;
+using eBooks.Services;
 
-namespace eBooks.Services
+namespace eBooks.Interfaces
 {
-    public interface IBaseService<TModel, TSearch> where TSearch : BaseSearchObject
+    public interface IBaseService<TSearch, TInsert, TUpdate, TResponse> : IBaseReadOnlyService<TSearch, TResponse> where TSearch : BaseSearch where TResponse : class
     {
-        public PagedResult<TModel> GetPaged(TSearch search);
-        public TModel GetById(int id);
+        TResponse Insert(TInsert req);
+        TResponse Update(int id, TUpdate req);
+        void Delete(int id);
     }
 }

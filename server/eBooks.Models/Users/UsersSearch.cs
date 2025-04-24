@@ -1,6 +1,6 @@
-﻿namespace eBooks.Models
+﻿namespace eBooks.Models.User
 {
-    public class UserSearchObject : BaseSearchObject
+    public class UsersSearch : BaseSearch
     {
         public string? FNameGTE { get; set; }
         public string? LNameGTE { get; set; }

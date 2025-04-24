@@ -9,7 +9,7 @@ public partial class Purchase
 
     public int BookId { get; set; }
 
-    public DateTime PurchaseDate { get; set; }
+    public DateTime? PurchaseDate { get; set; }
 
     public decimal TotalPrice { get; set; }
 

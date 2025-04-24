@@ -9,7 +9,7 @@ public partial class PublisherFollow
 
     public int PublisherId { get; set; }
 
-    public DateTime FollowDate { get; set; }
+    public DateTime? FollowDate { get; set; }
 
     public virtual User Publisher { get; set; } = null!;
 

@@ -1,30 +1,34 @@
-﻿using eBooks.Models;
-using eBooks.Services;
+﻿using eBooks.Interfaces;
+using eBooks.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace eBooks.API.Controllers
 {
-    [ApiController]
-    [Route("[controller]")]
-    public class BaseController<TModel, TSearch> : ControllerBase where TSearch : BaseSearchObject
+    public class BaseController<TSearch, TInsert, TUpdate, TResponse> : BaseReadOnlyController<TSearch, TResponse> where TSearch : BaseSearch where TResponse : class
     {
-        protected IBaseService<TModel, TSearch> _service;
+        protected new IBaseService<TSearch, TInsert, TUpdate, TResponse> _service;
 
-        public BaseController(IBaseService<TModel, TSearch> service)
+        public BaseController(IBaseService<TSearch, TInsert, TUpdate, TResponse> service) : base(service)
         {
             _service = service;
         }
 
-        [HttpGet]
-        public PagedResult<TModel> GetAll([FromQuery] TSearch searchObject)
+        [HttpPost]
+        public TResponse Insert(TInsert req)
         {
-            return _service.GetPaged(searchObject);
+            return _service.Insert(req);
         }
 
-        [HttpGet("{id}")]
-        public TModel GetById(int id)
+        [HttpPut("{id}")]
+        public TResponse Update(int id, TUpdate req)
         {
-            return _service.GetById(id);
+            return _service.Update(id, req);
+        }
+
+        [HttpDelete("{id}")]
+        public void Delete(int id)
+        {
+            _service.Delete(id);
         }
     }
 }

@@ -9,7 +9,7 @@ public partial class BookFollow
 
     public int BookId { get; set; }
 
-    public DateTime FollowDate { get; set; }
+    public DateTime? FollowDate { get; set; }
 
     public virtual Book Book { get; set; } = null!;
 

@@ -9,15 +9,15 @@ public partial class Notification
 
     public int UserId { get; set; }
 
-    public string Message { get; set; } = null!;
-
-    public bool IsRead { get; set; }
-
-    public DateTime CreatedDate { get; set; }
+    public int? BookId { get; set; }
 
     public int? PublisherId { get; set; }
 
-    public int? BookId { get; set; }
+    public string Message { get; set; } = null!;
+
+    public bool? IsRead { get; set; }
+
+    public DateTime? CreatedDate { get; set; }
 
     public virtual Book? Book { get; set; }
 

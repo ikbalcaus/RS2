@@ -9,7 +9,9 @@ public partial class ReadingProgress
 
     public int BookId { get; set; }
 
-    public int CurrentPage { get; set; }
+    public double ProgressPercentage { get; set; }
+
+    public DateTime? LastReadDate { get; set; }
 
     public virtual Book Book { get; set; } = null!;
 

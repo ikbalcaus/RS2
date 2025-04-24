@@ -13,6 +13,7 @@ builder.Services.AddDbContext<EBooksContext>(options => options.UseSqlServer(bui
 builder.Services.AddScoped<IMapper, Mapper>();
 
 builder.Services.AddTransient<IUsersService, UsersService>();
+builder.Services.AddTransient<IBooksService, BooksService>();
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())

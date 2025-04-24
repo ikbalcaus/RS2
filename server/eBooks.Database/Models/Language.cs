@@ -9,5 +9,5 @@ public partial class Language
 
     public string Name { get; set; } = null!;
 
-    public string Abbreviation { get; set; } = null!;
+    public string? Abbreviation { get; set; }
 }

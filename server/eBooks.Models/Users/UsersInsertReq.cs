@@ -1,6 +1,6 @@
-namespace eBooks.Models
+namespace eBooks.Models.User
 {
-    public class UserModel
+    public class UsersInsertReq
     {
         public int UserId { get; set; }
         public string FirstName { get; set; }
@@ -8,6 +8,5 @@ namespace eBooks.Models
         public string UserName { get; set; }
         public string Email { get; set; }
         public string RoleId { get; set; }
-        public DateTime RegistrationDate { get; set; }
     }
 }

@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../eBooks.Models/eBooks.Models.csproj" />
+    <ProjectReference Include="..\eBooks.Database\eBooks.Database.csproj" />
   </ItemGroup>
 
 </Project>

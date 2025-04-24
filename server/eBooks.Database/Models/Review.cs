@@ -13,7 +13,7 @@ public partial class Review
 
     public string? Comment { get; set; }
 
-    public DateTime ReviewDate { get; set; }
+    public DateTime? ReviewDate { get; set; }
 
     public virtual Book Book { get; set; } = null!;
 

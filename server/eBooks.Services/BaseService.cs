@@ -1,62 +1,49 @@
 ﻿using eBooks.Database;
+using eBooks.Interfaces;
 using eBooks.Models;
 using MapsterMapper;
 
 namespace eBooks.Services
 {
-    public class BaseService<TModel, TSearch, TDbEntity> : IBaseService<TModel, TSearch> where TSearch : BaseSearchObject where TDbEntity : class where TModel : class
+    public abstract class BaseService<TEntity, TSearch, TInsert, TUpdate, TResponse> : BaseReadOnlyService<TSearch, TEntity, TResponse> where TResponse : class where TSearch : BaseSearch where TEntity : class
     {
-        public EBooksContext _db { get; set; }
-        public IMapper _mapper { get; set; }
-        public BaseService(EBooksContext db, IMapper mapper)
+        public BaseService(EBooksContext db, IMapper mapper) : base(db, mapper)
         {
-            _db = db;
-            _mapper = mapper;
         }
 
-        public PagedResult<TModel> GetPaged(TSearch search)
+        public virtual TResponse Insert(TInsert req)
         {
-            List<TModel> result = new List<TModel>();
-
-            var query = _db.Set<TDbEntity>().AsQueryable();
-
-            query = AddFilter(search, query);
-
-            int count = query.Count();
-
-            if (search?.Page.HasValue == true && search?.PageSize.HasValue == true)
-            {
-                query = query.Skip(search.Page.Value * search.PageSize.Value).Take(search.PageSize.Value);
-            }
-
-            var list = query.ToList();
-
-            result = _mapper.Map(list, result);
-
-            PagedResult<TModel> pagedResult = new PagedResult<TModel>();
-            pagedResult.ResultList = result;
-            pagedResult.Count = count;
-
-            return pagedResult;
+            TEntity entity = _mapper.Map<TEntity>(req);
+            BeforeInsert(req, entity);
+            _db.Add(entity);
+            _db.SaveChanges();
+            return _mapper.Map<TResponse>(entity);
         }
 
-        public virtual IQueryable<TDbEntity> AddFilter(TSearch search, IQueryable<TDbEntity> query)
+        public virtual TResponse Update(int id, TUpdate req)
         {
-            return query;
+            var set = _db.Set<TEntity>();
+            var entity = set.Find(id);
+            _mapper.Map(req, entity);
+            BeforeUpdate(req, entity);
+            _db.SaveChanges();
+            return _mapper.Map<TResponse>(entity);
         }
 
-        public TModel GetById(int id)
+        public virtual void Delete(int id)
         {
-            var entity = _db.Set<TDbEntity>().Find(id);
+            var set = _db.Set<TEntity>();
+            var entity = set.Find(id);
+            set.Remove(entity);
+            _db.SaveChanges();
+        }
 
-            if (entity != null)
-            {
-                return _mapper.Map<TModel>(entity);
-            }
-            else
-            {
-                return null;
-            }
+        public virtual void BeforeInsert(TInsert request, TEntity entity)
+        {
+        }
+
+        public virtual void BeforeUpdate(TUpdate request, TEntity entity)
+        {
         }
     }
 }

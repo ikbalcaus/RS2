@@ -1,8 +1,8 @@
-﻿using eBooks.Models;
-using eBooks.Services;
+﻿using eBooks.Database.Models;
+using eBooks.Models.User;
 
 namespace eBooks.Interfaces;
 
-public interface IUsersService : IBaseService<UserModel, UserSearchObject>
+public interface IUsersService : IBaseService<UsersSearch, UsersInsertReq, UsersUpdateReq, UsersRes>
 {
 }

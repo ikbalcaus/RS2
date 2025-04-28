@@ -1,6 +1,6 @@
 namespace eBooks.Models.User
 {
-    public class UsersInsertReq
+    public class UsersCreateReq
     {
         public int UserId { get; set; }
         public string FirstName { get; set; }

@@ -20,5 +20,10 @@ namespace eBooks.Services.BooksStateMachine
             _db.SaveChanges();
             return _mapper.Map<BooksRes>(entity);
         }
+
+        public override List<string> AllowedActions(Book entity)
+        {
+            return new List<string>() { nameof(Archive) };
+        }
     }
 }

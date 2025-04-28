@@ -7,7 +7,7 @@ namespace eBooks.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class BooksController : BaseController<BooksSearch, BooksInsertReq, BooksUpdateReq, BooksRes>
+    public class BooksController : BaseController<BooksSearch, BooksCreateReq, BooksUpdateReq, BooksRes>
     {
 
         protected new IBooksService _service;
@@ -38,6 +38,12 @@ namespace eBooks.API.Controllers
         public BooksRes Archive(int id)
         {
             return _service.Archive(id);
+        }
+
+        [HttpGet("{id}/allowed-actions")]
+        public List<string> AllowedActions(int id)
+        {
+            return _service.AllowedActions(id);
         }
     }
 }

@@ -1,3 +1,4 @@
+using eBooks.API.Filters;
 using eBooks.Database;
 using eBooks.Interfaces;
 using eBooks.Services;
@@ -22,6 +23,11 @@ builder.Services.AddTransient<ArchiveBooksState>();
 builder.Services.AddTransient<AwaitBooksState>();
 builder.Services.AddTransient<DraftBooksState>();
 builder.Services.AddTransient<RejectBooksState>();
+
+builder.Services.AddControllers(x =>
+{
+    x.Filters.Add<ExceptionFilter>();
+});
 
 var app = builder.Build();
 if (app.Environment.IsDevelopment())

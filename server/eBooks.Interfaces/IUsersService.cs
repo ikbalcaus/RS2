@@ -3,6 +3,6 @@ using eBooks.Models.User;
 
 namespace eBooks.Interfaces;
 
-public interface IUsersService : IBaseService<UsersSearch, UsersInsertReq, UsersUpdateReq, UsersRes>
+public interface IUsersService : IBaseService<UsersSearch, UsersCreateReq, UsersUpdateReq, UsersRes>
 {
 }

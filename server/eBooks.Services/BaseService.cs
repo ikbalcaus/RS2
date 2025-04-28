@@ -2,19 +2,20 @@
 using eBooks.Interfaces;
 using eBooks.Models;
 using MapsterMapper;
+using Microsoft.Extensions.Logging;
 
 namespace eBooks.Services
 {
-    public abstract class BaseService<TEntity, TSearch, TInsert, TUpdate, TResponse> : BaseReadOnlyService<TSearch, TEntity, TResponse> where TResponse : class where TSearch : BaseSearch where TEntity : class
+    public abstract class BaseService<TEntity, TSearch, TCreate, TUpdate, TResponse> : BaseReadOnlyService<TSearch, TEntity, TResponse> where TResponse : class where TSearch : BaseSearch where TEntity : class
     {
         public BaseService(EBooksContext db, IMapper mapper) : base(db, mapper)
         {
         }
 
-        public virtual TResponse Insert(TInsert req)
+        public virtual TResponse Create(TCreate req)
         {
             TEntity entity = _mapper.Map<TEntity>(req);
-            BeforeInsert(req, entity);
+            BeforeCreate(req, entity);
             _db.Add(entity);
             _db.SaveChanges();
             return _mapper.Map<TResponse>(entity);
@@ -38,7 +39,7 @@ namespace eBooks.Services
             _db.SaveChanges();
         }
 
-        public virtual void BeforeInsert(TInsert request, TEntity entity)
+        public virtual void BeforeCreate(TCreate request, TEntity entity)
         {
         }
 

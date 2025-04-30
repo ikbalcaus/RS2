@@ -13,9 +13,9 @@ public partial class Notification
 
     public int? PublisherId { get; set; }
 
-    public DateTime? CreatedDate { get; set; }
-
     public bool? IsRead { get; set; }
+
+    public DateTime? CreatedDate { get; set; }
 
     public virtual Book? Book { get; set; }
 

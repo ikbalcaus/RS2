@@ -7,6 +7,8 @@ public partial class User
 {
     public int UserId { get; set; }
 
+    public string UserName { get; set; } = null!;
+
     public string Email { get; set; } = null!;
 
     public string PasswordHash { get; set; } = null!;
@@ -15,15 +17,11 @@ public partial class User
 
     public string? LastName { get; set; }
 
-    public string? UserName { get; set; }
-
     public DateTime? RegistrationDate { get; set; }
 
-    public int RoleId { get; set; }
+    public string? PasswordSalt { get; set; }
 
     public virtual ICollection<AccessRight> AccessRights { get; set; } = new List<AccessRight>();
-
-    public virtual ICollection<AuthToken> AuthTokens { get; set; } = new List<AuthToken>();
 
     public virtual ICollection<BookFollow> BookFollows { get; set; } = new List<BookFollow>();
 
@@ -49,7 +47,9 @@ public partial class User
 
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
 
-    public virtual Role Role { get; set; } = null!;
+    public virtual ICollection<UserRole> UserRoleAssignedByNavigations { get; set; } = new List<UserRole>();
+
+    public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 
     public virtual ICollection<Wishlist> Wishlists { get; set; } = new List<Wishlist>();
 }

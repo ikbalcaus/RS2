@@ -1,8 +1,7 @@
-﻿using eBooks.Database;
-using eBooks.Interfaces;
+﻿using Azure.Core;
+using eBooks.Database;
 using eBooks.Models;
 using MapsterMapper;
-using Microsoft.Extensions.Logging;
 
 namespace eBooks.Services
 {
@@ -15,7 +14,7 @@ namespace eBooks.Services
         public virtual TResponse Create(TCreate req)
         {
             TEntity entity = _mapper.Map<TEntity>(req);
-            BeforeCreate(req, entity);
+            BeforeCreate(entity, req);
             _db.Add(entity);
             _db.SaveChanges();
             return _mapper.Map<TResponse>(entity);
@@ -26,7 +25,7 @@ namespace eBooks.Services
             var set = _db.Set<TEntity>();
             var entity = set.Find(id);
             _mapper.Map(req, entity);
-            BeforeUpdate(req, entity);
+            BeforeUpdate(entity, req);
             _db.SaveChanges();
             return _mapper.Map<TResponse>(entity);
         }
@@ -39,11 +38,11 @@ namespace eBooks.Services
             _db.SaveChanges();
         }
 
-        public virtual void BeforeCreate(TCreate request, TEntity entity)
+        public virtual void BeforeCreate(TEntity entity, TCreate req)
         {
         }
 
-        public virtual void BeforeUpdate(TUpdate request, TEntity entity)
+        public virtual void BeforeUpdate(TEntity entity, TUpdate req)
         {
         }
     }

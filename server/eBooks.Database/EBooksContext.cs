@@ -18,8 +18,6 @@ public partial class EBooksContext : DbContext
 
     public virtual DbSet<AccessRight> AccessRights { get; set; }
 
-    public virtual DbSet<AuthToken> AuthTokens { get; set; }
-
     public virtual DbSet<Author> Authors { get; set; }
 
     public virtual DbSet<Book> Books { get; set; }
@@ -48,6 +46,8 @@ public partial class EBooksContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
+    public virtual DbSet<UserRole> UserRoles { get; set; }
+
     public virtual DbSet<Wishlist> Wishlists { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -57,43 +57,21 @@ public partial class EBooksContext : DbContext
     {
         modelBuilder.Entity<AccessRight>(entity =>
         {
-            entity.HasKey(e => e.AccessRightId).HasName("PK__AccessRi__4E70724E590A68E2");
+            entity.HasKey(e => e.AccessRightId).HasName("PK__AccessRi__4E70724E8D2D766A");
 
             entity.HasOne(d => d.Book).WithMany(p => p.AccessRights)
                 .HasForeignKey(d => d.BookId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__AccessRig__BookI__5535A963");
+                .HasConstraintName("FK_AccessRights_Books");
 
             entity.HasOne(d => d.User).WithMany(p => p.AccessRights)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__AccessRig__UserI__5629CD9C");
-        });
-
-        modelBuilder.Entity<AuthToken>(entity =>
-        {
-            entity.HasKey(e => e.AuthTokenId).HasName("PK__AuthToke__AB5DD8AFFC5974B4");
-
-            entity.HasIndex(e => e.Token, "UQ__AuthToke__1EB4F81715CC615E").IsUnique();
-
-            entity.Property(e => e.ExpirationDate).HasColumnType("datetime");
-            entity.Property(e => e.LoggedInDate)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.LoggedOutDate)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.Token).HasMaxLength(255);
-
-            entity.HasOne(d => d.User).WithMany(p => p.AuthTokens)
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__AuthToken__UserI__4222D4EF");
+                .HasConstraintName("FK_AccessRights_Users");
         });
 
         modelBuilder.Entity<Author>(entity =>
         {
-            entity.HasKey(e => e.AuthorId).HasName("PK__Authors__70DAFC3457569B2A");
+            entity.HasKey(e => e.AuthorId).HasName("PK__Authors__70DAFC34C7B2392D");
 
             entity.Property(e => e.FirstName).HasMaxLength(100);
             entity.Property(e => e.LastName).HasMaxLength(100);
@@ -101,7 +79,7 @@ public partial class EBooksContext : DbContext
 
         modelBuilder.Entity<Book>(entity =>
         {
-            entity.HasKey(e => e.BookId).HasName("PK__Books__3DE0C2071FAFC1F9");
+            entity.HasKey(e => e.BookId).HasName("PK__Books__3DE0C207BA5DC2A6");
 
             entity.Property(e => e.AddedDate)
                 .HasDefaultValueSql("(getdate())")
@@ -114,36 +92,30 @@ public partial class EBooksContext : DbContext
                 .HasDefaultValue("draft");
             entity.Property(e => e.Title).HasMaxLength(255);
 
-            entity.HasOne(d => d.Genre).WithMany(p => p.Books)
-                .HasForeignKey(d => d.GenreId)
-                .HasConstraintName("FK__Books__GenreId__4AB81AF0");
-
             entity.HasOne(d => d.Publisher).WithMany(p => p.Books)
                 .HasForeignKey(d => d.PublisherId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Books__Publisher__49C3F6B7");
+                .HasConstraintName("FK_Books_Publishers");
 
             entity.HasMany(d => d.Authors).WithMany(p => p.Books)
                 .UsingEntity<Dictionary<string, object>>(
                     "BookAuthor",
                     r => r.HasOne<Author>().WithMany()
                         .HasForeignKey("AuthorId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK__BookAutho__Autho__4E88ABD4"),
+                        .HasConstraintName("FK_BookAuthors_Authors"),
                     l => l.HasOne<Book>().WithMany()
                         .HasForeignKey("BookId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
-                        .HasConstraintName("FK__BookAutho__BookI__4D94879B"),
+                        .HasConstraintName("FK_BookAuthors_Books"),
                     j =>
                     {
-                        j.HasKey("BookId", "AuthorId").HasName("PK__BookAuth__6AED6DC45F71880A");
+                        j.HasKey("BookId", "AuthorId").HasName("PK__BookAuth__6AED6DC4AF7CA17B");
                         j.ToTable("BookAuthors");
                     });
         });
 
         modelBuilder.Entity<BookFollow>(entity =>
         {
-            entity.HasKey(e => new { e.UserId, e.BookId }).HasName("PK__BookFoll__7456C06CE3651439");
+            entity.HasKey(e => new { e.UserId, e.BookId }).HasName("PK__BookFoll__7456C06C379ACAAE");
 
             entity.Property(e => e.FollowDate)
                 .HasDefaultValueSql("(getdate())")
@@ -152,17 +124,16 @@ public partial class EBooksContext : DbContext
             entity.HasOne(d => d.Book).WithMany(p => p.BookFollows)
                 .HasForeignKey(d => d.BookId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__BookFollo__BookI__5AEE82B9");
+                .HasConstraintName("FK_BookFollows_Books");
 
             entity.HasOne(d => d.User).WithMany(p => p.BookFollows)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__BookFollo__UserI__59FA5E80");
+                .HasConstraintName("FK_BookFollows_Users");
         });
 
         modelBuilder.Entity<BookImage>(entity =>
         {
-            entity.HasKey(e => e.ImageId).HasName("PK__BookImag__7516F70C43708B8D");
+            entity.HasKey(e => e.ImageId).HasName("PK__BookImag__7516F70C6FB0F9B5");
 
             entity.Property(e => e.AddedDate)
                 .HasDefaultValueSql("(getdate())")
@@ -171,13 +142,12 @@ public partial class EBooksContext : DbContext
 
             entity.HasOne(d => d.Book).WithMany(p => p.BookImages)
                 .HasForeignKey(d => d.BookId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__BookImage__BookI__52593CB8");
+                .HasConstraintName("FK_BookImages_Books");
         });
 
         modelBuilder.Entity<Favorite>(entity =>
         {
-            entity.HasKey(e => new { e.UserId, e.BookId }).HasName("PK__Favorite__7456C06C151F64E6");
+            entity.HasKey(e => new { e.UserId, e.BookId }).HasName("PK__Favorite__7456C06C7DA8F12B");
 
             entity.Property(e => e.AddedDate)
                 .HasDefaultValueSql("(getdate())")
@@ -186,24 +156,23 @@ public partial class EBooksContext : DbContext
             entity.HasOne(d => d.Book).WithMany(p => p.Favorites)
                 .HasForeignKey(d => d.BookId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Favorites__BookI__5FB337D6");
+                .HasConstraintName("FK_Favorites_Books");
 
             entity.HasOne(d => d.User).WithMany(p => p.Favorites)
                 .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Favorites__UserI__5EBF139D");
+                .HasConstraintName("FK_Favorites_Users");
         });
 
         modelBuilder.Entity<Genre>(entity =>
         {
-            entity.HasKey(e => e.GenreId).HasName("PK__Genres__0385057E8FAE7F28");
+            entity.HasKey(e => e.GenreId).HasName("PK__Genres__0385057E9113D61C");
 
             entity.Property(e => e.Name).HasMaxLength(100);
         });
 
         modelBuilder.Entity<Notification>(entity =>
         {
-            entity.HasKey(e => e.NotificationId).HasName("PK__Notifica__20CF2E12F8C19EEE");
+            entity.HasKey(e => e.NotificationId).HasName("PK__Notifica__20CF2E1285543F93");
 
             entity.Property(e => e.CreatedDate)
                 .HasDefaultValueSql("(getdate())")
@@ -212,21 +181,21 @@ public partial class EBooksContext : DbContext
 
             entity.HasOne(d => d.Book).WithMany(p => p.Notifications)
                 .HasForeignKey(d => d.BookId)
-                .HasConstraintName("FK__Notificat__BookI__7D439ABD");
+                .HasConstraintName("FK_Notifications_Books");
 
             entity.HasOne(d => d.Publisher).WithMany(p => p.NotificationPublishers)
                 .HasForeignKey(d => d.PublisherId)
-                .HasConstraintName("FK__Notificat__Publi__7E37BEF6");
+                .HasConstraintName("FK_Notifications_Publishers");
 
             entity.HasOne(d => d.User).WithMany(p => p.NotificationUsers)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Notificat__UserI__7C4F7684");
+                .HasConstraintName("FK_Notifications_Users");
         });
 
         modelBuilder.Entity<PublisherFollow>(entity =>
         {
-            entity.HasKey(e => new { e.UserId, e.PublisherId }).HasName("PK__Publishe__B34E9BB63B6E14B7");
+            entity.HasKey(e => new { e.UserId, e.PublisherId }).HasName("PK__Publishe__B34E9BB62937E393");
 
             entity.Property(e => e.FollowDate)
                 .HasDefaultValueSql("(getdate())")
@@ -235,38 +204,38 @@ public partial class EBooksContext : DbContext
             entity.HasOne(d => d.Publisher).WithMany(p => p.PublisherFollowPublishers)
                 .HasForeignKey(d => d.PublisherId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Publisher__Publi__72C60C4A");
+                .HasConstraintName("FK_PublisherFollows_Publishers");
 
             entity.HasOne(d => d.User).WithMany(p => p.PublisherFollowUsers)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Publisher__UserI__71D1E811");
+                .HasConstraintName("FK_PublisherFollows_Users");
         });
 
         modelBuilder.Entity<PublisherVerification>(entity =>
         {
-            entity.HasKey(e => e.VerificationId).HasName("PK__Publishe__306D4907BAD5BE60");
+            entity.HasKey(e => e.VerificationId).HasName("PK__Publishe__306D490707BF17DB");
 
             entity.ToTable("PublisherVerification");
 
-            entity.HasIndex(e => e.PublisherId, "UQ__Publishe__4C657FAA7BEE53B2").IsUnique();
+            entity.HasIndex(e => e.PublisherId, "UQ__Publishe__4C657FAAE3E05FBF").IsUnique();
 
             entity.Property(e => e.VerificationDate).HasColumnType("datetime");
 
             entity.HasOne(d => d.Admin).WithMany(p => p.PublisherVerificationAdmins)
                 .HasForeignKey(d => d.AdminId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Publisher__Admin__778AC167");
+                .HasConstraintName("FK_PublisherVerification_Admins");
 
             entity.HasOne(d => d.Publisher).WithOne(p => p.PublisherVerificationPublisher)
                 .HasForeignKey<PublisherVerification>(d => d.PublisherId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Publisher__Publi__76969D2E");
+                .HasConstraintName("FK_PublisherVerification_Publishers");
         });
 
         modelBuilder.Entity<Purchase>(entity =>
         {
-            entity.HasKey(e => new { e.UserId, e.BookId }).HasName("PK__Purchase__7456C06CEA04DCA2");
+            entity.HasKey(e => new { e.UserId, e.BookId }).HasName("PK__Purchase__7456C06C11BD4A7E");
 
             entity.Property(e => e.PurchaseDate)
                 .HasDefaultValueSql("(getdate())")
@@ -276,17 +245,17 @@ public partial class EBooksContext : DbContext
             entity.HasOne(d => d.Book).WithMany(p => p.Purchases)
                 .HasForeignKey(d => d.BookId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Purchases__BookI__6477ECF3");
+                .HasConstraintName("FK_Purchases_Books");
 
             entity.HasOne(d => d.User).WithMany(p => p.Purchases)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Purchases__UserI__6383C8BA");
+                .HasConstraintName("FK_Purchases_Users");
         });
 
         modelBuilder.Entity<ReadingProgress>(entity =>
         {
-            entity.HasKey(e => new { e.UserId, e.BookId }).HasName("PK__ReadingP__7456C06CFDD6E7F3");
+            entity.HasKey(e => new { e.UserId, e.BookId }).HasName("PK__ReadingP__7456C06C15862FC7");
 
             entity.Property(e => e.LastReadDate)
                 .HasDefaultValueSql("(getdate())")
@@ -295,17 +264,17 @@ public partial class EBooksContext : DbContext
             entity.HasOne(d => d.Book).WithMany(p => p.ReadingProgresses)
                 .HasForeignKey(d => d.BookId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ReadingPr__BookI__693CA210");
+                .HasConstraintName("FK_ReadingProgresses_Books");
 
             entity.HasOne(d => d.User).WithMany(p => p.ReadingProgresses)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ReadingPr__UserI__68487DD7");
+                .HasConstraintName("FK_ReadingProgresses_Users");
         });
 
         modelBuilder.Entity<Review>(entity =>
         {
-            entity.HasKey(e => new { e.BookId, e.UserId }).HasName("PK__Reviews__EC984EC398F61D50");
+            entity.HasKey(e => new { e.BookId, e.UserId }).HasName("PK__Reviews__EC984EC334CF337C");
 
             entity.Property(e => e.ReviewDate)
                 .HasDefaultValueSql("(getdate())")
@@ -314,47 +283,65 @@ public partial class EBooksContext : DbContext
             entity.HasOne(d => d.Book).WithMany(p => p.Reviews)
                 .HasForeignKey(d => d.BookId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Reviews__BookId__6D0D32F4");
+                .HasConstraintName("FK_Reviews_Books");
 
             entity.HasOne(d => d.User).WithMany(p => p.Reviews)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Reviews__UserId__6E01572D");
+                .HasConstraintName("FK_Reviews_Users");
         });
 
         modelBuilder.Entity<Role>(entity =>
         {
-            entity.HasKey(e => e.RoleId).HasName("PK__Roles__8AFACE1ADF1184D3");
+            entity.HasKey(e => e.RoleId).HasName("PK__Roles__8AFACE1A4CD009CD");
 
-            entity.HasIndex(e => e.Name, "UQ__Roles__737584F63D89492E").IsUnique();
-
-            entity.Property(e => e.Name).HasMaxLength(50);
+            entity.Property(e => e.Name).HasMaxLength(100);
         });
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.UserId).HasName("PK__Users__1788CC4C654A6007");
+            entity.HasKey(e => e.UserId).HasName("PK__Users__1788CC4C2A80D577");
 
-            entity.HasIndex(e => e.Email, "UQ__Users__A9D105347B14893F").IsUnique();
+            entity.HasIndex(e => e.Email, "UQ__Users__A9D10534CD6C4865").IsUnique();
 
             entity.Property(e => e.Email).HasMaxLength(100);
             entity.Property(e => e.FirstName).HasMaxLength(100);
             entity.Property(e => e.LastName).HasMaxLength(100);
             entity.Property(e => e.PasswordHash).HasMaxLength(255);
+            entity.Property(e => e.PasswordSalt).HasMaxLength(255);
             entity.Property(e => e.RegistrationDate)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
             entity.Property(e => e.UserName).HasMaxLength(100);
+        });
 
-            entity.HasOne(d => d.Role).WithMany(p => p.Users)
+        modelBuilder.Entity<UserRole>(entity =>
+        {
+            entity.HasKey(e => new { e.UserId, e.RoleId }).HasName("PK__UserRole__AF2760AD3A788662");
+
+            entity.Property(e => e.AssignedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+
+            entity.HasOne(d => d.AssignedByNavigation).WithMany(p => p.UserRoleAssignedByNavigations)
+                .HasForeignKey(d => d.AssignedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__UserRoles__Assig__1EA48E88");
+
+            entity.HasOne(d => d.Role).WithMany(p => p.UserRoles)
                 .HasForeignKey(d => d.RoleId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Users__RoleId__3C69FB99");
+                .HasConstraintName("FK__UserRoles__RoleI__1DB06A4F");
+
+            entity.HasOne(d => d.User).WithMany(p => p.UserRoles)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__UserRoles__UserI__1CBC4616");
         });
 
         modelBuilder.Entity<Wishlist>(entity =>
         {
-            entity.HasKey(e => new { e.UserId, e.BookId }).HasName("PK__Wishlist__7456C06C44D4A509");
+            entity.HasKey(e => new { e.UserId, e.BookId }).HasName("PK__Wishlist__7456C06CA853592A");
 
             entity.Property(e => e.AddedDate)
                 .HasDefaultValueSql("(getdate())")
@@ -363,12 +350,12 @@ public partial class EBooksContext : DbContext
             entity.HasOne(d => d.Book).WithMany(p => p.Wishlists)
                 .HasForeignKey(d => d.BookId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Wishlists__BookI__02FC7413");
+                .HasConstraintName("FK_Wishlists_Books");
 
             entity.HasOne(d => d.User).WithMany(p => p.Wishlists)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Wishlists__UserI__02084FDA");
+                .HasConstraintName("FK_Wishlists_Users");
         });
 
         OnModelCreatingPartial(modelBuilder);

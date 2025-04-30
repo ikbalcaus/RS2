@@ -11,7 +11,7 @@ public partial class Purchase
 
     public DateTime? PurchaseDate { get; set; }
 
-    public decimal TotalPrice { get; set; }
+    public decimal? TotalPrice { get; set; }
 
     public virtual Book Book { get; set; } = null!;
 

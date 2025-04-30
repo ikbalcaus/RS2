@@ -9,19 +9,19 @@ public partial class Book
 
     public string Title { get; set; } = null!;
 
-    public decimal Price { get; set; }
-
-    public DateTime? AddedDate { get; set; }
-
     public int PublisherId { get; set; }
 
     public int? GenreId { get; set; }
 
+    public decimal? Price { get; set; }
+
     public string? Pdfpath { get; set; }
 
-    public string? RejectionReason { get; set; }
+    public DateTime? AddedDate { get; set; }
 
     public string? StateMachine { get; set; }
+
+    public string? RejectionReason { get; set; }
 
     public virtual ICollection<AccessRight> AccessRights { get; set; } = new List<AccessRight>();
 
@@ -30,8 +30,6 @@ public partial class Book
     public virtual ICollection<BookImage> BookImages { get; set; } = new List<BookImage>();
 
     public virtual ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
-
-    public virtual Genre? Genre { get; set; }
 
     public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 

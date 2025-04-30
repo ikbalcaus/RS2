@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc;
-using System.Net;
 using eBooks.Models;
 
 namespace eBooks.API.Filters
@@ -21,12 +20,12 @@ namespace eBooks.API.Filters
             if (context.Exception is ExceptionResult)
             {
                 context.ModelState.AddModelError("error", context.Exception.Message);
-                context.HttpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                context.HttpContext.Response.StatusCode = 400;
             }
             else
             {
                 context.ModelState.AddModelError("error", "Server side error");
-                context.HttpContext.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                context.HttpContext.Response.StatusCode = 500;
             }
 
             var list = context.ModelState.Where(x => x.Value.Errors.Count() > 0).ToDictionary(x => x.Key, y => y.Value.Errors.Select(z => z.ErrorMessage));

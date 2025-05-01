@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 
 namespace eBooks.Services;
 
-public class UsersService : BaseService<User, UsersSearch, UsersCreateReq, UsersUpdateReq, UsersRes>, IUsersService
+public class UsersService : BaseService<UserRes, UsersSearch, UsersCreateReq, UsersUpdateReq, UsersRes>, IUsersService
 {
     protected ILogger<UsersService> _logger;
 
@@ -22,7 +22,7 @@ public class UsersService : BaseService<User, UsersSearch, UsersCreateReq, Users
         _logger = logger;
     }
 
-    public override IQueryable<User> AddFilter(UsersSearch search, IQueryable<User> query)
+    public override IQueryable<UserRes> AddFilter(UsersSearch search, IQueryable<UserRes> query)
     {
         if (!string.IsNullOrWhiteSpace(search?.FNameGTE))
         {
@@ -32,17 +32,13 @@ public class UsersService : BaseService<User, UsersSearch, UsersCreateReq, Users
         {
             query = query.Where(x => x.LastName.StartsWith(search.LNameGTE));
         }
-        if (!string.IsNullOrWhiteSpace(search?.Email))
+        if (!string.IsNullOrWhiteSpace(search?.EmailGTE))
         {
-            query = query.Where(x => x.Email == search.Email);
+            query = query.Where(x => x.Email.StartsWith(search.EmailGTE));
         }
         if (!string.IsNullOrWhiteSpace(search?.UNameGTE))
         {
             query = query.Where(x => x.UserName.StartsWith(search.UNameGTE));
-        }
-        if (search.IsUserRolesIncluded == true)
-        {
-            query = query.Include(x => x.UserRoles).ThenInclude(x => x.Role);
         }
         return query;
     }
@@ -55,7 +51,7 @@ public class UsersService : BaseService<User, UsersSearch, UsersCreateReq, Users
 
     public override UsersRes Update(int id, UsersUpdateReq req)
     {
-        var set = _db.Set<User>();
+        var set = _db.Set<UserRes>();
         var entity = set.Find(id);
         _logger.LogInformation($"User with email {entity.Email} updated.");
         _mapper.Map(req, entity);
@@ -65,14 +61,14 @@ public class UsersService : BaseService<User, UsersSearch, UsersCreateReq, Users
 
     public override void Delete(int id)
     {
-        var set = _db.Set<User>();
+        var set = _db.Set<UserRes>();
         var entity = set.Find(id);
         _logger.LogInformation($"User with email {entity.Email} deleted.");
         set.Remove(entity);
         _db.SaveChanges();
     }
 
-    public override void BeforeCreate(User entity, UsersCreateReq req)
+    public override void BeforeCreate(UserRes entity, UsersCreateReq req)
     {
         if (!Helpers.IsEmailValid(req.Email)) throw new ExceptionResult("Email is not valid");
         if (_db.Users.Any(x => x.Email == req.Email)) throw new ExceptionResult("Email already exist");
@@ -81,7 +77,7 @@ public class UsersService : BaseService<User, UsersSearch, UsersCreateReq, Users
         entity.PasswordHash = Helpers.GenerateHash(entity.PasswordSalt, req.Password);
     }
 
-    public override void BeforeUpdate(User entity, UsersUpdateReq req)
+    public override void BeforeUpdate(UserRes entity, UsersUpdateReq req)
     {
         if (!Helpers.IsPasswordValid(req.Password)) throw new ExceptionResult("Password is not valid");
         if (req.Password != null)

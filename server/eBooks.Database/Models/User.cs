@@ -3,23 +3,23 @@ using System.Collections.Generic;
 
 namespace eBooks.Database.Models;
 
-public partial class User
+public partial class UserRes
 {
     public int UserId { get; set; }
 
-    public string UserName { get; set; } = null!;
-
-    public string Email { get; set; } = null!;
-
-    public string PasswordHash { get; set; } = null!;
+    public string? UserName { get; set; }
 
     public string? FirstName { get; set; }
 
     public string? LastName { get; set; }
 
-    public DateTime? RegistrationDate { get; set; }
+    public string? Email { get; set; }
+
+    public string? PasswordHash { get; set; }
 
     public string? PasswordSalt { get; set; }
+
+    public DateTime? RegistrationDate { get; set; }
 
     public virtual ICollection<AccessRight> AccessRights { get; set; } = new List<AccessRight>();
 
@@ -46,8 +46,6 @@ public partial class User
     public virtual ICollection<ReadingProgress> ReadingProgresses { get; set; } = new List<ReadingProgress>();
 
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
-
-    public virtual ICollection<UserRole> UserRoleAssignedByNavigations { get; set; } = new List<UserRole>();
 
     public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 

@@ -1,9 +1,11 @@
 ﻿using eBooks.Models;
 using eBooks.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace eBooks.API.Controllers
 {
+    [Authorize(Roles = "")]
     [ApiController]
     [Route("[controller]")]
     public class BaseReadOnlyController<TSearch, TResponse> : ControllerBase where TSearch : BaseSearch
@@ -16,13 +18,13 @@ namespace eBooks.API.Controllers
         }
 
         [HttpGet]
-        public PagedResult<TResponse> GetAll([FromQuery] TSearch search)
+        public virtual PagedResult<TResponse> GetAll([FromQuery] TSearch search)
         {
             return _service.GetPaged(search);
         }
 
         [HttpGet("{id}")]
-        public TResponse GetById(int id)
+        public virtual TResponse GetById(int id)
         {
             return _service.GetById(id);
         }

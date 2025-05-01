@@ -1,6 +1,10 @@
-﻿using Azure;
+﻿using System.Dynamic;
+using Azure;
 using eBooks.Interfaces;
+using eBooks.Models;
 using eBooks.Models.Books;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace eBooks.API.Controllers
@@ -9,11 +13,23 @@ namespace eBooks.API.Controllers
     [Route("[controller]")]
     public class BooksController : BaseController<BooksSearch, BooksCreateReq, BooksUpdateReq, BooksRes>
     {
-
         protected new IBooksService _service;
+
         public BooksController(IBooksService service) : base(service)
         {
             _service = service;
+        }
+
+        [AllowAnonymous]
+        public override PagedResult<BooksRes> GetAll([FromQuery] BooksSearch search)
+        {
+            return base.GetAll(search);
+        }
+
+        [AllowAnonymous]
+        public override BooksRes GetById(int id)
+        {
+            return base.GetById(id);
         }
 
         [HttpPatch("{id}/await")]

@@ -7,6 +7,6 @@ namespace eBooks.Interfaces
     {
         TResponse Create(TCreate req);
         TResponse Update(int id, TUpdate req);
-        void Delete(int id);
+        TResponse Delete(int id);
     }
 }

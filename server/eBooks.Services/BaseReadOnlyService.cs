@@ -6,8 +6,8 @@ namespace eBooks.Services
 {
     public class BaseReadOnlyService<TSearch, TEntity, TResponse> : IBaseReadOnlyService<TSearch, TResponse> where TSearch : BaseSearch where TEntity : class where TResponse : class
     {
-        protected EBooksContext _db { get; set; }
-        protected IMapper _mapper { get; set; }
+        protected EBooksContext _db;
+        protected IMapper _mapper;
 
         public BaseReadOnlyService(EBooksContext db, IMapper mapper)
         {

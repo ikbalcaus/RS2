@@ -1,4 +1,6 @@
-﻿namespace eBooks.Models.Roles
+﻿using eBooks.Models.Roles;
+
+namespace eBooks.Models.Users
 {
     public class UserRolesRes
     {

@@ -15,5 +15,5 @@ public partial class Purchase
 
     public virtual Book Book { get; set; } = null!;
 
-    public virtual User User { get; set; } = null!;
+    public virtual UserRes User { get; set; } = null!;
 }

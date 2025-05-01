@@ -6,6 +6,7 @@ using eBooks.Models.Books;
 using eBooks.Models.User;
 using eBooks.Services.BooksStateMachine;
 using MapsterMapper;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace eBooks.Services
@@ -19,6 +20,46 @@ namespace eBooks.Services
         {
             _logger = logger;
             _baseBooksState = baseProizvodiState;
+        }
+
+        public override IQueryable<Book> AddFilter(BooksSearch search, IQueryable<Book> query)
+        {
+            if (!string.IsNullOrWhiteSpace(search?.TitleGTE))
+            {
+                query = query.Where(x => x.Title.StartsWith(search.TitleGTE));
+            }
+            if (search?.MinPrice != null)
+            {
+                query = query.Where(x => x.Price >= search.MinPrice);
+            }
+            if (search?.MaxPrice != null)
+            {
+                query = query.Where(x => x.Price <= search.MinPrice);
+            }
+            if (!string.IsNullOrWhiteSpace(search?.StateMachine))
+            {
+                query = query.Where(x => x.StateMachine == "approved");
+            }
+            if (!string.IsNullOrWhiteSpace(search?.AuthorNameGTE))
+            {
+                query = query
+                    .Include(x => x.BookAuthors)
+                        .ThenInclude(x => x.Author)
+                    .Where(x => x.BookAuthors.Any(x => 
+                        (x.Author.FirstName + ' ' + x.Author.LastName).StartsWith(search.AuthorNameGTE) ||
+                        (x.Author.LastName + ' ' + x.Author.FirstName).StartsWith(search.AuthorNameGTE))
+                    );
+            }
+            if (!string.IsNullOrWhiteSpace(search?.PublisherNameGTE))
+            {
+                query = query
+                    .Include(x => x.PublisherId)
+                    .Where(x =>
+                        (x.Publisher.FirstName + ' ' + x.Publisher.LastName).StartsWith(search.PublisherNameGTE) ||
+                        (x.Publisher.LastName + ' ' + x.Publisher.FirstName).StartsWith(search.PublisherNameGTE)
+                    );
+            }
+            return query;
         }
 
         public override BooksRes Create(BooksCreateReq req)

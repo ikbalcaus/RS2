@@ -1,5 +1,4 @@
-﻿using Azure.Core;
-using eBooks.Database;
+﻿using eBooks.Database;
 using eBooks.Models;
 using MapsterMapper;
 
@@ -30,12 +29,13 @@ namespace eBooks.Services
             return _mapper.Map<TResponse>(entity);
         }
 
-        public virtual void Delete(int id)
+        public virtual TResponse Delete(int id)
         {
             var set = _db.Set<TEntity>();
             var entity = set.Find(id);
             set.Remove(entity);
             _db.SaveChanges();
+            return null;
         }
 
         public virtual void BeforeCreate(TEntity entity, TCreate req)

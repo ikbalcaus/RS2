@@ -9,13 +9,9 @@ public partial class UserRole
 
     public int RoleId { get; set; }
 
-    public int AssignedBy { get; set; }
-
-    public DateTime AssignedAt { get; set; }
-
-    public virtual User AssignedByNavigation { get; set; } = null!;
+    public DateTime? AssignedAt { get; set; }
 
     public virtual Role Role { get; set; } = null!;
 
-    public virtual User User { get; set; } = null!;
+    public virtual UserRes User { get; set; } = null!;
 }

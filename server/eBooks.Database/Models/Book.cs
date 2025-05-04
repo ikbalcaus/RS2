@@ -35,7 +35,7 @@ public partial class Book
 
     public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 
-    public virtual UserRes Publisher { get; set; } = null!;
+    public virtual User Publisher { get; set; } = null!;
 
     public virtual ICollection<Purchase> Purchases { get; set; } = new List<Purchase>();
 

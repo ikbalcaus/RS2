@@ -21,6 +21,11 @@ namespace eBooks.Services.BooksStateMachine
             _serviceProvider = serviceProvider;
         }
 
+        public virtual BooksRes Update(int id, BooksUpdateReq req)
+        {
+            throw new ExceptionResult("Method not allowed");
+        }
+
         public virtual BooksRes Await(int id)
         {
             throw new ExceptionResult("Method not allowed");
@@ -36,7 +41,7 @@ namespace eBooks.Services.BooksStateMachine
             throw new ExceptionResult("Method not allowed");
         }
 
-        public virtual BooksRes Archive(int id)
+        public virtual BooksRes Hide(int id)
         {
             throw new ExceptionResult("Method not allowed");
         }
@@ -59,7 +64,7 @@ namespace eBooks.Services.BooksStateMachine
                 case "reject":
                     return _serviceProvider.GetService<RejectBooksState>();
                 case "archive":
-                    return _serviceProvider.GetService<ArchiveBooksState>();
+                    return _serviceProvider.GetService<HideBooksState>();
                 default:
                     throw new ExceptionResult("State not recognized");
             }

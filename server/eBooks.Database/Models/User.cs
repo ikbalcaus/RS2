@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace eBooks.Database.Models;
 
-public partial class UserRes
+public partial class User
 {
     public int UserId { get; set; }
 

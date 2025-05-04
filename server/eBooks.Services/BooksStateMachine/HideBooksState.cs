@@ -5,9 +5,9 @@ using MapsterMapper;
 
 namespace eBooks.Services.BooksStateMachine
 {
-    public class RejectBooksState : BaseBooksState
+    public class HideBooksState : BaseBooksState
     {
-        public RejectBooksState(EBooksContext db, IMapper mapper, IServiceProvider serviceProvider) : base(db, mapper, serviceProvider)
+        public HideBooksState(EBooksContext db, IMapper mapper, IServiceProvider serviceProvider) : base(db, mapper, serviceProvider)
         {
         }
 
@@ -20,9 +20,18 @@ namespace eBooks.Services.BooksStateMachine
             return _mapper.Map<BooksRes>(entity);
         }
 
+        public override BooksRes Hide(int id)
+        {
+            var set = _db.Set<Book>();
+            var entity = set.Find(id);
+            entity.StateMachine = "approve";
+            _db.SaveChanges();
+            return _mapper.Map<BooksRes>(entity);
+        }
+
         public override List<string> AllowedActions(Book entity)
         {
-            return new List<string>() {nameof(Update)};
+            return new List<string>() { nameof(Update), nameof(Hide) };
         }
     }
 }

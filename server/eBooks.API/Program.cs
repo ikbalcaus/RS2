@@ -17,13 +17,12 @@ builder.Services.AddRouting(options => options.LowercaseUrls = true);
 builder.Services.AddDbContext<EBooksContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("Database")));
 builder.Services.AddScoped<IMapper, Mapper>();
 
-builder.Services.AddTransient<IAuthService, AuthService>();
 builder.Services.AddTransient<IUsersService, UsersService>();
 builder.Services.AddTransient<IBooksService, BooksService>();
 
 builder.Services.AddTransient<BaseBooksState>();
 builder.Services.AddTransient<ApproveBooksState>();
-builder.Services.AddTransient<ArchiveBooksState>();
+builder.Services.AddTransient<HideBooksState>();
 builder.Services.AddTransient<AwaitBooksState>();
 builder.Services.AddTransient<DraftBooksState>();
 builder.Services.AddTransient<RejectBooksState>();

@@ -21,7 +21,7 @@ public partial class Notification
 
     public virtual Book? Book { get; set; }
 
-    public virtual UserRes? Publisher { get; set; }
+    public virtual User? Publisher { get; set; }
 
-    public virtual UserRes User { get; set; } = null!;
+    public virtual User User { get; set; } = null!;
 }

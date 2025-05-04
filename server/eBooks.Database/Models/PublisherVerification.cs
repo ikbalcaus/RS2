@@ -13,7 +13,7 @@ public partial class PublisherVerification
 
     public DateTime? VerificationDate { get; set; }
 
-    public virtual UserRes Admin { get; set; } = null!;
+    public virtual User Admin { get; set; } = null!;
 
-    public virtual UserRes? Publisher { get; set; }
+    public virtual User? Publisher { get; set; }
 }

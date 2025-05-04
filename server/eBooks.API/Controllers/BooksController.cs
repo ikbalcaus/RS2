@@ -1,10 +1,7 @@
-﻿using System.Dynamic;
-using Azure;
-using eBooks.Interfaces;
+﻿using eBooks.Interfaces;
 using eBooks.Models;
 using eBooks.Models.Books;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace eBooks.API.Controllers
@@ -32,30 +29,53 @@ namespace eBooks.API.Controllers
             return base.GetById(id);
         }
 
+        [Authorize(Roles = "Publisher")]
+        public override BooksRes Create(BooksCreateReq req)
+        {
+            return base.Create(req);
+        }
+
+        [Authorize(Roles = "Publisher")]
+        public override BooksRes Update(int id, BooksUpdateReq req)
+        {
+            return base.Update(id, req);
+        }
+
+        [Authorize(Roles = "Publisher")]
+        public override BooksRes Delete(int id)
+        {
+            return base.Delete(id);
+        }
+
+        [Authorize(Roles = "Publisher")]
         [HttpPatch("{id}/await")]
         public BooksRes Await(int id)
         {
             return _service.Await(id);
         }
 
+        [Authorize(Roles = "Admin,Moderator")]
         [HttpPatch("{id}/approve")]
         public BooksRes Approve(int id)
         {
             return _service.Approve(id);
         }
 
+        [Authorize(Roles = "Admin,Moderator")]
         [HttpPatch("{id}/reject")]
         public BooksRes Reject(int id, string message)
         {
             return _service.Reject(id, message);
         }
 
-        [HttpPatch("{id}/archive")]
+        [Authorize(Roles = "Publisher")]
+        [HttpPatch("{id}/hide")]
         public BooksRes Archive(int id)
         {
-            return _service.Archive(id);
+            return _service.Hide(id);
         }
 
+        [AllowAnonymous]
         [HttpGet("{id}/allowed-actions")]
         public List<string> AllowedActions(int id)
         {

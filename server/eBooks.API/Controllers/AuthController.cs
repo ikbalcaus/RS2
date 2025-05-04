@@ -1,8 +1,5 @@
-﻿using Azure;
-using eBooks.Interfaces;
+﻿using eBooks.Interfaces;
 using eBooks.Models.User;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace eBooks.API.Controllers
@@ -11,9 +8,9 @@ namespace eBooks.API.Controllers
     [Route("[controller]")]
     public class AuthController : ControllerBase
     {
-        protected IAuthService _service;
+        protected IUsersService _service;
 
-        public AuthController(IAuthService service)
+        public AuthController(IUsersService service)
         {
             _service = service;
         }
@@ -21,13 +18,14 @@ namespace eBooks.API.Controllers
         [HttpPost("register")]
         public UsersRes Register(UsersCreateReq req)
         {
-            return _service.Register(req);
+            req.IsRegistering = true;
+            return _service.Create(req);
         }
 
         [HttpPost("login")]
-        public UsersRes Login(string username, string password)
+        public UsersRes Login(string email, string password)
         {
-            return _service.Login(username, password);
+            return _service.Login(email, password);
         }
     }
 }

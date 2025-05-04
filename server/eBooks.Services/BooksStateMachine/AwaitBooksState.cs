@@ -11,11 +11,21 @@ namespace eBooks.Services.BooksStateMachine
         {
         }
 
+        public override BooksRes Update(int id, BooksUpdateReq req)
+        {
+            var set = _db.Set<Book>();
+            var entity = set.Find(id);
+            entity.StateMachine = "draft";
+            _db.SaveChanges();
+            return _mapper.Map<BooksRes>(entity);
+        }
+
         public override BooksRes Approve(int id)
         {
             var set = _db.Set<Book>();
             var entity = set.Find(id);
             entity.StateMachine = "approve";
+            entity.RejectionReason = "";
             _db.SaveChanges();
             return _mapper.Map<BooksRes>(entity);
         }
@@ -32,7 +42,7 @@ namespace eBooks.Services.BooksStateMachine
 
         public override List<string> AllowedActions(Book entity)
         {
-            return new List<string>() { nameof(Approve), nameof(Reject) };
+            return new List<string>() { nameof(Update), nameof(Approve), nameof(Reject) };
         }
     }
 }

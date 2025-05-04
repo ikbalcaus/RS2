@@ -12,18 +12,18 @@ namespace eBooks.Services.BooksStateMachine
         {
         }
 
-        public override BooksRes Archive(int id)
+        public override BooksRes Hide(int id)
         {
             var set = _db.Set<Book>();
             var entity = set.Find(id);
-            entity.StateMachine = "archive";
+            entity.StateMachine = "Hide";
             _db.SaveChanges();
             return _mapper.Map<BooksRes>(entity);
         }
 
         public override List<string> AllowedActions(Book entity)
         {
-            return new List<string>() { nameof(Archive) };
+            return new List<string>() { nameof(Hide) };
         }
     }
 }

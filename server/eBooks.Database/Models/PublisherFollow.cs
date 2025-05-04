@@ -11,7 +11,7 @@ public partial class PublisherFollow
 
     public DateTime? FollowDate { get; set; }
 
-    public virtual UserRes Publisher { get; set; } = null!;
+    public virtual User Publisher { get; set; } = null!;
 
-    public virtual UserRes User { get; set; } = null!;
+    public virtual User User { get; set; } = null!;
 }

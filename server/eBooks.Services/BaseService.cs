@@ -45,5 +45,9 @@ namespace eBooks.Services
         public virtual void BeforeUpdate(TEntity entity, TUpdate req)
         {
         }
+
+        public virtual void BeforeDelete(TEntity entity, int id)
+        {
+        }
     }
 }

@@ -23,6 +23,7 @@ namespace eBooks.Services
         {
             var set = _db.Set<TEntity>();
             var entity = set.Find(id);
+            if (entity == null) return null;
             _mapper.Map(req, entity);
             BeforeUpdate(entity, req);
             _db.SaveChanges();
@@ -33,6 +34,7 @@ namespace eBooks.Services
         {
             var set = _db.Set<TEntity>();
             var entity = set.Find(id);
+            if (entity == null) return null;
             set.Remove(entity);
             _db.SaveChanges();
             return null;

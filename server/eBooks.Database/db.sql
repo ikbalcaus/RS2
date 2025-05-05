@@ -56,6 +56,7 @@ CREATE TABLE Books (
     AddedDate DATETIME DEFAULT GETDATE(),
     StateMachine NVARCHAR(50) DEFAULT 'draft',
     RejectionReason NVARCHAR(500),
+    isDeleted BIT DEFAULT 0,
     FOREIGN KEY (PublisherId) REFERENCES Users(UserId)
 );
 

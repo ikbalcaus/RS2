@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace eBooks.API.Controllers
 {
-    [Authorize(Roles = "")]
+    [Authorize]
     [ApiController]
     [Route("[controller]")]
     public class BaseReadOnlyController<TSearch, TResponse> : ControllerBase where TSearch : BaseSearch

@@ -29,25 +29,33 @@ namespace eBooks.API.Controllers
             return base.GetById(id);
         }
 
-        [Authorize(Roles = "Publisher")]
+        [Authorize(Roles = "User")]
         public override BooksRes Create(BooksCreateReq req)
         {
             return base.Create(req);
         }
 
-        [Authorize(Roles = "Publisher")]
+        [Authorize(Roles = "User,Admin,Moderator")]
         public override BooksRes Update(int id, BooksUpdateReq req)
         {
             return base.Update(id, req);
         }
 
-        [Authorize(Roles = "Publisher")]
+        [Authorize(Roles = "User,Admin,Moderator")]
         public override BooksRes Delete(int id)
         {
             return base.Delete(id);
         }
 
-        [Authorize(Roles = "Publisher")]
+        [Authorize(Roles = "User")]
+        [HttpPatch("{id}/pdf-file")]
+        public BooksRes UploadPdfFile(int id, IFormFile file)
+        {
+            if (file == null || file.ContentType != "application/pdf") throw new ExceptionResult("Only PDF files are allowed");
+            return _service.UploadPdfFile(id, file.OpenReadStream());
+        }
+
+        [Authorize(Roles = "User")]
         [HttpPatch("{id}/await")]
         public BooksRes Await(int id)
         {
@@ -68,7 +76,7 @@ namespace eBooks.API.Controllers
             return _service.Reject(id, message);
         }
 
-        [Authorize(Roles = "Publisher")]
+        [Authorize(Roles = "User")]
         [HttpPatch("{id}/hide")]
         public BooksRes Archive(int id)
         {

@@ -34,13 +34,13 @@ namespace eBooks.API.Controllers
             return base.Create(req);
         }
 
-        [Authorize(Roles = "User,Publisher,Admin,Moderator")]
+        [Authorize(Roles = "User,Admin,Moderator")]
         public override UsersRes Update(int id, UsersUpdateReq req)
         {
             return base.Update(id, req);
         }
 
-        [Authorize(Roles = "User,Publisher,Admin,Moderator")]
+        [Authorize(Roles = "User,Admin,Moderator")]
         public override UsersRes Delete(int id)
         {
             return base.Delete(id);

@@ -36,8 +36,8 @@ namespace eBooks.Services
         public TResponse GetById(int id)
         {
             var entity = _db.Set<TEntity>().Find(id);
-            if (entity != null) return _mapper.Map<TResponse>(entity);
-            else return null;
+            if (entity == null) return null;
+            else return _mapper.Map<TResponse>(entity);
         }
 
         public virtual IQueryable<TEntity> AddFilter(TSearch search, IQueryable<TEntity> query)

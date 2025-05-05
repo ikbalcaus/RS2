@@ -21,6 +21,8 @@ public partial class Book
 
     public string? RejectionReason { get; set; }
 
+    public bool? IsDeleted { get; set; }
+
     public virtual ICollection<AccessRight> AccessRights { get; set; } = new List<AccessRight>();
 
     public virtual ICollection<BookAuthor> BookAuthors { get; set; } = new List<BookAuthor>();

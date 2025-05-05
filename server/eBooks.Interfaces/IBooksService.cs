@@ -4,6 +4,7 @@ namespace eBooks.Interfaces
 {
     public interface IBooksService : IBaseService<BooksSearch, BooksCreateReq, BooksUpdateReq, BooksRes>
     {
+        public BooksRes UploadPdfFile(int id, Stream file);
         public BooksRes Await(int id);
         public BooksRes Approve(int id);
         public BooksRes Reject(int id, string message);

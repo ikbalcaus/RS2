@@ -16,6 +16,7 @@ builder.Services.AddControllers();
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 builder.Services.AddDbContext<EBooksContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("Database")));
 builder.Services.AddScoped<IMapper, Mapper>();
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddTransient<IUsersService, UsersService>();
 builder.Services.AddTransient<IBooksService, BooksService>();

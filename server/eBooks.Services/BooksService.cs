@@ -65,10 +65,16 @@ namespace eBooks.Services
             return query;
         }
 
-        public override void BeforeCreate(Book entity, BooksCreateReq req)
+        public override BooksRes Create(BooksCreateReq req)
         {
+            var entity = _mapper.Map<Book>(req);
             entity.PublisherId = int.TryParse(_httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : throw new ExceptionResult("You are not logged in");
-            _logger.LogInformation($"Book with title {req.Title} created.");
+            _db.Add(entity);
+            _db.SaveChanges();
+            if (req.Images != null && req.Images.Any()) UploadImages(entity.BookId, req.Images);
+            if (req.PdfFile != null) UploadPdfFile(entity, req.PdfFile);
+            _logger.LogInformation($"Book with title {entity.Title} created.");
+            return _mapper.Map<BooksRes>(entity);
         }
 
         public override BooksRes Update(int id, BooksUpdateReq req)
@@ -90,12 +96,60 @@ namespace eBooks.Services
             return null;
         }
 
-        public BooksRes UploadPdfFile(int id, Stream file)
+        private List<BookImageRes> UploadImages(int id, List<IFormFile> files)
+        {
+            var folderPath = Path.Combine("wwwroot", "images", $"book_{id.ToString()}");
+            if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
+            var uploadedImages = new List<BookImageRes>();
+            foreach (var file in files)
+            {
+                if (file.ContentType != "image/jpeg" && file.ContentType != "image/png") throw new ExceptionResult("Invalid file type. Only JPEG and PNG are allowed.");
+                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+                var filePath = Path.Combine(folderPath, fileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    file.CopyTo(stream);
+                }
+                var bookImage = new BookImage
+                {
+                    BookId = id,
+                    ImagePath = Path.Combine("images", $"book_{id.ToString()}", fileName).Replace("\\", "/"),
+                    AddedDate = DateTime.UtcNow
+                };
+                _db.Set<BookImage>().Add(bookImage);
+                _db.SaveChanges();
+                uploadedImages.Add(new BookImageRes
+                {
+                    Id = bookImage.ImageId,
+                    ImagePath = "/" + bookImage.ImagePath,
+                    AddedDate = bookImage.AddedDate ?? DateTime.UtcNow
+                });
+            }
+            return uploadedImages;
+        }
+
+        public BookImageRes DeleteImage(int id, int imageId)
         {
             var set = _db.Set<Book>();
-            var entity = set.Find(id);
+            var bookEntity = set.Find(id);
+            if (bookEntity == null) throw new Exception("Book not found");
+            var bookImage = _db.Set<BookImage>().FirstOrDefault(img => img.ImageId == imageId && img.BookId == id);
+            if (bookImage == null) throw new Exception("Book image not found");
+            var imagePath = Path.Combine("wwwroot", bookImage.ImagePath.TrimStart('/'));
+            if (File.Exists(imagePath))
+            {
+                File.Delete(imagePath);
+            }
+            _db.Set<BookImage>().Remove(bookImage);
+            _db.SaveChanges();
+            return null;
+        }
+
+        private BooksRes UploadPdfFile(Book entity, IFormFile file)
+        {
+            if (file.ContentType != "application/pdf") throw new ExceptionResult("Book created, file must be PDF");
             if (entity == null) return null;
-            var folderPath = Path.Combine("wwwroot", "pdfs");
+            var folderPath = Path.Combine("wwwroot", "pdf");
             if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
             if (!string.IsNullOrEmpty(entity.PdfPath))
             {
@@ -108,7 +162,7 @@ namespace eBooks.Services
             {
                 file.CopyTo(stream);
             }
-            entity.PdfPath = $"/pdfs/{fileName}";
+            entity.PdfPath = $"/pdf/{fileName}";
             _db.SaveChanges();
             return _mapper.Map<BooksRes>(entity);
         }

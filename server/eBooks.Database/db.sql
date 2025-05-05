@@ -5,6 +5,12 @@ GO
 USE eBooks;
 GO
 
+-- Tabela: Roles
+CREATE TABLE Roles (
+    RoleId INT PRIMARY KEY IDENTITY,
+    Name NVARCHAR(100) NOT NULL
+);
+
 -- Tabela: Users
 CREATE TABLE Users (
     UserId INT PRIMARY KEY IDENTITY,
@@ -14,22 +20,8 @@ CREATE TABLE Users (
     Email NVARCHAR(100) UNIQUE,
     PasswordHash NVARCHAR(255),
     PasswordSalt NVARCHAR(255),
-    RegistrationDate DATETIME DEFAULT GETDATE()
-);
-
--- Tabela: Roles
-CREATE TABLE Roles (
-    RoleId INT PRIMARY KEY IDENTITY,
-    Name NVARCHAR(100)
-);
-
--- Tabela: UserRoles
-CREATE TABLE UserRoles (
-    UserId INT,
-    RoleId INT,
-    AssignedAt DATETIME DEFAULT GETDATE(),
-    PRIMARY KEY (UserId, RoleId),
-    FOREIGN KEY (UserId) REFERENCES Users(UserId),
+    RegistrationDate DATETIME DEFAULT GETDATE(),
+    RoleId INT NOT NULL,
     FOREIGN KEY (RoleId) REFERENCES Roles(RoleId)
 );
 
@@ -60,21 +52,21 @@ CREATE TABLE Books (
     FOREIGN KEY (PublisherId) REFERENCES Users(UserId)
 );
 
--- Tabela: BookGenres (međutabela)
+-- Tabela: BookGenres
 CREATE TABLE BookGenres (
     BookId INT,
     GenreId INT,
-	IsPrimary BIT DEFAULT 0,
+    IsPrimary BIT DEFAULT 0,
     PRIMARY KEY (BookId, GenreId),
     FOREIGN KEY (BookId) REFERENCES Books(BookId),
     FOREIGN KEY (GenreId) REFERENCES Genres(GenreId)
 );
 
--- Tabela: BookAuthors (međutabela)
+-- Tabela: BookAuthors
 CREATE TABLE BookAuthors (
     BookId INT,
     AuthorId INT,
-	IsPrimary BIT DEFAULT 0,
+    IsPrimary BIT DEFAULT 0,
     PRIMARY KEY (BookId, AuthorId),
     FOREIGN KEY (BookId) REFERENCES Books(BookId),
     FOREIGN KEY (AuthorId) REFERENCES Authors(AuthorId)

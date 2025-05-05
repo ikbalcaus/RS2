@@ -1,5 +1,4 @@
 ﻿using eBooks.Interfaces;
-using eBooks.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 using System.Net.Http.Headers;
@@ -40,13 +39,9 @@ namespace eBooks.API
                 var claims = new List<Claim>()
                 {
                     new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                    new Claim(ClaimTypes.Email, user.Email)
+                    new Claim(ClaimTypes.Email, user.Email),
+                    new Claim(ClaimTypes.Role, user.Role.Name)
                 };
-
-                foreach (var userRole in user.UserRoles)
-                {
-                    claims.Add(new Claim(ClaimTypes.Role, userRole.Role.Name));
-                }
 
                 var identity = new ClaimsIdentity(claims, Scheme.Name);
                 var principal = new ClaimsPrincipal(identity);

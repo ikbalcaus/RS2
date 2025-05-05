@@ -1,4 +1,4 @@
-﻿using eBooks.Models.Users;
+﻿using eBooks.Models.Roles;
 
 namespace eBooks.Models.User
 {
@@ -9,6 +9,6 @@ namespace eBooks.Models.User
         public string LastName { get; set; }
         public string UserName { get; set; }
         public string Email { get; set; }
-        public virtual ICollection<UserRolesRes> UserRoles { get; set; } = new List<UserRolesRes>();
+        public RolesRes Role { get; set; }
     }
 }

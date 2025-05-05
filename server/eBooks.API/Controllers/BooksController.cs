@@ -1,6 +1,7 @@
 ﻿using eBooks.Interfaces;
 using eBooks.Models;
 using eBooks.Models.Books;
+using eBooks.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -48,11 +49,10 @@ namespace eBooks.API.Controllers
         }
 
         [Authorize(Roles = "User")]
-        [HttpPatch("{id}/pdf-file")]
-        public BooksRes UploadPdfFile(int id, IFormFile file)
+        [HttpDelete("{id}/delete-image/{imageId}")]
+        public BookImageRes DeleteImage(int id, int imageId)
         {
-            if (file == null || file.ContentType != "application/pdf") throw new ExceptionResult("Only PDF files are allowed");
-            return _service.UploadPdfFile(id, file.OpenReadStream());
+            return _service.DeleteImage(id, imageId);
         }
 
         [Authorize(Roles = "User")]

@@ -21,6 +21,8 @@ public partial class User
 
     public DateTime? RegistrationDate { get; set; }
 
+    public int RoleId { get; set; }
+
     public virtual ICollection<AccessRight> AccessRights { get; set; } = new List<AccessRight>();
 
     public virtual ICollection<BookFollow> BookFollows { get; set; } = new List<BookFollow>();
@@ -47,7 +49,7 @@ public partial class User
 
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
 
-    public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+    public virtual Role Role { get; set; } = null!;
 
     public virtual ICollection<Wishlist> Wishlists { get; set; } = new List<Wishlist>();
 }

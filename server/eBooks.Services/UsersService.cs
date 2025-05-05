@@ -56,7 +56,7 @@ public class UsersService : BaseService<User, UsersSearch, UsersCreateReq, Users
 
     public UsersRes Login(string email, string password)
     {
-        var entity = _db.Set<User>().Include(x => x.UserRoles).ThenInclude(x => x.Role).FirstOrDefault(x => x.Email == email);
+        var entity = _db.Set<User>().Include(x => x.Role).FirstOrDefault(x => x.Email == email);
         if (entity == null)
         {
             _logger.LogInformation($"User failed to log in {email}.");
@@ -81,13 +81,7 @@ public class UsersService : BaseService<User, UsersSearch, UsersCreateReq, Users
         Role role;
         if (req.IsRegistering == true) role = _db.Set<Role>().FirstOrDefault(x => x.Name == "User");
         else role = _db.Set<Role>().FirstOrDefault(x => x.RoleId == req.RoleId);
-        var userRole = new UserRole
-        {
-            RoleId = role.RoleId,
-            User = entity,
-            AssignedAt = DateTime.Now
-        };
-        entity.UserRoles.Add(userRole);
+        entity.Role = role;
         _logger.LogInformation($"User with email {req.Email} created.");
     }
 

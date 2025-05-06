@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc;
-using eBooks.Models;
+using eBooks.Models.Exceptions;
 
 namespace eBooks.API.Filters
 {
@@ -17,10 +17,20 @@ namespace eBooks.API.Filters
         {
             _logger.LogError(context.Exception, context.Exception.Message);
 
-            if (context.Exception is ExceptionResult)
+            if (context.Exception is ExceptionBadRequest)
             {
                 context.ModelState.AddModelError("error", context.Exception.Message);
                 context.HttpContext.Response.StatusCode = 400;
+            }
+            else if (context.Exception is ExceptionForbidden)
+            {
+                context.ModelState.AddModelError("error", context.Exception.Message);
+                context.HttpContext.Response.StatusCode = 403;
+            }
+            else if (context.Exception is ExceptionNotFound)
+            {
+                context.ModelState.AddModelError("error", context.Exception.Message);
+                context.HttpContext.Response.StatusCode = 404;
             }
             else
             {

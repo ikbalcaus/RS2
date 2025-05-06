@@ -16,16 +16,16 @@ namespace eBooks.API.Controllers
         }
 
         [HttpPost("register")]
-        public UsersRes Register(UsersCreateReq req)
+        public async Task<UsersRes> Register(UsersCreateReq req)
         {
             req.IsRegistering = true;
-            return _service.Create(req);
+            return await _service.Create(req);
         }
 
         [HttpPost("login")]
-        public UsersRes Login(string email, string password)
+        public async Task<UsersRes> Login(string email, string password)
         {
-            return _service.Login(email, password);
+            return await _service.Login(email, password);
         }
     }
 }

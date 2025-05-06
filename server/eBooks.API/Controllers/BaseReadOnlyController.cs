@@ -11,22 +11,24 @@ namespace eBooks.API.Controllers
     public class BaseReadOnlyController<TSearch, TResponse> : ControllerBase where TSearch : BaseSearch
     {
         protected IBaseReadOnlyService<TSearch, TResponse> _service;
+        protected IAuthorizationService _authService;
 
-        public BaseReadOnlyController(IBaseReadOnlyService<TSearch, TResponse> service)
+        public BaseReadOnlyController(IBaseReadOnlyService<TSearch, TResponse> service, IAuthorizationService authService)
         {
             _service = service;
+            _authService = authService;
         }
 
         [HttpGet]
-        public virtual PagedResult<TResponse> GetAll([FromQuery] TSearch search)
+        public async virtual Task<PagedResult<TResponse>> GetAll([FromQuery] TSearch search)
         {
-            return _service.GetPaged(search);
+            return await _service.GetPaged(search);
         }
 
         [HttpGet("{id}")]
-        public virtual TResponse GetById(int id)
+        public async virtual Task<TResponse> GetById(int id)
         {
-            return _service.GetById(id);
+            return await _service.GetById(id);
         }
     }
 }

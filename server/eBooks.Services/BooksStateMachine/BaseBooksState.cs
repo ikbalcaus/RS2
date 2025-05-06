@@ -3,6 +3,7 @@ using eBooks.Database;
 using eBooks.Database.Models;
 using eBooks.Models;
 using eBooks.Models.Books;
+using eBooks.Models.Exceptions;
 using MapsterMapper;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -21,37 +22,37 @@ namespace eBooks.Services.BooksStateMachine
             _serviceProvider = serviceProvider;
         }
 
-        public virtual BooksRes Update(int id, BooksUpdateReq req)
+        public async virtual Task<BooksRes> Update(int id, BooksUpdateReq req)
         {
-            throw new ExceptionResult("Method not allowed");
+            throw new ExceptionForbidden("Method not allowed");
         }
 
-        public virtual BooksRes Await(int id)
+        public async virtual Task<BooksRes> Await(int id)
         {
-            throw new ExceptionResult("Method not allowed");
+            throw new ExceptionForbidden("Method not allowed");
         }
 
-        public virtual BooksRes Approve(int id)
+        public async virtual Task<BooksRes> Approve(int id)
         {
-            throw new ExceptionResult("Method not allowed");
+            throw new ExceptionForbidden("Method not allowed");
         }
 
-        public virtual BooksRes Reject(int id, string message)
+        public async virtual Task<BooksRes> Reject(int id, string message)
         {
-            throw new ExceptionResult("Method not allowed");
+            throw new ExceptionForbidden("Method not allowed");
         }
 
-        public virtual BooksRes Hide(int id)
+        public async virtual Task<BooksRes> Hide(int id)
         {
-            throw new ExceptionResult("Method not allowed");
+            throw new ExceptionForbidden("Method not allowed");
         }
 
-        public virtual List<string> AllowedActions(Book entity)
+        public async virtual Task<List<string>> AllowedActions(Book entity)
         {
-            throw new ExceptionResult("Method not allowed");
+            throw new ExceptionForbidden("Method not allowed");
         }
 
-        public BaseBooksState CheckState(string state)
+        public async Task<BaseBooksState> CheckState(string state)
         {
             switch (state)
             {
@@ -66,7 +67,7 @@ namespace eBooks.Services.BooksStateMachine
                 case "archive":
                     return _serviceProvider.GetService<HideBooksState>();
                 default:
-                    throw new ExceptionResult("State not recognized");
+                    throw new ExceptionBadRequest("State not recognized");
             }
         }
     }

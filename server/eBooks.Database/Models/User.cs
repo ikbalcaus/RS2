@@ -23,6 +23,8 @@ public partial class User
 
     public int RoleId { get; set; }
 
+    public bool? IsDeleted { get; set; }
+
     public virtual ICollection<AccessRight> AccessRights { get; set; } = new List<AccessRight>();
 
     public virtual ICollection<BookFollow> BookFollows { get; set; } = new List<BookFollow>();

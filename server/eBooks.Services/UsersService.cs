@@ -1,7 +1,7 @@
 ﻿using eBooks.Database;
 using eBooks.Database.Models;
 using eBooks.Interfaces;
-using eBooks.Models;
+using eBooks.Models.Exceptions;
 using eBooks.Models.User;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
@@ -13,12 +13,13 @@ public class UsersService : BaseService<User, UsersSearch, UsersCreateReq, Users
 {
     protected ILogger<UsersService> _logger;
 
-    public UsersService(EBooksContext db, IMapper mapper, ILogger<UsersService> logger) : base(db, mapper)
+    public UsersService(EBooksContext db, IMapper mapper, ILogger<UsersService> logger)
+        : base(db, mapper)
     {
         _logger = logger;
     }
 
-    public override IQueryable<User> AddFilter(UsersSearch search, IQueryable<User> query)
+    public async override Task<IQueryable<User>> AddFilter(UsersSearch search, IQueryable<User> query)
     {
         if (!string.IsNullOrWhiteSpace(search?.FNameGTE))
         {
@@ -39,24 +40,9 @@ public class UsersService : BaseService<User, UsersSearch, UsersCreateReq, Users
         return query;
     }
 
-    public override UsersRes Create(UsersCreateReq req)
+    public async Task<UsersRes> Login(string email, string password)
     {
-        return base.Create(req);
-    }
-
-    public override UsersRes Update(int id, UsersUpdateReq req)
-    {
-        return base.Update(id, req);
-    }
-
-    public override UsersRes Delete(int id)
-    {
-        return base.Delete(id);
-    }
-
-    public UsersRes Login(string email, string password)
-    {
-        var entity = _db.Set<User>().Include(x => x.Role).FirstOrDefault(x => x.Email == email);
+        var entity = await _db.Set<User>().Include(x => x.Role).FirstOrDefaultAsync(x => x.Email == email);
         if (entity == null)
         {
             _logger.LogInformation($"User failed to log in {email}.");
@@ -71,33 +57,38 @@ public class UsersService : BaseService<User, UsersSearch, UsersCreateReq, Users
         return _mapper.Map<UsersRes>(entity);
     }
 
-    public override void BeforeCreate(User entity, UsersCreateReq req)
+    public override async Task<UsersRes> Delete(int id)
     {
-        if (!Helpers.IsEmailValid(req.Email)) throw new ExceptionResult("Email is not valid");
-        if (_db.Users.Any(x => x.Email == req.Email)) throw new ExceptionResult("Email already exist");
-        if (!Helpers.IsPasswordValid(req.Password)) throw new ExceptionResult("Password is not valid");
+        var set = _db.Set<User>();
+        var entity = await set.FindAsync(id);
+        if (entity == null) return null;
+        entity.IsDeleted = true;
+        await _db.SaveChangesAsync();
+        return null;
+    }
+
+    public async override Task BeforeCreate(User entity, UsersCreateReq req)
+    {
+        if (!Helpers.IsEmailValid(req.Email)) throw new ExceptionBadRequest("Email is not valid");
+        if (_db.Users.Any(x => x.Email == req.Email)) throw new ExceptionBadRequest("Email already exist");
+        if (!Helpers.IsPasswordValid(req.Password)) throw new ExceptionBadRequest("Password is not valid");
         entity.PasswordSalt = Helpers.GenerateSalt();
         entity.PasswordHash = Helpers.GenerateHash(entity.PasswordSalt, req.Password);
         Role role;
-        if (req.IsRegistering == true) role = _db.Set<Role>().FirstOrDefault(x => x.Name == "User");
-        else role = _db.Set<Role>().FirstOrDefault(x => x.RoleId == req.RoleId);
+        if (req.IsRegistering == true) role = await _db.Set<Role>().FirstOrDefaultAsync(x => x.Name == "User");
+        else role = await _db.Set<Role>().FirstOrDefaultAsync(x => x.RoleId == req.RoleId);
         entity.Role = role;
         _logger.LogInformation($"User with email {req.Email} created.");
     }
 
-    public override void BeforeUpdate(User entity, UsersUpdateReq req)
+    public async override Task BeforeUpdate(User entity, UsersUpdateReq req)
     {
         if (req.Password != null)
         {
-            if (!Helpers.IsPasswordValid(req.Password)) throw new ExceptionResult("Password is not valid");
+            if (!Helpers.IsPasswordValid(req.Password)) throw new ExceptionBadRequest("Password is not valid");
             entity.PasswordSalt = Helpers.GenerateSalt();
             entity.PasswordHash = Helpers.GenerateHash(entity.PasswordSalt, req.Password);
         }
         _logger.LogInformation($"User with email {entity.Email} updated.");
-    }
-
-    public override void BeforeDelete(User entity, int id)
-    {
-        _logger.LogInformation($"User with email {entity.Email} deleted.");
     }
 }

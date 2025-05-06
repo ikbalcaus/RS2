@@ -1,5 +1,6 @@
 using eBooks.Interfaces;
 using eBooks.Models;
+using eBooks.Models.Exceptions;
 using eBooks.Models.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,39 +12,43 @@ namespace eBooks.API.Controllers
     [Route("[controller]")]
     public class UsersController : BaseController<UsersSearch, UsersCreateReq, UsersUpdateReq, UsersRes>
     {
-        public UsersController(IUsersService service) : base(service)
+        public UsersController(IUsersService service, IAuthorizationService authService)
+            : base(service, authService)
         {
         }
 
-        [Authorize(Roles = "Admin")]
-        public override PagedResult<UsersRes> GetAll([FromQuery] UsersSearch search)
+        [Authorize(Policy = "Admin")]
+        public async override Task<PagedResult<UsersRes>> GetAll([FromQuery] UsersSearch search)
         {
-            return base.GetAll(search);
+            return await base.GetAll(search);
         }
 
-        [Authorize(Roles = "Admin")]
-        public override UsersRes GetById(int id)
+        [Authorize(Policy = "User")]
+        public async override Task<UsersRes> GetById(int id)
         {
-            return base.GetById(id);
+            return await base.GetById(id);
         }
 
-
-        [Authorize(Roles = "Admin")]
-        public override UsersRes Create(UsersCreateReq req)
+        [Authorize(Policy = "Admin")]
+        public async override Task<UsersRes> Create(UsersCreateReq req)
         {
-            return base.Create(req);
+            return await base.Create(req);
         }
 
-        [Authorize(Roles = "User,Admin,Moderator")]
-        public override UsersRes Update(int id, UsersUpdateReq req)
+        [Authorize(Policy = "User")]
+        public async override Task<UsersRes> Update(int id, UsersUpdateReq req)
         {
-            return base.Update(id, req);
+            if (!(await _authService.AuthorizeAsync(User, id, "OwnerOrAdmin")).Succeeded)
+                throw new ExceptionForbidden("Only owner or admin can use this action");
+            return await base.Update(id, req);
         }
 
-        [Authorize(Roles = "User,Admin,Moderator")]
-        public override UsersRes Delete(int id)
+        [Authorize(Policy = "User")]
+        public async override Task<UsersRes> Delete(int id)
         {
-            return base.Delete(id);
+            if (!(await _authService.AuthorizeAsync(User, id, "OwnerOrAdmin")).Succeeded)
+                throw new ExceptionForbidden("Only owner or admin can use this action");
+            return await base.Delete(id);
         }
     }
 }

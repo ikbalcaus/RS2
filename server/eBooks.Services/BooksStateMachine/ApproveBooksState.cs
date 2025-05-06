@@ -8,20 +8,21 @@ namespace eBooks.Services.BooksStateMachine
 {
     public class ApproveBooksState : BaseBooksState
     {
-        public ApproveBooksState(EBooksContext db, IMapper mapper, IServiceProvider serviceProvider) : base(db, mapper, serviceProvider)
+        public ApproveBooksState(EBooksContext db, IMapper mapper, IServiceProvider serviceProvider)
+            : base(db, mapper, serviceProvider)
         {
         }
 
-        public override BooksRes Hide(int id)
+        public async override Task<BooksRes> Hide(int id)
         {
             var set = _db.Set<Book>();
-            var entity = set.Find(id);
+            var entity = await set.FindAsync(id);
             entity.StateMachine = "Hide";
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             return _mapper.Map<BooksRes>(entity);
         }
 
-        public override List<string> AllowedActions(Book entity)
+        public async override Task<List<string>> AllowedActions(Book entity)
         {
             return new List<string>() { nameof(Hide) };
         }

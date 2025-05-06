@@ -1,6 +1,7 @@
 ﻿using eBooks.Interfaces;
 using eBooks.Models;
 using eBooks.Models.Books;
+using eBooks.Models.Exceptions;
 using eBooks.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,81 +14,92 @@ namespace eBooks.API.Controllers
     {
         protected new IBooksService _service;
 
-        public BooksController(IBooksService service) : base(service)
+        public BooksController(IBooksService service, IAuthorizationService authService)
+            : base(service, authService)
         {
             _service = service;
         }
 
         [AllowAnonymous]
-        public override PagedResult<BooksRes> GetAll([FromQuery] BooksSearch search)
+        public override async Task<PagedResult<BooksRes>> GetAll([FromQuery] BooksSearch search)
         {
-            return base.GetAll(search);
+            return await base.GetAll(search);
         }
 
         [AllowAnonymous]
-        public override BooksRes GetById(int id)
+        public override async Task<BooksRes> GetById(int id)
         {
-            return base.GetById(id);
+            return await base.GetById(id);
         }
 
-        [Authorize(Roles = "User")]
-        public override BooksRes Create(BooksCreateReq req)
+        [Authorize(Policy = "User")]
+        public override async Task<BooksRes> Create(BooksCreateReq req)
         {
-            return base.Create(req);
+            return await base.Create(req);
         }
 
-        [Authorize(Roles = "User,Admin,Moderator")]
-        public override BooksRes Update(int id, BooksUpdateReq req)
+        [Authorize(Policy = "User")]
+        public override async Task<BooksRes> Update(int id, BooksUpdateReq req)
         {
-            return base.Update(id, req);
+            if (!(await _authService.AuthorizeAsync(User, id, "Owner")).Succeeded)
+                throw new ExceptionForbidden("Only owner can use this action");
+            return await base.Update(id, req);
         }
 
-        [Authorize(Roles = "User,Admin,Moderator")]
-        public override BooksRes Delete(int id)
+        [Authorize(Policy = "User")]
+        public override async Task<BooksRes> Delete(int id)
         {
-            return base.Delete(id);
+            if (!(await _authService.AuthorizeAsync(User, id, "Owner")).Succeeded)
+                throw new ExceptionForbidden("Only owner can use this action");
+            return await base.Delete(id);
         }
 
-        [Authorize(Roles = "User")]
+        [Authorize(Policy = "User")]
         [HttpDelete("{id}/delete-image/{imageId}")]
-        public BookImageRes DeleteImage(int id, int imageId)
+        public async Task<BookImageRes> DeleteImage(int id, int imageId)
         {
-            return _service.DeleteImage(id, imageId);
+            if (!(await _authService.AuthorizeAsync(User, id, "Owner")).Succeeded)
+                throw new ExceptionForbidden("Only owner can use this action");
+            return await _service.DeleteImage(id, imageId);
         }
 
-        [Authorize(Roles = "User")]
+        [Authorize(Policy = "User")]
         [HttpPatch("{id}/await")]
-        public BooksRes Await(int id)
+        public async Task<BooksRes> Await(int id)
         {
-            return _service.Await(id);
+            if (!(await _authService.AuthorizeAsync(User, id, "Owner")).Succeeded)
+                throw new ExceptionForbidden("Only owner can use this action");
+            return await _service.Await(id);
         }
 
-        [Authorize(Roles = "Admin,Moderator")]
+        [Authorize(Policy = "Moderator")]
         [HttpPatch("{id}/approve")]
-        public BooksRes Approve(int id)
+        public async Task<BooksRes> Approve(int id)
         {
-            return _service.Approve(id);
+            return await _service.Approve(id);
         }
 
-        [Authorize(Roles = "Admin,Moderator")]
+        [Authorize(Policy = "Moderator")]
         [HttpPatch("{id}/reject")]
-        public BooksRes Reject(int id, string message)
+        public async Task<BooksRes> Reject(int id, string message)
         {
-            return _service.Reject(id, message);
+            return await _service.Reject(id, message);
         }
 
-        [Authorize(Roles = "User")]
+        [Authorize(Policy = "User")]
         [HttpPatch("{id}/hide")]
-        public BooksRes Archive(int id)
+        public async Task<BooksRes> Hide(int id)
         {
-            return _service.Hide(id);
+            if (!(await _authService.AuthorizeAsync(User, id, "Owner")).Succeeded)
+                throw new ExceptionForbidden("Only owner can use this action");
+            return await _service.Hide(id);
         }
 
         [AllowAnonymous]
         [HttpGet("{id}/allowed-actions")]
-        public List<string> AllowedActions(int id)
+        public async Task<List<string>> AllowedActions(int id)
         {
-            return _service.AllowedActions(id);
+            return await _service.AllowedActions(id);
         }
     }
 }

@@ -21,6 +21,7 @@ CREATE TABLE Users (
     PasswordHash NVARCHAR(255),
     PasswordSalt NVARCHAR(255),
     RegistrationDate DATETIME DEFAULT GETDATE(),
+    isDeleted BIT DEFAULT 0,
     RoleId INT NOT NULL,
     FOREIGN KEY (RoleId) REFERENCES Roles(RoleId)
 );
@@ -77,7 +78,7 @@ CREATE TABLE BookImages (
     ImageId INT PRIMARY KEY IDENTITY,
     BookId INT,
     ImagePath NVARCHAR(255),
-    AddedDate DATETIME DEFAULT GETDATE(),
+    ModifiedAt DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (BookId) REFERENCES Books(BookId)
 );
 

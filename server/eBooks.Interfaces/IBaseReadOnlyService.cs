@@ -2,9 +2,10 @@
 
 namespace eBooks.Services
 {
-    public interface IBaseReadOnlyService<TSearch, TResponse> where TSearch : BaseSearch
+    public interface IBaseReadOnlyService<TSearch, TResponse>
+        where TSearch : BaseSearch
     {
-        public PagedResult<TResponse> GetPaged(TSearch search);
-        public TResponse GetById(int id);
+        Task<PagedResult<TResponse>> GetPaged(TSearch search);
+        Task<TResponse> GetById(int id);
     }
 }

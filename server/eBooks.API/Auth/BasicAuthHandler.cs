@@ -8,11 +8,11 @@ using System.Text.Encodings.Web;
 
 namespace eBooks.API
 {
-    public class BasicAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+    public class BasicAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
     {
         protected IUsersService _usersService;
 
-        public BasicAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, IUsersService usersService) : base(options, logger, encoder, clock)
+        public BasicAuthHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, IUsersService usersService) : base(options, logger, encoder, clock)
         {
             _usersService = usersService;
         }
@@ -31,7 +31,7 @@ namespace eBooks.API
             var email = credentials[0];
             var password = credentials[1];
 
-            var user = _usersService.Login(email, password);
+            var user = await _usersService.Login(email, password);
 
             if (user == null) return AuthenticateResult.Fail("Auth failed");
             else

@@ -14,7 +14,7 @@ CREATE TABLE Roles (
 -- Tabela: Users
 CREATE TABLE Users (
     UserId INT PRIMARY KEY IDENTITY,
-    UserName NVARCHAR(100),
+    UserName NVARCHAR(100) UNIQUE,
     FirstName NVARCHAR(100),
     LastName NVARCHAR(100),
     Email NVARCHAR(100) UNIQUE,
@@ -39,17 +39,26 @@ CREATE TABLE Genres (
     Name NVARCHAR(100)
 );
 
+-- Tabela: Languages
+CREATE TABLE Languages (
+    LanguageId INT PRIMARY KEY IDENTITY,
+    Name NVARCHAR(100) NOT NULL UNIQUE,
+    Abbreviation NVARCHAR(10) NOT NULL UNIQUE
+);
+
 -- Tabela: Books
 CREATE TABLE Books (
     BookId INT PRIMARY KEY IDENTITY,
     Title NVARCHAR(255),
     PdfPath NVARCHAR(255),
     Price DECIMAL(10,2),
+    LanguageId INT NOT NULL,
     PublisherId INT NOT NULL,
     AddedDate DATETIME DEFAULT GETDATE(),
     StateMachine NVARCHAR(50) DEFAULT 'draft',
     RejectionReason NVARCHAR(500),
     isDeleted BIT DEFAULT 0,
+    FOREIGN KEY (LanguageId) REFERENCES Languages(LanguageId),
     FOREIGN KEY (PublisherId) REFERENCES Users(UserId)
 );
 

@@ -21,9 +21,9 @@ public partial class User
 
     public DateTime? RegistrationDate { get; set; }
 
-    public int RoleId { get; set; }
-
     public bool? IsDeleted { get; set; }
+
+    public int RoleId { get; set; }
 
     public virtual ICollection<AccessRight> AccessRights { get; set; } = new List<AccessRight>();
 

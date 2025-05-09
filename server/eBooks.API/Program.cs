@@ -7,7 +7,6 @@ using eBooks.Services;
 using eBooks.Services.BooksStateMachine;
 using MapsterMapper;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 
@@ -16,24 +15,29 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
-builder.Services.AddDbContext<EBooksContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("Database")));
-builder.Services.AddScoped<IMapper, Mapper>();
-builder.Services.AddSingleton<IAuthorizationHandler, OwnerOrAdminHandler>();
-builder.Services.AddSingleton<IAuthorizationHandler, OwnerHandler>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers(x => x.Filters.Add<ExceptionFilter>());
+
+builder.Services.AddDbContext<EBooksContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("Database"))
+);
 
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
     options.AddPolicy("Moderator", policy => policy.RequireRole("Admin", "Moderator"));
     options.AddPolicy("User", policy => policy.RequireRole("Admin", "Moderator", "User"));
-    options.AddPolicy("OwnerOrAdmin", policy => policy.Requirements.Add(new OwnerOrAdminRequirement()));
-    options.AddPolicy("Owner", policy => policy.Requirements.Add(new OwnerRequirement()));
 });
+
+builder.Services.AddScoped<IMapper, Mapper>();
+builder.Services.AddScoped<AccessControlHandler>();
 
 builder.Services.AddTransient<IUsersService, UsersService>();
 builder.Services.AddTransient<IBooksService, BooksService>();
+builder.Services.AddTransient<IRolesService, RolesService>();
+builder.Services.AddTransient<IGenresService, GenresService>();
+builder.Services.AddTransient<IAuthorsService, AuthorsService>();
+builder.Services.AddTransient<ILanguagesService, LanguagesService>();
 
 builder.Services.AddTransient<BaseBooksState>();
 builder.Services.AddTransient<ApproveBooksState>();

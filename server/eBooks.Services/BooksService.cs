@@ -89,7 +89,8 @@ namespace eBooks.Services
         public override async Task<BooksRes> Update(int id, BooksUpdateReq req)
         {
             var entity = await GetById(id);
-            if (entity == null) return null;
+            if (entity == null)
+                throw new ExceptionNotFound();
             var state = await _baseBooksState.CheckState(entity.StateMachine);
             _logger.LogInformation($"Book with title {entity.Title} updated.");
             return await state.Update(id, req);
@@ -99,19 +100,33 @@ namespace eBooks.Services
         {
             var set = _db.Set<Book>();
             var entity = await set.FindAsync(id);
-            if (entity == null) return null;
+            if (entity == null)
+                throw new ExceptionNotFound();
             entity.IsDeleted = true;
             await _db.SaveChangesAsync();
             return null;
+        }
+
+        public async Task<BooksRes> UndoDelete(int id)
+        {
+            var set = _db.Set<Book>();
+            var entity = await set.FindAsync(id);
+            if (entity == null)
+                throw new ExceptionNotFound();
+            entity.IsDeleted = false;
+            await _db.SaveChangesAsync();
+            return _mapper.Map<BooksRes>(entity);
         }
 
         public async Task<BookImageRes> DeleteImage(int id, int imageId)
         {
             var set = _db.Set<Book>();
             var bookEntity = await set.FindAsync(id);
-            if (bookEntity == null) throw new ExceptionNotFound("Book not found");
+            if (bookEntity == null)
+                throw new ExceptionNotFound();
             var bookImage = await _db.Set<BookImage>().FirstOrDefaultAsync(img => img.ImageId == imageId && img.BookId == id);
-            if (bookImage == null) throw new ExceptionNotFound("Book image not found");
+            if (bookImage == null)
+                throw new ExceptionNotFound();
             var imagePath = Path.Combine("wwwroot", bookImage.ImagePath.TrimStart('/'));
             if (File.Exists(imagePath)) File.Delete(imagePath);
             _db.Set<BookImage>().Remove(bookImage);
@@ -122,7 +137,8 @@ namespace eBooks.Services
         public async Task<BooksRes> Await(int id)
         {
             var entity = await GetById(id);
-            if (entity == null) throw new ExceptionNotFound("Book not found");
+            if (entity == null)
+                throw new ExceptionNotFound();
             var state = await _baseBooksState.CheckState(entity.StateMachine);
             _logger.LogInformation($"Book with title {entity.Title} awaited.");
             return await state.Await(id);
@@ -131,7 +147,8 @@ namespace eBooks.Services
         public async Task<BooksRes> Approve(int id)
         {
             var entity = await GetById(id);
-            if (entity == null) throw new ExceptionNotFound("Book not found");
+            if (entity == null)
+                throw new ExceptionNotFound();
             var state = await _baseBooksState.CheckState(entity.StateMachine);
             _logger.LogInformation($"Book with title {entity.Title} approved.");
             return await state.Approve(id);
@@ -140,7 +157,8 @@ namespace eBooks.Services
         public async Task<BooksRes> Reject(int id, string message)
         {
             var entity = await GetById(id);
-            if (entity == null) throw new ExceptionNotFound("Book not found");
+            if (entity == null)
+                throw new ExceptionNotFound();
             var state = await _baseBooksState.CheckState(entity.StateMachine);
             _logger.LogInformation($"Book with title {entity.Title} rejected with message \"{message}\".");
             return await state.Reject(id, message);
@@ -149,7 +167,8 @@ namespace eBooks.Services
         public async Task<BooksRes> Hide(int id)
         {
             var entity = await GetById(id);
-            if (entity == null) throw new ExceptionNotFound("Book not found");
+            if (entity == null)
+                throw new ExceptionNotFound();
             var state = await _baseBooksState.CheckState(entity.StateMachine);
             _logger.LogInformation($"Book with title {entity.Title} is hidden/not hidden.");
             return await state.Hide(id);
@@ -158,7 +177,8 @@ namespace eBooks.Services
         public async Task<List<string>> AllowedActions(int id)
         {
             var entity = await _db.Books.FindAsync(id);
-            if (entity == null) throw new ExceptionNotFound("Book not found");
+            if (entity == null)
+                throw new ExceptionNotFound();
             var state = await _baseBooksState.CheckState(entity.StateMachine);
             return await state.AllowedActions(entity);
         }

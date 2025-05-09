@@ -2,15 +2,13 @@
 using eBooks.Models;
 using eBooks.Models.Exceptions;
 using MapsterMapper;
-using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
 
 namespace eBooks.Services
 {
-    public abstract class BaseService<TEntity, TSearch, TCreate, TUpdate, TResponse> : BaseReadOnlyService<TSearch, TEntity, TResponse>
+    public abstract class BaseService<TEntity, TSearch, TCreate, TUpdate, TResponse> : BaseReadOnlyService<TEntity, TSearch, TResponse>
+        where TEntity : class
         where TResponse : class
         where TSearch : BaseSearch
-        where TEntity : class
     {
         public BaseService(EBooksContext db, IMapper mapper)
             : base(db, mapper)
@@ -30,7 +28,8 @@ namespace eBooks.Services
         {
             var set = _db.Set<TEntity>();
             var entity = await set.FindAsync(id);
-            if (entity == null) throw new ExceptionNotFound("Not found");
+            if (entity == null)
+                throw new ExceptionNotFound();
             _mapper.Map(req, entity);
             BeforeUpdate(entity, req);
             await _db.SaveChangesAsync();
@@ -41,7 +40,8 @@ namespace eBooks.Services
         {
             var set = _db.Set<TEntity>();
             var entity = await set.FindAsync(id);
-            if (entity == null) throw new ExceptionNotFound("Not found");
+            if (entity == null)
+                throw new ExceptionNotFound();
             set.Remove(entity);
             await _db.SaveChangesAsync();
             return null;

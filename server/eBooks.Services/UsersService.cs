@@ -40,6 +40,41 @@ public class UsersService : BaseService<User, UsersSearch, UsersCreateReq, Users
         return query;
     }
 
+    public override async Task<UsersRes> Delete(int id)
+    {
+        var set = _db.Set<User>();
+        var entity = await set.FindAsync(id);
+        if (entity == null)
+            throw new ExceptionNotFound();
+        entity.IsDeleted = true;
+        await _db.SaveChangesAsync();
+        return null;
+    }
+
+    public async Task<UsersRes> UndoDelete(int id)
+    {
+        var set = _db.Set<User>();
+        var entity = await set.FindAsync(id);
+        if (entity == null)
+            throw new ExceptionNotFound();
+        entity.IsDeleted = false;
+        await _db.SaveChangesAsync();
+        return _mapper.Map<UsersRes>(entity);
+    }
+
+    public async Task<UsersRes> ChangeRole(int id, int roleId)
+    {
+        var entity = await _db.Set<User>().Include(x => x.Role).FirstOrDefaultAsync(x => x.UserId == id);
+        if (entity == null)
+            throw new ExceptionNotFound();
+        var role = await _db.Set<Role>().FirstOrDefaultAsync(x => x.RoleId == roleId);
+        if (role == null)
+            throw new ExceptionNotFound();
+        entity.Role = role;
+        await _db.SaveChangesAsync();
+        return _mapper.Map<UsersRes>(entity);
+    }
+
     public async Task<UsersRes> Login(string email, string password)
     {
         var entity = await _db.Set<User>().Include(x => x.Role).FirstOrDefaultAsync(x => x.Email == email);
@@ -57,35 +92,30 @@ public class UsersService : BaseService<User, UsersSearch, UsersCreateReq, Users
         return _mapper.Map<UsersRes>(entity);
     }
 
-    public override async Task<UsersRes> Delete(int id)
-    {
-        var set = _db.Set<User>();
-        var entity = await set.FindAsync(id);
-        if (entity == null) return null;
-        entity.IsDeleted = true;
-        await _db.SaveChangesAsync();
-        return null;
-    }
-
     public async override Task BeforeCreate(User entity, UsersCreateReq req)
     {
-        if (!Helpers.IsEmailValid(req.Email)) throw new ExceptionBadRequest("Email is not valid");
-        if (_db.Users.Any(x => x.Email == req.Email)) throw new ExceptionBadRequest("Email already exist");
-        if (!Helpers.IsPasswordValid(req.Password)) throw new ExceptionBadRequest("Password is not valid");
+        if (!Helpers.IsEmailValid(req.Email))
+            throw new ExceptionBadRequest("Email is not valid");
+        if (_db.Users.Any(x => x.Email == req.Email))
+            throw new ExceptionBadRequest("Email already exist");
+        if (_db.Users.Any(x => x.UserName == req.UserName))
+            throw new ExceptionBadRequest("Username already exist");
+        if (!Helpers.IsPasswordValid(req.Password))
+            throw new ExceptionBadRequest("Password is not valid");
         entity.PasswordSalt = Helpers.GenerateSalt();
         entity.PasswordHash = Helpers.GenerateHash(entity.PasswordSalt, req.Password);
-        Role role;
-        if (req.IsRegistering == true) role = await _db.Set<Role>().FirstOrDefaultAsync(x => x.Name == "User");
-        else role = await _db.Set<Role>().FirstOrDefaultAsync(x => x.RoleId == req.RoleId);
-        entity.Role = role;
+        entity.Role = await _db.Set<Role>().FirstOrDefaultAsync(x => x.Name == "User");
         _logger.LogInformation($"User with email {req.Email} created.");
     }
 
     public async override Task BeforeUpdate(User entity, UsersUpdateReq req)
     {
-        if (req.Password != null)
+        if (!string.IsNullOrWhiteSpace(req.UserName) && _db.Users.Any(x => x.UserName == req.UserName))
+            throw new ExceptionBadRequest("Username already exist");
+        if (!string.IsNullOrWhiteSpace(req.Password))
         {
-            if (!Helpers.IsPasswordValid(req.Password)) throw new ExceptionBadRequest("Password is not valid");
+            if (!Helpers.IsPasswordValid(req.Password))
+                throw new ExceptionBadRequest("Password is not valid");
             entity.PasswordSalt = Helpers.GenerateSalt();
             entity.PasswordHash = Helpers.GenerateHash(entity.PasswordSalt, req.Password);
         }

@@ -1,8 +1,7 @@
-﻿using eBooks.Interfaces;
+﻿using eBooks.API.Auth;
+using eBooks.Interfaces;
 using eBooks.Models;
 using eBooks.Models.Books;
-using eBooks.Models.Exceptions;
-using eBooks.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,8 +13,8 @@ namespace eBooks.API.Controllers
     {
         protected new IBooksService _service;
 
-        public BooksController(IBooksService service, IAuthorizationService authService)
-            : base(service, authService)
+        public BooksController(IBooksService service, AccessControlHandler accessControlHandler)
+            : base(service, accessControlHandler)
         {
             _service = service;
         }
@@ -41,25 +40,29 @@ namespace eBooks.API.Controllers
         [Authorize(Policy = "User")]
         public override async Task<BooksRes> Update(int id, BooksUpdateReq req)
         {
-            if (!(await _authService.AuthorizeAsync(User, id, "Owner")).Succeeded)
-                throw new ExceptionForbidden("Only owner can use this action");
+            await _accessControlHandler.CheckIsOwner(id);
             return await base.Update(id, req);
         }
 
         [Authorize(Policy = "User")]
         public override async Task<BooksRes> Delete(int id)
         {
-            if (!(await _authService.AuthorizeAsync(User, id, "Owner")).Succeeded)
-                throw new ExceptionForbidden("Only owner can use this action");
+            await _accessControlHandler.CheckIsOwnerOrAdmin(id);
             return await base.Delete(id);
         }
 
+        [Authorize(Policy = "Moderator")]
+        [HttpPatch("{id}/undo-delete")]
+        public async Task<BooksRes> UndoDelete(int id)
+        {
+            return await _service.UndoDelete(id);
+        }
+
         [Authorize(Policy = "User")]
-        [HttpDelete("{id}/delete-image/{imageId}")]
+        [HttpPatch("{id}/delete-image/{imageId}")]
         public async Task<BookImageRes> DeleteImage(int id, int imageId)
         {
-            if (!(await _authService.AuthorizeAsync(User, id, "Owner")).Succeeded)
-                throw new ExceptionForbidden("Only owner can use this action");
+            await _accessControlHandler.CheckIsOwnerOrAdmin(id);
             return await _service.DeleteImage(id, imageId);
         }
 
@@ -67,8 +70,7 @@ namespace eBooks.API.Controllers
         [HttpPatch("{id}/await")]
         public async Task<BooksRes> Await(int id)
         {
-            if (!(await _authService.AuthorizeAsync(User, id, "Owner")).Succeeded)
-                throw new ExceptionForbidden("Only owner can use this action");
+            await _accessControlHandler.CheckIsOwner(id);
             return await _service.Await(id);
         }
 
@@ -90,8 +92,7 @@ namespace eBooks.API.Controllers
         [HttpPatch("{id}/hide")]
         public async Task<BooksRes> Hide(int id)
         {
-            if (!(await _authService.AuthorizeAsync(User, id, "Owner")).Succeeded)
-                throw new ExceptionForbidden("Only owner can use this action");
+            await _accessControlHandler.CheckIsOwner(id);
             return await _service.Hide(id);
         }
 

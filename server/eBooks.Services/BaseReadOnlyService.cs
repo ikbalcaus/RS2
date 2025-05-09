@@ -1,13 +1,14 @@
 ﻿using eBooks.Database;
 using eBooks.Models;
+using eBooks.Models.Exceptions;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 
 namespace eBooks.Services
 {
-    public class BaseReadOnlyService<TSearch, TEntity, TResponse> : IBaseReadOnlyService<TSearch, TResponse>
-        where TSearch : BaseSearch
+    public class BaseReadOnlyService<TEntity, TSearch, TResponse> : IBaseReadOnlyService<TSearch, TResponse>
         where TEntity : class
+        where TSearch : BaseSearch
         where TResponse : class
     {
         protected EBooksContext _db;
@@ -42,7 +43,8 @@ namespace eBooks.Services
         public async Task<TResponse> GetById(int id)
         {
             var entity = await _db.Set<TEntity>().FindAsync(id);
-            if (entity == null) return null;
+            if (entity == null)
+                throw new ExceptionNotFound();
             else return _mapper.Map<TResponse>(entity);
         }
 

@@ -1,6 +1,9 @@
-﻿public class BookImageRes
+﻿namespace eBooks.Models.Books
 {
-    public int ImageId { get; set; }
-    public string ImagePath { get; set; }
-    public DateTime ModifiedAt { get; set; }
+    public class BookImageRes
+    {
+        public int ImageId { get; set; }
+        public string ImagePath { get; set; }
+        public DateTime ModifiedAt { get; set; }
+    }
 }

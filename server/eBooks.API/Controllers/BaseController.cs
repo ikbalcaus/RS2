@@ -1,6 +1,6 @@
-﻿using eBooks.Interfaces;
+﻿using eBooks.API.Auth;
+using eBooks.Interfaces;
 using eBooks.Models;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace eBooks.API.Controllers
@@ -13,8 +13,8 @@ namespace eBooks.API.Controllers
     {
         protected new IBaseService<TSearch, TCreate, TUpdate, TResponse> _service;
 
-        public BaseController(IBaseService<TSearch, TCreate, TUpdate, TResponse> service, IAuthorizationService authService)
-            : base(service, authService)
+        public BaseController(IBaseService<TSearch, TCreate, TUpdate, TResponse> service, AccessControlHandler accessControlHandler)
+            : base(service, accessControlHandler)
         {
             _service = service;
         }

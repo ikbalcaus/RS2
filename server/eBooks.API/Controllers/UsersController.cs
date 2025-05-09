@@ -1,19 +1,20 @@
+using eBooks.API.Auth;
 using eBooks.Interfaces;
 using eBooks.Models;
-using eBooks.Models.Exceptions;
 using eBooks.Models.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace eBooks.API.Controllers
 {
-    [Authorize(Roles = "Admin,Moderator,User,Publisher")]
     [ApiController]
     [Route("[controller]")]
     public class UsersController : BaseController<UsersSearch, UsersCreateReq, UsersUpdateReq, UsersRes>
     {
-        public UsersController(IUsersService service, IAuthorizationService authService)
-            : base(service, authService)
+        protected new IUsersService _service;
+
+        public UsersController(IUsersService service, AccessControlHandler accessControlHandler)
+            : base(service, accessControlHandler)
         {
         }
 
@@ -29,7 +30,7 @@ namespace eBooks.API.Controllers
             return await base.GetById(id);
         }
 
-        [Authorize(Policy = "Admin")]
+        [AllowAnonymous]
         public async override Task<UsersRes> Create(UsersCreateReq req)
         {
             return await base.Create(req);
@@ -38,17 +39,36 @@ namespace eBooks.API.Controllers
         [Authorize(Policy = "User")]
         public async override Task<UsersRes> Update(int id, UsersUpdateReq req)
         {
-            if (!(await _authService.AuthorizeAsync(User, id, "OwnerOrAdmin")).Succeeded)
-                throw new ExceptionForbidden("Only owner or admin can use this action");
+            await _accessControlHandler.CheckIsOwner(id);
             return await base.Update(id, req);
         }
 
         [Authorize(Policy = "User")]
         public async override Task<UsersRes> Delete(int id)
         {
-            if (!(await _authService.AuthorizeAsync(User, id, "OwnerOrAdmin")).Succeeded)
-                throw new ExceptionForbidden("Only owner or admin can use this action");
+            await _accessControlHandler.CheckIsOwnerOrAdmin(id);
             return await base.Delete(id);
+        }
+
+        [Authorize(Policy = "Admin")]
+        [HttpPatch("{id}/undo-delete")]
+        public async Task<UsersRes> UndoDelete(int id)
+        {
+            return await _service.UndoDelete(id);
+        }
+
+        [Authorize(Policy = "Admin")]
+        [HttpPatch("{id}/change-role/{roleId}")]
+        public async Task<UsersRes> ChangeRole(int id, int roleId)
+        {
+            return await _service.ChangeRole(id, roleId);
+        }
+
+        [AllowAnonymous]
+        [HttpPost("login")]
+        public async Task<UsersRes> Login(string email, string password)
+        {
+            return await _service.Login(email, password);
         }
     }
 }

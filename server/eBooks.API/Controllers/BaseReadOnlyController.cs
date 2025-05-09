@@ -1,4 +1,5 @@
-﻿using eBooks.Models;
+﻿using eBooks.API.Auth;
+using eBooks.Models;
 using eBooks.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,15 +9,16 @@ namespace eBooks.API.Controllers
     [Authorize]
     [ApiController]
     [Route("[controller]")]
-    public class BaseReadOnlyController<TSearch, TResponse> : ControllerBase where TSearch : BaseSearch
+    public class BaseReadOnlyController<TSearch, TResponse> : ControllerBase
+        where TSearch : BaseSearch
     {
         protected IBaseReadOnlyService<TSearch, TResponse> _service;
-        protected IAuthorizationService _authService;
+        protected AccessControlHandler _accessControlHandler;
 
-        public BaseReadOnlyController(IBaseReadOnlyService<TSearch, TResponse> service, IAuthorizationService authService)
+        public BaseReadOnlyController(IBaseReadOnlyService<TSearch, TResponse> service, AccessControlHandler accessControlHandler)
         {
             _service = service;
-            _authService = authService;
+            _accessControlHandler = accessControlHandler;
         }
 
         [HttpGet]

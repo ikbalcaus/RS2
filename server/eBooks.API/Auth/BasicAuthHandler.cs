@@ -23,16 +23,12 @@ namespace eBooks.API
             {
                 return AuthenticateResult.Fail("Missing header");
             }
-
             var authHeader = AuthenticationHeaderValue.Parse(Request.Headers["Authorization"]);
             var credentialsBytes = Convert.FromBase64String(authHeader.Parameter);
             var credentials = Encoding.UTF8.GetString(credentialsBytes).Split(':');
-
             var email = credentials[0];
             var password = credentials[1];
-
             var user = await _usersService.Login(email, password);
-
             if (user == null) return AuthenticateResult.Fail("Auth failed");
             else
             {
@@ -42,7 +38,6 @@ namespace eBooks.API
                     new Claim(ClaimTypes.Email, user.Email),
                     new Claim(ClaimTypes.Role, user.Role.Name)
                 };
-
                 var identity = new ClaimsIdentity(claims, Scheme.Name);
                 var principal = new ClaimsPrincipal(identity);
                 var ticket = new AuthenticationTicket(principal, Scheme.Name);

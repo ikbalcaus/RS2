@@ -6,6 +6,6 @@
         public string? LNameGTE { get; set; }
         public string? EmailGTE { get; set; }
         public string? UNameGTE { get; set; }
-        public bool? IsUserRolesIncluded { get; set; }
+        public string? OrderBy { get; set; }
     }
 }

@@ -95,7 +95,7 @@ CREATE TABLE BookImages (
 CREATE TABLE Favorites (
     UserId INT,
     BookId INT,
-    AddedDate DATETIME DEFAULT GETDATE(),
+    ModifiedAt DATETIME DEFAULT GETDATE(),
     PRIMARY KEY (UserId, BookId),
     FOREIGN KEY (UserId) REFERENCES Users(UserId),
     FOREIGN KEY (BookId) REFERENCES Books(BookId)
@@ -105,18 +105,7 @@ CREATE TABLE Favorites (
 CREATE TABLE Wishlists (
     UserId INT,
     BookId INT,
-    AddedDate DATETIME DEFAULT GETDATE(),
-    PRIMARY KEY (UserId, BookId),
-    FOREIGN KEY (UserId) REFERENCES Users(UserId),
-    FOREIGN KEY (BookId) REFERENCES Books(BookId)
-);
-
--- Tabela: Purchases
-CREATE TABLE Purchases (
-    UserId INT,
-    BookId INT,
-    PurchaseDate DATETIME DEFAULT GETDATE(),
-    TotalPrice DECIMAL(10,2),
+    ModifiedAt DATETIME DEFAULT GETDATE(),
     PRIMARY KEY (UserId, BookId),
     FOREIGN KEY (UserId) REFERENCES Users(UserId),
     FOREIGN KEY (BookId) REFERENCES Books(BookId)
@@ -143,6 +132,28 @@ CREATE TABLE BookFollows (
     FOREIGN KEY (BookId) REFERENCES Books(BookId)
 );
 
+-- Tabela: Purchases
+CREATE TABLE Purchases (
+    PurchaseId INT PRIMARY KEY IDENTITY,
+    UserId INT NOT NULL,
+    PurchaseDate DATETIME NOT NULL DEFAULT GETDATE(),
+    TotalPrice DECIMAL(10, 2) NOT NULL,
+    FOREIGN KEY (UserId) REFERENCES Users(UserId)
+);
+
+-- Tabela: AccessRights
+CREATE TABLE AccessRights (
+    UserId INT NOT NULL,
+    BookId INT NOT NULL,
+    PurchaseId INT NOT NULL,
+    Price DECIMAL(10, 2) NOT NULL,
+    ModifiedAt DATETIME NOT NULL DEFAULT GETDATE(),
+    PRIMARY KEY (UserId, BookId),
+    FOREIGN KEY (UserId) REFERENCES Users(UserId),
+    FOREIGN KEY (BookId) REFERENCES Books(BookId),
+    FOREIGN KEY (PurchaseId) REFERENCES Purchases(PurchaseId)
+);
+
 -- Tabela: PublisherFollows
 CREATE TABLE PublisherFollows (
     UserId INT,
@@ -163,15 +174,6 @@ CREATE TABLE Reviews (
     PRIMARY KEY (BookId, UserId),
     FOREIGN KEY (BookId) REFERENCES Books(BookId),
     FOREIGN KEY (UserId) REFERENCES Users(UserId)
-);
-
--- Tabela: AccessRights
-CREATE TABLE AccessRights (
-    AccessRightId INT PRIMARY KEY IDENTITY,
-    UserId INT NOT NULL,
-    BookId INT NOT NULL,
-    FOREIGN KEY (UserId) REFERENCES Users(UserId),
-    FOREIGN KEY (BookId) REFERENCES Books(BookId)
 );
 
 -- Tabela: Notifications

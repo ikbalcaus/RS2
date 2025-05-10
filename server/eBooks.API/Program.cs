@@ -38,6 +38,7 @@ builder.Services.AddTransient<IRolesService, RolesService>();
 builder.Services.AddTransient<IGenresService, GenresService>();
 builder.Services.AddTransient<IAuthorsService, AuthorsService>();
 builder.Services.AddTransient<ILanguagesService, LanguagesService>();
+builder.Services.AddTransient<IWishlistService, WishlistService>();
 
 builder.Services.AddTransient<BaseBooksState>();
 builder.Services.AddTransient<ApproveBooksState>();

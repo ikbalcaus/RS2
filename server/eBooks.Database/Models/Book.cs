@@ -43,8 +43,6 @@ public partial class Book
 
     public virtual User Publisher { get; set; } = null!;
 
-    public virtual ICollection<Purchase> Purchases { get; set; } = new List<Purchase>();
-
     public virtual ICollection<ReadingProgress> ReadingProgresses { get; set; } = new List<ReadingProgress>();
 
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();

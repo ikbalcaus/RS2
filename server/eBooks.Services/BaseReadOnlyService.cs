@@ -20,7 +20,7 @@ namespace eBooks.Services
             _mapper = mapper;
         }
 
-        public async Task<PagedResult<TResponse>> GetPaged(TSearch search)
+        public virtual async Task<PagedResult<TResponse>> GetPaged(TSearch search)
         {
             List<TResponse> result = new List<TResponse>();
             var query = _db.Set<TEntity>().AsQueryable();
@@ -40,15 +40,15 @@ namespace eBooks.Services
             return pagedResult;
         }
 
-        public async Task<TResponse> GetById(int id)
+        public virtual async Task<TResponse> GetById(int id)
         {
             var entity = await _db.Set<TEntity>().FindAsync(id);
             if (entity == null)
                 throw new ExceptionNotFound();
-            else return _mapper.Map<TResponse>(entity);
+            return _mapper.Map<TResponse>(entity);
         }
 
-        public async virtual Task<IQueryable<TEntity>> AddFilter(TSearch search, IQueryable<TEntity> query)
+        public virtual async Task<IQueryable<TEntity>> AddFilter(TSearch search, IQueryable<TEntity> query)
         {
             return query;
         }

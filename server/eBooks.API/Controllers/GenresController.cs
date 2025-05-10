@@ -19,31 +19,31 @@ namespace eBooks.API.Controllers
         }
 
         [AllowAnonymous]
-        public async override Task<PagedResult<GenresRes>> GetAll([FromQuery] BaseSearch search)
+        public override async Task<PagedResult<GenresRes>> GetAll([FromQuery] BaseSearch search)
         {
             return await base.GetAll(search);
         }
 
         [AllowAnonymous]
-        public async override Task<GenresRes> GetById(int id)
+        public override async Task<GenresRes> GetById(int id)
         {
             return await base.GetById(id);
         }
 
         [Authorize(Policy = "User")]
-        public async override Task<GenresRes> Create(GenresReq req)
+        public override async Task<GenresRes> Create(GenresReq req)
         {
             return await base.Create(req);
         }
 
         [Authorize(Policy = "Moderator")]
-        public async override Task<GenresRes> Update(int id, GenresReq req)
+        public override async Task<GenresRes> Update(int id, GenresReq req)
         {
             return await base.Update(id, req);
         }
 
         [Authorize(Policy = "Moderator")]
-        public async override Task<GenresRes> Delete(int id)
+        public override async Task<GenresRes> Delete(int id)
         {
             return await base.Delete(id);
         }

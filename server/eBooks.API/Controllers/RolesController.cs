@@ -17,15 +17,15 @@ namespace eBooks.API.Controllers
         }
 
         [Authorize(Policy = "Moderator")]
-        public override Task<PagedResult<RolesRes>> GetAll([FromQuery] BaseSearch search)
+        public override async Task<PagedResult<RolesRes>> GetAll([FromQuery] BaseSearch search)
         {
-            return base.GetAll(search);
+            return await base.GetAll(search);
         }
 
         [Authorize(Policy = "Moderator")]
-        public override Task<RolesRes> GetById(int id)
+        public override async Task<RolesRes> GetById(int id)
         {
-            return base.GetById(id);
+            return await base.GetById(id);
         }
     }
 }

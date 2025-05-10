@@ -12,7 +12,7 @@ namespace eBooks.Services.BooksStateMachine
         {
         }
 
-        public async override Task<BooksRes> Update(int id, BooksUpdateReq req)
+        public override async Task<BooksRes> Update(int id, BooksUpdateReq req)
         {
             var set = _db.Set<Book>();
             var entity = await set.FindAsync(id);
@@ -23,7 +23,7 @@ namespace eBooks.Services.BooksStateMachine
             return _mapper.Map<BooksRes>(entity);
         }
 
-        public async override Task<BooksRes> Approve(int id)
+        public override async Task<BooksRes> Approve(int id)
         {
             var set = _db.Set<Book>();
             var entity = await set.FindAsync(id);
@@ -33,7 +33,7 @@ namespace eBooks.Services.BooksStateMachine
             return _mapper.Map<BooksRes>(entity);
         }
 
-        public async override Task<BooksRes> Reject(int id, string message)
+        public override async Task<BooksRes> Reject(int id, string message)
         {
             var set = _db.Set<Book>();
             var entity = await set.FindAsync(id);
@@ -43,7 +43,7 @@ namespace eBooks.Services.BooksStateMachine
             return _mapper.Map<BooksRes>(entity);
         }
 
-        public async override Task<List<string>> AllowedActions(Book entity)
+        public override async Task<List<string>> AllowedActions(Book entity)
         {
             return new List<string>() { nameof(Update), nameof(Approve), nameof(Reject) };
         }

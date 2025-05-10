@@ -18,7 +18,7 @@ namespace eBooks.Services
         public virtual async Task<TResponse> Create(TCreate req)
         {
             TEntity entity = _mapper.Map<TEntity>(req);
-            BeforeCreate(entity, req);
+            await BeforeCreate(entity, req);
             _db.Add(entity);
             await _db.SaveChangesAsync();
             return _mapper.Map<TResponse>(entity);
@@ -31,7 +31,7 @@ namespace eBooks.Services
             if (entity == null)
                 throw new ExceptionNotFound();
             _mapper.Map(req, entity);
-            BeforeUpdate(entity, req);
+            await BeforeUpdate(entity, req);
             await _db.SaveChangesAsync();
             return _mapper.Map<TResponse>(entity);
         }
@@ -47,15 +47,15 @@ namespace eBooks.Services
             return null;
         }
 
-        public async virtual Task BeforeCreate(TEntity entity, TCreate req)
+        public virtual async Task BeforeCreate(TEntity entity, TCreate req)
         {
         }
 
-        public async virtual Task BeforeUpdate(TEntity entity, TUpdate req)
+        public virtual async Task BeforeUpdate(TEntity entity, TUpdate req)
         {
         }
 
-        public async virtual Task BeforeDelete(TEntity entity, int id)
+        public virtual async Task BeforeDelete(TEntity entity, int id)
         {
         }
     }

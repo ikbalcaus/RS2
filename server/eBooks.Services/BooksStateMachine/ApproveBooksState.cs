@@ -13,7 +13,7 @@ namespace eBooks.Services.BooksStateMachine
         {
         }
 
-        public async override Task<BooksRes> Hide(int id)
+        public override async Task<BooksRes> Hide(int id)
         {
             var set = _db.Set<Book>();
             var entity = await set.FindAsync(id);
@@ -22,7 +22,7 @@ namespace eBooks.Services.BooksStateMachine
             return _mapper.Map<BooksRes>(entity);
         }
 
-        public async override Task<List<string>> AllowedActions(Book entity)
+        public override async Task<List<string>> AllowedActions(Book entity)
         {
             return new List<string>() { nameof(Hide) };
         }

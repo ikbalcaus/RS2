@@ -22,32 +22,32 @@ namespace eBooks.Services.BooksStateMachine
             _serviceProvider = serviceProvider;
         }
 
-        public async virtual Task<BooksRes> Update(int id, BooksUpdateReq req)
+        public virtual async Task<BooksRes> Update(int id, BooksUpdateReq req)
         {
             throw new ExceptionForbidden("Method not allowed");
         }
 
-        public async virtual Task<BooksRes> Await(int id)
+        public virtual async Task<BooksRes> Await(int id)
         {
             throw new ExceptionForbidden("Method not allowed");
         }
 
-        public async virtual Task<BooksRes> Approve(int id)
+        public virtual async Task<BooksRes> Approve(int id)
         {
             throw new ExceptionForbidden("Method not allowed");
         }
 
-        public async virtual Task<BooksRes> Reject(int id, string message)
+        public virtual async Task<BooksRes> Reject(int id, string message)
         {
             throw new ExceptionForbidden("Method not allowed");
         }
 
-        public async virtual Task<BooksRes> Hide(int id)
+        public virtual async Task<BooksRes> Hide(int id)
         {
             throw new ExceptionForbidden("Method not allowed");
         }
 
-        public async virtual Task<List<string>> AllowedActions(Book entity)
+        public virtual async Task<List<string>> AllowedActions(Book entity)
         {
             throw new ExceptionForbidden("Method not allowed");
         }

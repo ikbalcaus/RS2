@@ -5,13 +5,19 @@ namespace eBooks.Database.Models;
 
 public partial class AccessRight
 {
-    public int AccessRightId { get; set; }
-
     public int UserId { get; set; }
 
     public int BookId { get; set; }
 
+    public int PurchaseId { get; set; }
+
+    public decimal Price { get; set; }
+
+    public DateTime ModifiedAt { get; set; }
+
     public virtual Book Book { get; set; } = null!;
+
+    public virtual Purchase Purchase { get; set; } = null!;
 
     public virtual User User { get; set; } = null!;
 }

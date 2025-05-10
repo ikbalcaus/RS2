@@ -19,32 +19,32 @@ namespace eBooks.API.Controllers
         }
 
         [Authorize(Policy = "Admin")]
-        public async override Task<PagedResult<UsersRes>> GetAll([FromQuery] UsersSearch search)
+        public override async Task<PagedResult<UsersRes>> GetAll([FromQuery] UsersSearch search)
         {
             return await base.GetAll(search);
         }
 
         [Authorize(Policy = "User")]
-        public async override Task<UsersRes> GetById(int id)
+        public override async Task<UsersRes> GetById(int id)
         {
             return await base.GetById(id);
         }
 
         [AllowAnonymous]
-        public async override Task<UsersRes> Create(UsersCreateReq req)
+        public override async Task<UsersRes> Create(UsersCreateReq req)
         {
             return await base.Create(req);
         }
 
         [Authorize(Policy = "User")]
-        public async override Task<UsersRes> Update(int id, UsersUpdateReq req)
+        public override async Task<UsersRes> Update(int id, UsersUpdateReq req)
         {
             await _accessControlHandler.CheckIsOwner(id);
             return await base.Update(id, req);
         }
 
         [Authorize(Policy = "User")]
-        public async override Task<UsersRes> Delete(int id)
+        public override async Task<UsersRes> Delete(int id)
         {
             await _accessControlHandler.CheckIsOwnerOrAdmin(id);
             return await base.Delete(id);

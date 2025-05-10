@@ -18,70 +18,24 @@ namespace eBooks.Services
         protected BaseBooksState _baseBooksState;
         protected IHttpContextAccessor _httpContextAccessor;
 
-        public BooksService(EBooksContext db, IMapper mapper, ILogger<BooksService> logger, BaseBooksState baseProizvodiState, IHttpContextAccessor httpContextAccessor)
+        public BooksService(EBooksContext db, IMapper mapper, ILogger<BooksService> logger, BaseBooksState baseBooksState, IHttpContextAccessor httpContextAccessor)
             : base(db, mapper)
         {
             _logger = logger;
-            _baseBooksState = baseProizvodiState;
+            _baseBooksState = baseBooksState;
             _httpContextAccessor = httpContextAccessor;
-        }
-
-        public override async Task<IQueryable<Book>> AddFilter(BooksSearch search, IQueryable<Book> query)
-        {
-            if (!string.IsNullOrWhiteSpace(search?.TitleGTE))
-            {
-                query = query.Where(x => x.Title.StartsWith(search.TitleGTE));
-            }
-            if (search?.MinPrice != null)
-            {
-                query = query.Where(x => x.Price >= search.MinPrice);
-            }
-            if (search?.MaxPrice != null)
-            {
-                query = query.Where(x => x.Price <= search.MinPrice);
-            }
-            if (!string.IsNullOrWhiteSpace(search?.StateMachine))
-            {
-                query = query.Where(x => x.StateMachine == "approved");
-            }
-            if (!string.IsNullOrWhiteSpace(search?.AuthorNameGTE))
-            {
-                query = query
-                    .Include(x => x.BookAuthors)
-                        .ThenInclude(x => x.Author)
-                    .Where(x => x.BookAuthors.Any(x =>
-                        (x.Author.FirstName + ' ' + x.Author.LastName).StartsWith(search.AuthorNameGTE) ||
-                        (x.Author.LastName + ' ' + x.Author.FirstName).StartsWith(search.AuthorNameGTE))
-                    );
-            }
-            if (!string.IsNullOrWhiteSpace(search?.PublisherNameGTE))
-            {
-                query = query
-                    .Include(x => x.Publisher)
-                    .Where(x =>
-                        (x.Publisher.FirstName + ' ' + x.Publisher.LastName).StartsWith(search.PublisherNameGTE) ||
-                        (x.Publisher.LastName + ' ' + x.Publisher.FirstName).StartsWith(search.PublisherNameGTE)
-                    );
-            }
-            query = query.Select(x => new Book
-            {
-                BookId = x.BookId,
-                Title = x.Title,
-                Price = x.Price,
-                StateMachine = x.StateMachine,
-                BookImages = new List<BookImage> { x.BookImages.OrderByDescending(x => x.ModifiedAt).FirstOrDefault() }
-            });
-            return query;
         }
 
         public override async Task<BooksRes> Create(BooksCreateReq req)
         {
             var entity = _mapper.Map<Book>(req);
-            entity.PublisherId = int.TryParse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : 0;
+            entity.PublisherId = int.TryParse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var temp) ? temp : throw new ExceptionForbidden("User not logged in");
             _db.Add(entity);
             await _db.SaveChangesAsync();
-            if (req.Images != null && req.Images.Any()) Helpers.UploadImages(_db, _mapper, entity.BookId, req.Images);
-            if (req.PdfFile != null) Helpers.UploadPdfFile(_db, _mapper, entity, req.PdfFile);
+            if (req.Images != null && req.Images.Any())
+                Helpers.UploadImages(_db, _mapper, entity.BookId, req.Images);
+            if (req.PdfFile != null)
+                Helpers.UploadPdfFile(_db, _mapper, entity, req.PdfFile);
             _logger.LogInformation($"Book with title {entity.Title} created.");
             return _mapper.Map<BooksRes>(entity);
         }
@@ -120,16 +74,16 @@ namespace eBooks.Services
 
         public async Task<BookImageRes> DeleteImage(int id, int imageId)
         {
-            var set = _db.Set<Book>();
-            var bookEntity = await set.FindAsync(id);
+            var bookEntity = await _db.Set<Book>().FindAsync(id);
             if (bookEntity == null)
                 throw new ExceptionNotFound();
-            var bookImage = await _db.Set<BookImage>().FirstOrDefaultAsync(img => img.ImageId == imageId && img.BookId == id);
+            var set = _db.Set<BookImage>();
+            var bookImage = await set.FirstOrDefaultAsync(img => img.ImageId == imageId && img.BookId == id);
             if (bookImage == null)
                 throw new ExceptionNotFound();
             var imagePath = Path.Combine("wwwroot", bookImage.ImagePath.TrimStart('/'));
             if (File.Exists(imagePath)) File.Delete(imagePath);
-            _db.Set<BookImage>().Remove(bookImage);
+            set.Remove(bookImage);
             await _db.SaveChangesAsync();
             return null;
         }

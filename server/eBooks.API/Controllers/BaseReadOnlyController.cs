@@ -22,13 +22,13 @@ namespace eBooks.API.Controllers
         }
 
         [HttpGet]
-        public async virtual Task<PagedResult<TResponse>> GetAll([FromQuery] TSearch search)
+        public virtual async Task<PagedResult<TResponse>> GetAll([FromQuery] TSearch search)
         {
             return await _service.GetPaged(search);
         }
 
         [HttpGet("{id}")]
-        public async virtual Task<TResponse> GetById(int id)
+        public virtual async Task<TResponse> GetById(int id)
         {
             return await _service.GetById(id);
         }

@@ -20,19 +20,19 @@ namespace eBooks.API.Controllers
         }
 
         [HttpPost]
-        public async virtual Task<TResponse> Create(TCreate req)
+        public virtual async Task<TResponse> Create(TCreate req)
         {
             return await _service.Create(req);
         }
 
         [HttpPut("{id}")]
-        public async virtual Task<TResponse> Update(int id, TUpdate req)
+        public virtual async Task<TResponse> Update(int id, TUpdate req)
         {
             return await _service.Update(id, req);
         }
 
         [HttpDelete("{id}")]
-        public async virtual Task<TResponse> Delete(int id)
+        public virtual async Task<TResponse> Delete(int id)
         {
             return await _service.Delete(id);
         }

@@ -39,14 +39,14 @@ namespace eBooks.API.Controllers
         [Authorize(Policy = "User")]
         public override async Task<UsersRes> Update(int id, UsersUpdateReq req)
         {
-            await _accessControlHandler.CheckIsOwner(id);
+            await _accessControlHandler.CheckIsOwnerByUserId(id);
             return await base.Update(id, req);
         }
 
         [Authorize(Policy = "User")]
         public override async Task<UsersRes> Delete(int id)
         {
-            await _accessControlHandler.CheckIsOwnerOrAdmin(id);
+            await _accessControlHandler.CheckIsOwnerOrAdminByUserId(id);
             return await base.Delete(id);
         }
 

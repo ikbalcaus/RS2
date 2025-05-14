@@ -25,6 +25,8 @@ public partial class User
 
     public int RoleId { get; set; }
 
+    public string? StripeAccountId { get; set; }
+
     public virtual ICollection<AccessRight> AccessRights { get; set; } = new List<AccessRight>();
 
     public virtual ICollection<BookFollow> BookFollows { get; set; } = new List<BookFollow>();
@@ -45,7 +47,9 @@ public partial class User
 
     public virtual PublisherVerification? PublisherVerificationPublisher { get; set; }
 
-    public virtual ICollection<Purchase> Purchases { get; set; } = new List<Purchase>();
+    public virtual ICollection<Purchase> PurchasePublishers { get; set; } = new List<Purchase>();
+
+    public virtual ICollection<Purchase> PurchaseUsers { get; set; } = new List<Purchase>();
 
     public virtual ICollection<ReadingProgress> ReadingProgresses { get; set; } = new List<ReadingProgress>();
 

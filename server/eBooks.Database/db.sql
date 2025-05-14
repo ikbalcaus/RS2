@@ -1,4 +1,6 @@
-﻿-- Kreiranje baze
+﻿-- dotnet ef dbcontext scaffold "Name=Database" Microsoft.EntityFrameworkCore.SqlServer --output-dir Models --context-dir . --force --project eBooks.Database/eBooks.Database.csproj --startup-project eBooks.API/eBooks.API.csproj
+
+-- Kreiranje baze
 CREATE DATABASE eBooks;
 GO
 
@@ -23,6 +25,7 @@ CREATE TABLE Users (
     RegistrationDate DATETIME DEFAULT GETDATE(),
     isDeleted BIT DEFAULT 0,
     RoleId INT NOT NULL,
+    StripeAccountId NVARCHAR(255) NULL,
     FOREIGN KEY (RoleId) REFERENCES Roles(RoleId)
 );
 
@@ -52,6 +55,7 @@ CREATE TABLE Books (
     Title NVARCHAR(255),
     PdfPath NVARCHAR(255),
     Price DECIMAL(10,2),
+    NumberOfPages INT,
     LanguageId INT NOT NULL,
     PublisherId INT NOT NULL,
     AddedDate DATETIME DEFAULT GETDATE(),
@@ -133,26 +137,36 @@ CREATE TABLE BookFollows (
 );
 
 -- Tabela: Purchases
-CREATE TABLE Purchases (
-    PurchaseId INT PRIMARY KEY IDENTITY,
+CREATE TABLE dbo.Purchases
+(
+    PurchaseId INT IDENTITY(1,1) PRIMARY KEY,
     UserId INT NOT NULL,
+    PublisherId INT NOT NULL,
+    BookId INT NOT NULL,
     PurchaseDate DATETIME NOT NULL DEFAULT GETDATE(),
-    TotalPrice DECIMAL(10, 2) NOT NULL,
-    FOREIGN KEY (UserId) REFERENCES Users(UserId)
+    TotalPrice DECIMAL(18,2) NOT NULL,
+    PaymentStatus VARCHAR(50) NOT NULL,
+    PaymentMethod VARCHAR(50),
+    TransactionId VARCHAR(255),
+    FailureMessage VARCHAR(255),
+    FailureCode VARCHAR(50),
+    FailureReason VARCHAR(255),
+    CONSTRAINT FK_Purchases_User FOREIGN KEY (UserId) REFERENCES dbo.Users(UserId),
+    CONSTRAINT FK_Purchases_Publisher FOREIGN KEY (PublisherId) REFERENCES dbo.Users(UserId),
+    CONSTRAINT FK_Purchases_Book FOREIGN KEY (BookId) REFERENCES dbo.Books(BookId)
 );
 
 -- Tabela: AccessRights
 CREATE TABLE AccessRights (
     UserId INT NOT NULL,
     BookId INT NOT NULL,
-    PurchaseId INT NOT NULL,
-    Price DECIMAL(10, 2) NOT NULL,
     ModifiedAt DATETIME NOT NULL DEFAULT GETDATE(),
+    Hidden BIT NOT NULL DEFAULT 0,
     PRIMARY KEY (UserId, BookId),
     FOREIGN KEY (UserId) REFERENCES Users(UserId),
     FOREIGN KEY (BookId) REFERENCES Books(BookId),
-    FOREIGN KEY (PurchaseId) REFERENCES Purchases(PurchaseId)
 );
+
 
 -- Tabela: PublisherFollows
 CREATE TABLE PublisherFollows (

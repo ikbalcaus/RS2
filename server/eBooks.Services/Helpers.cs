@@ -99,5 +99,10 @@ namespace eBooks.Services
             db.SaveChanges();
             return mapper.Map<BooksRes>(entity);
         }
+
+        public static decimal ConvertBAMtoEUR(decimal bamAmount)
+        {
+            return Math.Round(bamAmount / 1.95m, 2);
+        }
     }
 }

@@ -9,15 +9,11 @@ public partial class AccessRight
 
     public int BookId { get; set; }
 
-    public int PurchaseId { get; set; }
-
-    public decimal Price { get; set; }
-
     public DateTime ModifiedAt { get; set; }
 
-    public virtual Book Book { get; set; } = null!;
+    public bool Hidden { get; set; }
 
-    public virtual Purchase Purchase { get; set; } = null!;
+    public virtual Book Book { get; set; } = null!;
 
     public virtual User User { get; set; } = null!;
 }

@@ -25,6 +25,8 @@ public partial class Book
 
     public bool? IsDeleted { get; set; }
 
+    public int? NumberOfPages { get; set; }
+
     public virtual ICollection<AccessRight> AccessRights { get; set; } = new List<AccessRight>();
 
     public virtual ICollection<BookAuthor> BookAuthors { get; set; } = new List<BookAuthor>();
@@ -42,6 +44,8 @@ public partial class Book
     public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 
     public virtual User Publisher { get; set; } = null!;
+
+    public virtual ICollection<Purchase> Purchases { get; set; } = new List<Purchase>();
 
     public virtual ICollection<ReadingProgress> ReadingProgresses { get; set; } = new List<ReadingProgress>();
 

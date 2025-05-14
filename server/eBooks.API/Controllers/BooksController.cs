@@ -40,14 +40,14 @@ namespace eBooks.API.Controllers
         [Authorize(Policy = "User")]
         public override async Task<BooksRes> Update(int id, BooksUpdateReq req)
         {
-            await _accessControlHandler.CheckIsOwner(id);
+            await _accessControlHandler.CheckIsOwnerByBookId(id);
             return await base.Update(id, req);
         }
 
         [Authorize(Policy = "User")]
         public override async Task<BooksRes> Delete(int id)
         {
-            await _accessControlHandler.CheckIsOwnerOrAdmin(id);
+            await _accessControlHandler.CheckIsOwnerOrAdminByBookId(id);
             return await base.Delete(id);
         }
 
@@ -62,7 +62,7 @@ namespace eBooks.API.Controllers
         [HttpPatch("{id}/delete-image/{imageId}")]
         public async Task<BookImageRes> DeleteImage(int id, int imageId)
         {
-            await _accessControlHandler.CheckIsOwnerOrAdmin(id);
+            await _accessControlHandler.CheckIsOwnerOrAdminByBookId(id);
             return await _service.DeleteImage(id, imageId);
         }
 
@@ -70,7 +70,7 @@ namespace eBooks.API.Controllers
         [HttpPatch("{id}/await")]
         public async Task<BooksRes> Await(int id)
         {
-            await _accessControlHandler.CheckIsOwner(id);
+            await _accessControlHandler.CheckIsOwnerByBookId(id);
             return await _service.Await(id);
         }
 
@@ -92,7 +92,7 @@ namespace eBooks.API.Controllers
         [HttpPatch("{id}/hide")]
         public async Task<BooksRes> Hide(int id)
         {
-            await _accessControlHandler.CheckIsOwner(id);
+            await _accessControlHandler.CheckIsOwnerByBookId(id);
             return await _service.Hide(id);
         }
 

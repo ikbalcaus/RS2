@@ -9,6 +9,7 @@ using MapsterMapper;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
@@ -17,6 +18,7 @@ builder.Services.AddControllers();
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers(x => x.Filters.Add<ExceptionFilter>());
+StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
 builder.Services.AddDbContext<EBooksContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Database"))
@@ -39,6 +41,8 @@ builder.Services.AddTransient<IGenresService, GenresService>();
 builder.Services.AddTransient<IAuthorsService, AuthorsService>();
 builder.Services.AddTransient<ILanguagesService, LanguagesService>();
 builder.Services.AddTransient<IWishlistService, WishlistService>();
+builder.Services.AddTransient<IPaymentService, PaymentService>();
+builder.Services.AddTransient<IAccessRightsService, AccessRightsService>();
 
 builder.Services.AddTransient<BaseBooksState>();
 builder.Services.AddTransient<ApproveBooksState>();
@@ -77,7 +81,3 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.MapControllers();
 app.Run();
-
-/*
-dotnet ef dbcontext scaffold "Name=Database" Microsoft.EntityFrameworkCore.SqlServer --output-dir Models --context-dir . --force --project eBooks.Database/eBooks.Database.csproj --startup-project eBooks.API/eBooks.API.csproj
-*/

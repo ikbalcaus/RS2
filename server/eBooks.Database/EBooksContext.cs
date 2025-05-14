@@ -61,27 +61,21 @@ public partial class EBooksContext : DbContext
     {
         modelBuilder.Entity<AccessRight>(entity =>
         {
-            entity.HasKey(e => new { e.UserId, e.BookId }).HasName("PK__AccessRi__7456C06C70201C6C");
+            entity.HasKey(e => new { e.UserId, e.BookId }).HasName("PK__AccessRi__7456C06C39609083");
 
             entity.Property(e => e.ModifiedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
 
             entity.HasOne(d => d.Book).WithMany(p => p.AccessRights)
                 .HasForeignKey(d => d.BookId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__AccessRig__BookI__22751F6C");
-
-            entity.HasOne(d => d.Purchase).WithMany(p => p.AccessRights)
-                .HasForeignKey(d => d.PurchaseId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__AccessRig__Purch__236943A5");
+                .HasConstraintName("FK__AccessRig__BookI__3B40CD36");
 
             entity.HasOne(d => d.User).WithMany(p => p.AccessRights)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__AccessRig__UserI__2180FB33");
+                .HasConstraintName("FK__AccessRig__UserI__3A4CA8FD");
         });
 
         modelBuilder.Entity<Author>(entity =>
@@ -290,17 +284,45 @@ public partial class EBooksContext : DbContext
 
         modelBuilder.Entity<Purchase>(entity =>
         {
-            entity.HasKey(e => e.PurchaseId).HasName("PK__Purchase__6B0A6BBE034405D9");
+            entity.HasKey(e => e.PurchaseId).HasName("PK__Purchase__6B0A6BBE2E6CE2C0");
 
+            entity.Property(e => e.FailureCode)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.FailureMessage)
+                .HasMaxLength(255)
+                .IsUnicode(false);
+            entity.Property(e => e.FailureReason)
+                .HasMaxLength(255)
+                .IsUnicode(false);
+            entity.Property(e => e.PaymentMethod)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.PaymentStatus)
+                .HasMaxLength(50)
+                .IsUnicode(false);
             entity.Property(e => e.PurchaseDate)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.TotalPrice).HasColumnType("decimal(10, 2)");
+            entity.Property(e => e.TotalPrice).HasColumnType("decimal(18, 2)");
+            entity.Property(e => e.TransactionId)
+                .HasMaxLength(255)
+                .IsUnicode(false);
 
-            entity.HasOne(d => d.User).WithMany(p => p.Purchases)
+            entity.HasOne(d => d.Book).WithMany(p => p.Purchases)
+                .HasForeignKey(d => d.BookId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Purchases_Book");
+
+            entity.HasOne(d => d.Publisher).WithMany(p => p.PurchasePublishers)
+                .HasForeignKey(d => d.PublisherId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Purchases_Publisher");
+
+            entity.HasOne(d => d.User).WithMany(p => p.PurchaseUsers)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Purchases__UserI__123EB7A3");
+                .HasConstraintName("FK_Purchases_User");
         });
 
         modelBuilder.Entity<ReadingProgress>(entity =>
@@ -367,6 +389,7 @@ public partial class EBooksContext : DbContext
             entity.Property(e => e.RegistrationDate)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
+            entity.Property(e => e.StripeAccountId).HasMaxLength(255);
             entity.Property(e => e.UserName).HasMaxLength(100);
 
             entity.HasOne(d => d.Role).WithMany(p => p.Users)

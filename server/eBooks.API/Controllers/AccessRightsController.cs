@@ -1,5 +1,5 @@
 ﻿using eBooks.Interfaces;
-using eBooks.Models.Wishlist;
+using eBooks.Models.AccessRights;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,39 +7,46 @@ namespace eBooks.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class WishlistController : ControllerBase
+    public class AccessRightsController : ControllerBase
     {
-        protected IWishlistService _service;
+        protected IAccessRightsService _service;
 
-        public WishlistController(IWishlistService service)
+        public AccessRightsController(IAccessRightsService service)
         {
             _service = service;
         }
 
         [HttpGet]
         [Authorize(Policy = "User")]
-        public async Task<List<WishlistRes>> Get()
+        public async Task<List<AccessRightsRes>> GetAll()
         {
-            return await _service.Get();
+            return await _service.GetAll();
+        }
+
+        [HttpGet("{bookId}")]
+        [Authorize(Policy = "User")]
+        public async Task<AccessRightsRes> GetById(int bookId)
+        {
+            return await _service.GetById(bookId);
         }
 
         [HttpPost("{bookId}")]
         [Authorize(Policy = "User")]
-        public async Task<WishlistRes> Post(int bookId)
+        public async Task<AccessRightsRes> Post(int bookId)
         {
             return await _service.Post(bookId);
         }
 
         [HttpPatch("{bookId}")]
         [Authorize(Policy = "User")]
-        public async Task<WishlistRes> Patch(int bookId)
+        public async Task<AccessRightsRes> Patch(int bookId)
         {
             return await _service.Patch(bookId);
         }
 
         [HttpDelete("{bookId}")]
         [Authorize(Policy = "User")]
-        public async Task<WishlistRes> Delete(int bookId)
+        public async Task<AccessRightsRes> Delete(int bookId)
         {
             return await _service.Delete(bookId);
         }

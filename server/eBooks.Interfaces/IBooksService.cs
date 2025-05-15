@@ -1,8 +1,10 @@
-﻿using eBooks.Models.Books;
+﻿using eBooks.Models.Requests;
+using eBooks.Models.Responses;
+using eBooks.Models.Search;
 
 namespace eBooks.Interfaces
 {
-    public interface IBooksService : IBaseService<BooksSearch, BooksCreateReq, BooksUpdateReq, BooksRes>
+    public interface IBooksService : IBaseCRUDService<BooksSearch, BooksCreateReq, BooksUpdateReq, BooksRes>
     {
         Task<BooksRes> UndoDelete(int id);
         Task<BookImageRes> DeleteImage(int id, int imageId);

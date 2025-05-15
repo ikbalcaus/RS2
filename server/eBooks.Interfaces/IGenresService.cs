@@ -1,9 +1,10 @@
-﻿using eBooks.Models;
-using eBooks.Models.Genres;
+﻿using eBooks.Models.Requests;
+using eBooks.Models.Responses;
+using eBooks.Models.SearchObjects;
 
 namespace eBooks.Interfaces
 {
-    public interface IGenresService : IBaseService<BaseSearch, GenresReq, GenresReq, GenresRes>
+    public interface IGenresService : IBaseCRUDService<BaseSearch, GenresReq, GenresReq, GenresRes>
     {
     }
 }

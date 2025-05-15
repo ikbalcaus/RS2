@@ -11,7 +11,7 @@ public partial class BookImage
 
     public string? ImagePath { get; set; }
 
-    public DateTime? ModifiedAt { get; set; }
+    public DateTime ModifiedAt { get; set; }
 
     public virtual Book? Book { get; set; }
 }

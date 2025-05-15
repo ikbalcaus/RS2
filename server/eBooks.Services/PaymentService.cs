@@ -8,8 +8,8 @@ using eBooks.Models.Exceptions;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 using eBooks.Database.Models;
-using eBooks.Models.Payments;
 using Microsoft.Extensions.Logging;
+using eBooks.Models.Responses;
 
 namespace eBooks.Services
 {

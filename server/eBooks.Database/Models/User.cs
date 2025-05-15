@@ -19,7 +19,7 @@ public partial class User
 
     public string? PasswordSalt { get; set; }
 
-    public DateTime? RegistrationDate { get; set; }
+    public DateTime CreatedAt { get; set; }
 
     public bool? IsDeleted { get; set; }
 
@@ -28,8 +28,6 @@ public partial class User
     public string? StripeAccountId { get; set; }
 
     public virtual ICollection<AccessRight> AccessRights { get; set; } = new List<AccessRight>();
-
-    public virtual ICollection<BookFollow> BookFollows { get; set; } = new List<BookFollow>();
 
     public virtual ICollection<Book> Books { get; set; } = new List<Book>();
 

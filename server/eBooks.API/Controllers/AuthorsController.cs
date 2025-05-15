@@ -1,15 +1,17 @@
 ﻿using eBooks.API.Auth;
 using eBooks.Interfaces;
-using eBooks.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using eBooks.Models.Authors;
+using eBooks.Models.SearchObjects;
+using eBooks.Models.Requests;
+using eBooks.Models.Responses;
+using eBooks.Models;
 
 namespace eBooks.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class AuthorsController : BaseController<BaseSearch, AuthorsCreateReq, AuthorsUpdateReq, AuthorsRes>
+    public class AuthorsController : BaseCRUDController<BaseSearch, AuthorsCreateReq, AuthorsUpdateReq, AuthorsRes>
     {
         public AuthorsController(IAuthorsService service, AccessControlHandler accessControlHandler)
             : base(service, accessControlHandler)

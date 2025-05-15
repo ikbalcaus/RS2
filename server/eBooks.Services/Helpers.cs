@@ -2,12 +2,11 @@
 using System.Text;
 using System.Text.RegularExpressions;
 using eBooks.Database.Models;
-using eBooks.Models.Books;
-using eBooks.Models;
 using Microsoft.AspNetCore.Http;
 using eBooks.Database;
 using MapsterMapper;
 using eBooks.Models.Exceptions;
+using eBooks.Models.Responses;
 
 namespace eBooks.Services
 {
@@ -98,11 +97,6 @@ namespace eBooks.Services
             entity.PdfPath = $"/pdf/{fileName}";
             db.SaveChanges();
             return mapper.Map<BooksRes>(entity);
-        }
-
-        public static decimal ConvertBAMtoEUR(decimal bamAmount)
-        {
-            return Math.Round(bamAmount / 1.95m, 2);
         }
     }
 }

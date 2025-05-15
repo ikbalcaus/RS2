@@ -3,13 +3,15 @@ using eBooks.Interfaces;
 using eBooks.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using eBooks.Models.Languages;
+using eBooks.Models.Responses;
+using eBooks.Models.Requests;
+using eBooks.Models.SearchObjects;
 
 namespace eBooks.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class LanguagesController : BaseController<BaseSearch, LanguagesCreateReq, LanguagesUpdateReq, LanguagesRes>
+    public class LanguagesController : BaseCRUDController<BaseSearch, LanguagesCreateReq, LanguagesUpdateReq, LanguagesRes>
     {
         public LanguagesController(ILanguagesService service, AccessControlHandler accessControlHandler)
             : base(service, accessControlHandler)

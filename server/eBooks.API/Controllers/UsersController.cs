@@ -1,7 +1,9 @@
 using eBooks.API.Auth;
 using eBooks.Interfaces;
 using eBooks.Models;
-using eBooks.Models.User;
+using eBooks.Models.Requests;
+using eBooks.Models.Responses;
+using eBooks.Models.Search;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,7 +11,7 @@ namespace eBooks.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class UsersController : BaseController<UsersSearch, UsersCreateReq, UsersUpdateReq, UsersRes>
+    public class UsersController : BaseCRUDController<UsersSearch, UsersCreateReq, UsersUpdateReq, UsersRes>
     {
         protected new IUsersService _service;
 

@@ -1,0 +1,8 @@
+﻿namespace eBooks.Models.Requests
+{
+    public class LanguagesCreateReq
+    {
+        public string Name { get; set; }
+        public string Abbreviation { get; set; }
+    }
+}

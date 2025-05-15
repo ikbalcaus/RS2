@@ -9,7 +9,7 @@ public partial class Favorite
 
     public int BookId { get; set; }
 
-    public DateTime? ModifiedAt { get; set; }
+    public DateTime ModifiedAt { get; set; }
 
     public virtual Book Book { get; set; } = null!;
 

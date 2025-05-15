@@ -1,8 +1,8 @@
 ﻿using eBooks.Database;
 using eBooks.Database.Models;
 using eBooks.Interfaces;
-using eBooks.Models;
-using eBooks.Models.Roles;
+using eBooks.Models.Responses;
+using eBooks.Models.SearchObjects;
 using MapsterMapper;
 
 namespace eBooks.Services

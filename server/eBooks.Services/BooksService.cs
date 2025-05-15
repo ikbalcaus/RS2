@@ -2,8 +2,10 @@
 using eBooks.Database;
 using eBooks.Database.Models;
 using eBooks.Interfaces;
-using eBooks.Models.Books;
 using eBooks.Models.Exceptions;
+using eBooks.Models.Requests;
+using eBooks.Models.Responses;
+using eBooks.Models.Search;
 using eBooks.Services.BooksStateMachine;
 using MapsterMapper;
 using Microsoft.AspNetCore.Http;
@@ -12,7 +14,7 @@ using Microsoft.Extensions.Logging;
 
 namespace eBooks.Services
 {
-    public class BooksService : BaseService<Book, BooksSearch, BooksCreateReq, BooksUpdateReq, BooksRes>, IBooksService
+    public class BooksService : BaseCRUDService<Book, BooksSearch, BooksCreateReq, BooksUpdateReq, BooksRes>, IBooksService
     {
         protected ILogger<BooksService> _logger;
         protected BaseBooksState _baseBooksState;

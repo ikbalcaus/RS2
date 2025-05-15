@@ -9,7 +9,7 @@ public partial class BookAuthor
 
     public int AuthorId { get; set; }
 
-    public bool? IsPrimary { get; set; }
+    public DateTime ModifiedAt { get; set; }
 
     public virtual Author Author { get; set; } = null!;
 

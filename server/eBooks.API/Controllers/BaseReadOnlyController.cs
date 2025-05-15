@@ -1,5 +1,6 @@
 ﻿using eBooks.API.Auth;
 using eBooks.Models;
+using eBooks.Models.SearchObjects;
 using eBooks.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

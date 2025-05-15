@@ -13,15 +13,15 @@ public partial class Purchase
 
     public int BookId { get; set; }
 
-    public DateTime PurchaseDate { get; set; }
+    public DateTime CreatedAt { get; set; }
 
     public decimal TotalPrice { get; set; }
 
     public string PaymentStatus { get; set; } = null!;
 
-    public string? PaymentMethod { get; set; }
+    public string PaymentMethod { get; set; } = null!;
 
-    public string? TransactionId { get; set; }
+    public string TransactionId { get; set; } = null!;
 
     public string? FailureMessage { get; set; }
 

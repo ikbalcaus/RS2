@@ -1,8 +1,10 @@
-﻿using eBooks.Models.User;
+﻿using eBooks.Models.Requests;
+using eBooks.Models.Responses;
+using eBooks.Models.Search;
 
 namespace eBooks.Interfaces
 {
-    public interface IUsersService : IBaseService<UsersSearch, UsersCreateReq, UsersUpdateReq, UsersRes>
+    public interface IUsersService : IBaseCRUDService<UsersSearch, UsersCreateReq, UsersUpdateReq, UsersRes>
     {
         Task<UsersRes> UndoDelete(int id);
         Task<UsersRes> ChangeRole(int id, int roleId);

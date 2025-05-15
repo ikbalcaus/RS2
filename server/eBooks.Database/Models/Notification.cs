@@ -15,7 +15,7 @@ public partial class Notification
 
     public string? Message { get; set; }
 
-    public DateTime? CreatedDate { get; set; }
+    public DateTime ModifiedAt { get; set; }
 
     public bool? IsRead { get; set; }
 

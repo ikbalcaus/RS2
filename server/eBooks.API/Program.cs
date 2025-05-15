@@ -34,15 +34,18 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddScoped<IMapper, Mapper>();
 builder.Services.AddScoped<AccessControlHandler>();
 
-builder.Services.AddTransient<IUsersService, UsersService>();
-builder.Services.AddTransient<IBooksService, BooksService>();
-builder.Services.AddTransient<IRolesService, RolesService>();
-builder.Services.AddTransient<IGenresService, GenresService>();
-builder.Services.AddTransient<IAuthorsService, AuthorsService>();
-builder.Services.AddTransient<ILanguagesService, LanguagesService>();
-builder.Services.AddTransient<IWishlistService, WishlistService>();
-builder.Services.AddTransient<IPaymentService, PaymentService>();
 builder.Services.AddTransient<IAccessRightsService, AccessRightsService>();
+builder.Services.AddTransient<IAuthorsService, AuthorsService>();
+builder.Services.AddTransient<IBooksService, BooksService>();
+builder.Services.AddTransient<IFavoritesService, FavoritesService>();
+builder.Services.AddTransient<IGenresService, GenresService>();
+builder.Services.AddTransient<ILanguagesService, LanguagesService>();
+builder.Services.AddTransient<IPaymentService, PaymentService>();
+builder.Services.AddTransient<IReadingProgressService, ReadingProgressService>();
+builder.Services.AddTransient<IReviewService, ReviewsService>();
+builder.Services.AddTransient<IRolesService, RolesService>();
+builder.Services.AddTransient<IUsersService, UsersService>();
+builder.Services.AddTransient<IWishlistService, WishlistService>();
 
 builder.Services.AddTransient<BaseBooksState>();
 builder.Services.AddTransient<ApproveBooksState>();

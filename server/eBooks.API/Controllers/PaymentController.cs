@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using eBooks.Services;
 using Stripe;
 using eBooks.Models.Exceptions;
-using eBooks.Models.Payments;
+using eBooks.Models.Responses;
 
 namespace eBooks.API.Controllers
 {

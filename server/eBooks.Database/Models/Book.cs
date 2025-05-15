@@ -13,11 +13,13 @@ public partial class Book
 
     public decimal? Price { get; set; }
 
+    public int? NumberOfPages { get; set; }
+
     public int LanguageId { get; set; }
 
     public int PublisherId { get; set; }
 
-    public DateTime? AddedDate { get; set; }
+    public DateTime CreatedAt { get; set; }
 
     public string? StateMachine { get; set; }
 
@@ -25,13 +27,9 @@ public partial class Book
 
     public bool? IsDeleted { get; set; }
 
-    public int? NumberOfPages { get; set; }
-
     public virtual ICollection<AccessRight> AccessRights { get; set; } = new List<AccessRight>();
 
     public virtual ICollection<BookAuthor> BookAuthors { get; set; } = new List<BookAuthor>();
-
-    public virtual ICollection<BookFollow> BookFollows { get; set; } = new List<BookFollow>();
 
     public virtual ICollection<BookGenre> BookGenres { get; set; } = new List<BookGenre>();
 

@@ -1,5 +1,5 @@
-﻿using eBooks.Models;
-using eBooks.Models.Roles;
+﻿using eBooks.Models.Responses;
+using eBooks.Models.SearchObjects;
 using eBooks.Services;
 
 namespace eBooks.Interfaces

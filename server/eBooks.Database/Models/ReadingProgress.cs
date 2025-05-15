@@ -9,9 +9,9 @@ public partial class ReadingProgress
 
     public int BookId { get; set; }
 
-    public int? LastReadPage { get; set; }
+    public DateTime ModifiedAt { get; set; }
 
-    public DateTime? LastReadDate { get; set; }
+    public int? LastReadPage { get; set; }
 
     public virtual Book Book { get; set; } = null!;
 

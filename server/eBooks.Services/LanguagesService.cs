@@ -1,13 +1,14 @@
 ﻿using eBooks.Database;
 using eBooks.Database.Models;
 using eBooks.Interfaces;
-using eBooks.Models;
-using eBooks.Models.Languages;
+using eBooks.Models.Requests;
+using eBooks.Models.Responses;
+using eBooks.Models.SearchObjects;
 using MapsterMapper;
 
 namespace eBooks.Services
 {
-    public class LanguagesService : BaseService<Language, BaseSearch, LanguagesCreateReq, LanguagesUpdateReq, LanguagesRes>, ILanguagesService
+    public class LanguagesService : BaseCRUDService<Language, BaseSearch, LanguagesCreateReq, LanguagesUpdateReq, LanguagesRes>, ILanguagesService
     {
         public LanguagesService(EBooksContext db, IMapper mapper)
             : base(db, mapper)

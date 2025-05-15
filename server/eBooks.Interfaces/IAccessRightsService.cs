@@ -1,13 +1,8 @@
-﻿using eBooks.Models.AccessRights;
+﻿using eBooks.Models.Responses;
 
 namespace eBooks.Interfaces
 {
-    public interface IAccessRightsService
+    public interface IAccessRightsService : IBaseUserContextService<AccessRightsRes>
     {
-        Task<List<AccessRightsRes>> GetAll();
-        Task<AccessRightsRes> GetById(int bookId);
-        Task<AccessRightsRes> Post(int bookId);
-        Task<AccessRightsRes> Patch(int bookId);
-        Task<AccessRightsRes> Delete(int bookId);
     }
 }

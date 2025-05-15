@@ -1,4 +1,5 @@
 ﻿using eBooks.Models;
+using eBooks.Models.SearchObjects;
 
 namespace eBooks.Services
 {

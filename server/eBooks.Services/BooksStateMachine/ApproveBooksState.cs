@@ -1,7 +1,7 @@
 ﻿using eBooks.Database;
 using eBooks.Database.Models;
 using eBooks.Interfaces;
-using eBooks.Models.Books;
+using eBooks.Models.Responses;
 using MapsterMapper;
 
 namespace eBooks.Services.BooksStateMachine

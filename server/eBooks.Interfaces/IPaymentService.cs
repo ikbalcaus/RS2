@@ -1,5 +1,4 @@
-﻿using eBooks.Models.Books;
-using eBooks.Models.Payments;
+﻿using eBooks.Models.Responses;
 
 namespace eBooks.Interfaces
 {

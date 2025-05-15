@@ -2,14 +2,16 @@
 using eBooks.Database.Models;
 using eBooks.Interfaces;
 using eBooks.Models.Exceptions;
-using eBooks.Models.User;
+using eBooks.Models.Requests;
+using eBooks.Models.Responses;
+using eBooks.Models.Search;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace eBooks.Services;
 
-public class UsersService : BaseService<User, UsersSearch, UsersCreateReq, UsersUpdateReq, UsersRes>, IUsersService
+public class UsersService : BaseCRUDService<User, UsersSearch, UsersCreateReq, UsersUpdateReq, UsersRes>, IUsersService
 {
     protected ILogger<UsersService> _logger;
 

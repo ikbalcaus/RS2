@@ -1,12 +1,8 @@
-﻿using eBooks.Models.Wishlist;
+﻿using eBooks.Models.Responses;
 
 namespace eBooks.Interfaces
 {
-    public interface IWishlistService
+    public interface IWishlistService : IBaseUserContextService<WishlistRes>
     {
-        Task<List<WishlistRes>> Get();
-        Task<WishlistRes> Post(int bookId);
-        Task<WishlistRes> Patch(int bookId);
-        Task<WishlistRes> Delete(int bookId);
     }
 }

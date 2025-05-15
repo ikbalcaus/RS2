@@ -1,12 +1,13 @@
 ﻿using eBooks.Database;
 using eBooks.Models;
 using eBooks.Models.Exceptions;
+using eBooks.Models.SearchObjects;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 
 namespace eBooks.Services
 {
-    public class BaseReadOnlyService<TEntity, TSearch, TResponse> : IBaseReadOnlyService<TSearch, TResponse>
+    public abstract class BaseReadOnlyService<TEntity, TSearch, TResponse> : IBaseReadOnlyService<TSearch, TResponse>
         where TEntity : class
         where TSearch : BaseSearch
         where TResponse : class
@@ -27,9 +28,7 @@ namespace eBooks.Services
             query = await AddFilter(search, query);
             int count = await query.CountAsync();
             if (search?.Page.HasValue == true && search?.PageSize.HasValue == true)
-            {
                 query = query.Skip(search.Page.Value * search.PageSize.Value).Take(search.PageSize.Value);
-            }
             var list = await query.ToListAsync();
             result = _mapper.Map(list, result);
             PagedResult<TResponse> pagedResult = new PagedResult<TResponse>

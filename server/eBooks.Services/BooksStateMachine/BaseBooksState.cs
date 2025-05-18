@@ -23,7 +23,7 @@ namespace eBooks.Services.BooksStateMachine
             _serviceProvider = serviceProvider;
         }
 
-        public virtual async Task<BooksRes> Update(int id, BooksUpdateReq req)
+        public virtual async Task<BooksRes> Update(int id, BooksPutReq req)
         {
             throw new ExceptionForbidden("Method not allowed");
         }

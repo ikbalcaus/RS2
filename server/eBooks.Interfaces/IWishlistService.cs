@@ -2,7 +2,7 @@
 
 namespace eBooks.Interfaces
 {
-    public interface IWishlistService : IBaseUserContextService<WishlistRes>
+    public interface IWishlistService : IBaseUserContextService<object, WishlistRes>
     {
     }
 }

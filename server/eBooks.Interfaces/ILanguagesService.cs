@@ -4,7 +4,7 @@ using eBooks.Models.SearchObjects;
 
 namespace eBooks.Interfaces
 {
-    public interface ILanguagesService : IBaseCRUDService<BaseSearch, LanguagesCreateReq, LanguagesUpdateReq, LanguagesRes>
+    public interface ILanguagesService : IBaseCRUDService<BaseSearch, LanguagesPostReq, LanguagesPutReq, LanguagesRes>
     {
     }
 }

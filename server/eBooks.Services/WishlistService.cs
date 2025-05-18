@@ -7,10 +7,10 @@ using Microsoft.AspNetCore.Http;
 
 namespace eBooks.Services
 {
-    public class WishlistService : BaseUserContextService<Wishlist, WishlistRes>, IWishlistService
+    public class WishlistService : BaseUserContextService<Wishlist, object, WishlistRes>, IWishlistService
     {
         public WishlistService(EBooksContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor)
-            : base(db, mapper, httpContextAccessor)
+            : base(db, mapper, httpContextAccessor, false)
         {
         }
     }

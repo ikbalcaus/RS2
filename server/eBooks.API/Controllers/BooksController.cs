@@ -11,20 +11,21 @@ namespace eBooks.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class BooksController : BaseCRUDController<BooksSearch, BooksCreateReq, BooksUpdateReq, BooksRes>
+    public class BooksController : BaseCRUDController<BooksSearch, BooksPostReq, BooksPutReq, BooksRes>
     {
         protected new IBooksService _service;
+        protected AccessControlHandler _accessControlHandler;
 
         public BooksController(IBooksService service, AccessControlHandler accessControlHandler)
-            : base(service, accessControlHandler)
+            : base(service)
         {
-            _service = service;
+            _accessControlHandler = accessControlHandler;
         }
 
         [AllowAnonymous]
-        public override async Task<PagedResult<BooksRes>> GetAll([FromQuery] BooksSearch search)
+        public override async Task<PagedResult<BooksRes>> GetPaged([FromQuery] BooksSearch search)
         {
-            return await base.GetAll(search);
+            return await base.GetPaged(search);
         }
 
         [AllowAnonymous]
@@ -34,16 +35,16 @@ namespace eBooks.API.Controllers
         }
 
         [Authorize(Policy = "User")]
-        public override async Task<BooksRes> Create(BooksCreateReq req)
+        public override async Task<BooksRes> Post(BooksPostReq req)
         {
-            return await base.Create(req);
+            return await base.Post(req);
         }
 
         [Authorize(Policy = "User")]
-        public override async Task<BooksRes> Update(int id, BooksUpdateReq req)
+        public override async Task<BooksRes> Put(int id, BooksPutReq req)
         {
             await _accessControlHandler.CheckIsOwnerByBookId(id);
-            return await base.Update(id, req);
+            return await base.Put(id, req);
         }
 
         [Authorize(Policy = "User")]

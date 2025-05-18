@@ -2,7 +2,7 @@
 
 namespace eBooks.Interfaces
 {
-    public interface IFavoritesService : IBaseUserContextService<FavoritesRes>
+    public interface IFavoritesService : IBaseUserContextService<object, FavoritesRes>
     {
     }
 }

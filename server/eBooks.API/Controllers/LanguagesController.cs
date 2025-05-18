@@ -11,17 +11,17 @@ namespace eBooks.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class LanguagesController : BaseCRUDController<BaseSearch, LanguagesCreateReq, LanguagesUpdateReq, LanguagesRes>
+    public class LanguagesController : BaseCRUDController<BaseSearch, LanguagesPostReq, LanguagesPutReq, LanguagesRes>
     {
-        public LanguagesController(ILanguagesService service, AccessControlHandler accessControlHandler)
-            : base(service, accessControlHandler)
+        public LanguagesController(ILanguagesService service)
+            : base(service)
         {
         }
 
         [AllowAnonymous]
-        public override async Task<PagedResult<LanguagesRes>> GetAll([FromQuery] BaseSearch search)
+        public override async Task<PagedResult<LanguagesRes>> GetPaged([FromQuery] BaseSearch search)
         {
-            return await base.GetAll(search);
+            return await base.GetPaged(search);
         }
 
         [AllowAnonymous]
@@ -31,15 +31,15 @@ namespace eBooks.API.Controllers
         }
 
         [Authorize(Policy = "User")]
-        public override async Task<LanguagesRes> Create(LanguagesCreateReq req)
+        public override async Task<LanguagesRes> Post(LanguagesPostReq req)
         {
-            return await base.Create(req);
+            return await base.Post(req);
         }
 
         [Authorize(Policy = "Moderator")]
-        public override async Task<LanguagesRes> Update(int id, LanguagesUpdateReq req)
+        public override async Task<LanguagesRes> Put(int id, LanguagesPutReq req)
         {
-            return await base.Update(id, req);
+            return await base.Put(id, req);
         }
 
         [Authorize(Policy = "Moderator")]

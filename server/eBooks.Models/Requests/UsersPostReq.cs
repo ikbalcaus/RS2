@@ -1,6 +1,6 @@
 namespace eBooks.Models.Requests
 {
-    public class UsersCreateReq
+    public class UsersPostReq
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }

@@ -13,15 +13,15 @@ namespace eBooks.API.Controllers
     [Route("[controller]")]
     public class GenresController : BaseCRUDController<BaseSearch, GenresReq, GenresReq, GenresRes>
     {
-        public GenresController(IGenresService service, AccessControlHandler accessControlHandler)
-            : base(service, accessControlHandler)
+        public GenresController(IGenresService service)
+            : base(service)
         {
         }
 
         [AllowAnonymous]
-        public override async Task<PagedResult<GenresRes>> GetAll([FromQuery] BaseSearch search)
+        public override async Task<PagedResult<GenresRes>> GetPaged([FromQuery] BaseSearch search)
         {
-            return await base.GetAll(search);
+            return await base.GetPaged(search);
         }
 
         [AllowAnonymous]
@@ -31,15 +31,15 @@ namespace eBooks.API.Controllers
         }
 
         [Authorize(Policy = "User")]
-        public override async Task<GenresRes> Create(GenresReq req)
+        public override async Task<GenresRes> Post(GenresReq req)
         {
-            return await base.Create(req);
+            return await base.Post(req);
         }
 
         [Authorize(Policy = "Moderator")]
-        public override async Task<GenresRes> Update(int id, GenresReq req)
+        public override async Task<GenresRes> Put(int id, GenresReq req)
         {
-            return await base.Update(id, req);
+            return await base.Put(id, req);
         }
 
         [Authorize(Policy = "Moderator")]

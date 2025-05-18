@@ -12,21 +12,30 @@ namespace eBooks.API.Controllers
     [Route("[controller]")]
     public class RolesController : BaseReadOnlyController<BaseSearch, RolesRes>
     {
-        public RolesController(IRolesService service, AccessControlHandler accessControlHandler)
-            : base(service, accessControlHandler)
+        protected new IRolesService _service;
+
+        public RolesController(IRolesService service)
+            : base(service)
         {
         }
 
         [Authorize(Policy = "Moderator")]
-        public override async Task<PagedResult<RolesRes>> GetAll([FromQuery] BaseSearch search)
+        public override async Task<PagedResult<RolesRes>> GetPaged([FromQuery] BaseSearch search)
         {
-            return await base.GetAll(search);
+            return await base.GetPaged(search);
         }
 
         [Authorize(Policy = "Moderator")]
         public override async Task<RolesRes> GetById(int id)
         {
             return await base.GetById(id);
+        }
+
+        [Authorize(Policy = "Admin")]
+        [HttpPatch("{userId}/assign-role/{roleId}")]
+        public async Task<UsersRes> AssignRole(int userId, int roleId)
+        {
+            return await _service.AssignRole(userId, roleId);
         }
     }
 }

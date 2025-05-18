@@ -8,7 +8,7 @@ using MapsterMapper;
 
 namespace eBooks.Services
 {
-    public class LanguagesService : BaseCRUDService<Language, BaseSearch, LanguagesCreateReq, LanguagesUpdateReq, LanguagesRes>, ILanguagesService
+    public class LanguagesService : BaseCRUDService<Language, BaseSearch, LanguagesPostReq, LanguagesPutReq, LanguagesRes>, ILanguagesService
     {
         public LanguagesService(EBooksContext db, IMapper mapper)
             : base(db, mapper)

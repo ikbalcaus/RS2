@@ -1,4 +1,5 @@
 ﻿using eBooks.Interfaces;
+using eBooks.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,19 +8,19 @@ namespace eBooks.API.Controllers
     [Authorize(Policy = "User")]
     [ApiController]
     [Route("[controller]")]
-    public class BaseUserContextController<TResponse> : ControllerBase
+    public class BaseUserContextController<TRequest, TResponse> : ControllerBase
     {
-        protected IBaseUserContextService<TResponse> _service;
+        protected IBaseUserContextService<TRequest, TResponse> _service;
 
-        public BaseUserContextController(IBaseUserContextService<TResponse> service)
+        public BaseUserContextController(IBaseUserContextService<TRequest, TResponse> service)
         {
             _service = service;
         }
 
         [HttpGet]
-        public async Task<List<TResponse>> GetAll()
+        public async Task<PagedResult<TResponse>> GetPaged()
         {
-            return await _service.GetAll();
+            return await _service.GetPaged();
         }
 
         [HttpGet("{bookId}")]
@@ -29,9 +30,9 @@ namespace eBooks.API.Controllers
         }
 
         [HttpPost("{bookId}")]
-        public async Task<TResponse> Post(int bookId)
+        public async Task<TResponse> Post(int bookId, TRequest req)
         {
-            return await _service.Post(bookId);
+            return await _service.Post(bookId, req);
         }
 
         [HttpPatch("{bookId}")]

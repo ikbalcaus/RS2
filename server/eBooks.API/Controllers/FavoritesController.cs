@@ -6,7 +6,7 @@ namespace eBooks.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class FavoritesController : BaseUserContextController<FavoritesRes>
+    public class FavoritesController : BaseUserContextController<object, FavoritesRes>
     {
         public FavoritesController(IFavoritesService service)
             : base(service)

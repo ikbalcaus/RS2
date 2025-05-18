@@ -4,7 +4,7 @@ using eBooks.Models.SearchObjects;
 
 namespace eBooks.Interfaces
 {
-    public interface IAuthorsService : IBaseCRUDService<BaseSearch, AuthorsCreateReq, AuthorsUpdateReq, AuthorsRes>
+    public interface IAuthorsService : IBaseCRUDService<BaseSearch, AuthorsPostReq, AuthorsPutReq, AuthorsRes>
     {
     }
 }

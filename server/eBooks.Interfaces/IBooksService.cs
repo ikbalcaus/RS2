@@ -4,7 +4,7 @@ using eBooks.Models.Search;
 
 namespace eBooks.Interfaces
 {
-    public interface IBooksService : IBaseCRUDService<BooksSearch, BooksCreateReq, BooksUpdateReq, BooksRes>
+    public interface IBooksService : IBaseCRUDService<BooksSearch, BooksPostReq, BooksPutReq, BooksRes>
     {
         Task<BooksRes> UndoDelete(int id);
         Task<BookImageRes> DeleteImage(int id, int imageId);

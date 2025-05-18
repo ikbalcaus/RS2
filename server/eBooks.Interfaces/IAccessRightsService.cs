@@ -2,7 +2,7 @@
 
 namespace eBooks.Interfaces
 {
-    public interface IAccessRightsService : IBaseUserContextService<AccessRightsRes>
+    public interface IAccessRightsService : IBaseUserContextService<object, AccessRightsRes>
     {
     }
 }

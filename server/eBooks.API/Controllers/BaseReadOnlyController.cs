@@ -14,16 +14,14 @@ namespace eBooks.API.Controllers
         where TSearch : BaseSearch
     {
         protected IBaseReadOnlyService<TSearch, TResponse> _service;
-        protected AccessControlHandler _accessControlHandler;
 
-        public BaseReadOnlyController(IBaseReadOnlyService<TSearch, TResponse> service, AccessControlHandler accessControlHandler)
+        public BaseReadOnlyController(IBaseReadOnlyService<TSearch, TResponse> service)
         {
             _service = service;
-            _accessControlHandler = accessControlHandler;
         }
 
         [HttpGet]
-        public virtual async Task<PagedResult<TResponse>> GetAll([FromQuery] TSearch search)
+        public virtual async Task<PagedResult<TResponse>> GetPaged([FromQuery] TSearch search)
         {
             return await _service.GetPaged(search);
         }

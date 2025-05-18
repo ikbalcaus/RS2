@@ -11,17 +11,17 @@ namespace eBooks.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class AuthorsController : BaseCRUDController<BaseSearch, AuthorsCreateReq, AuthorsUpdateReq, AuthorsRes>
+    public class AuthorsController : BaseCRUDController<BaseSearch, AuthorsPostReq, AuthorsPutReq, AuthorsRes>
     {
-        public AuthorsController(IAuthorsService service, AccessControlHandler accessControlHandler)
-            : base(service, accessControlHandler)
+        public AuthorsController(IAuthorsService service)
+            : base(service)
         {
         }
 
         [AllowAnonymous]
-        public override async Task<PagedResult<AuthorsRes>> GetAll([FromQuery] BaseSearch search)
+        public override async Task<PagedResult<AuthorsRes>> GetPaged([FromQuery] BaseSearch search)
         {
-            return await base.GetAll(search);
+            return await base.GetPaged(search);
         }
 
         [AllowAnonymous]
@@ -31,15 +31,15 @@ namespace eBooks.API.Controllers
         }
 
         [Authorize(Policy = "User")]
-        public override async Task<AuthorsRes> Create(AuthorsCreateReq req)
+        public override async Task<AuthorsRes> Post(AuthorsPostReq req)
         {
-            return await base.Create(req);
+            return await base.Post(req);
         }
 
         [Authorize(Policy = "Moderator")]
-        public override async Task<AuthorsRes> Update(int id, AuthorsUpdateReq req)
+        public override async Task<AuthorsRes> Put(int id, AuthorsPutReq req)
         {
-            return await base.Update(id, req);
+            return await base.Put(id, req);
         }
 
         [Authorize(Policy = "Moderator")]

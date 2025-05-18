@@ -6,7 +6,7 @@ namespace eBooks.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class WishlistController : BaseUserContextController<WishlistRes>
+    public class WishlistController : BaseUserContextController<object, WishlistRes>
     {
         public WishlistController(IWishlistService service)
             : base(service)

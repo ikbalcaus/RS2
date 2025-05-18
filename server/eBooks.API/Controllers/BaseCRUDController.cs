@@ -15,22 +15,22 @@ namespace eBooks.API.Controllers
     {
         protected new IBaseCRUDService<TSearch, TCreate, TUpdate, TResponse> _service;
 
-        public BaseCRUDController(IBaseCRUDService<TSearch, TCreate, TUpdate, TResponse> service, AccessControlHandler accessControlHandler)
-            : base(service, accessControlHandler)
+        public BaseCRUDController(IBaseCRUDService<TSearch, TCreate, TUpdate, TResponse> service)
+            : base(service)
         {
             _service = service;
         }
 
         [HttpPost]
-        public virtual async Task<TResponse> Create(TCreate req)
+        public virtual async Task<TResponse> Post(TCreate req)
         {
-            return await _service.Create(req);
+            return await _service.Post(req);
         }
 
         [HttpPut("{id}")]
-        public virtual async Task<TResponse> Update(int id, TUpdate req)
+        public virtual async Task<TResponse> Put(int id, TUpdate req)
         {
-            return await _service.Update(id, req);
+            return await _service.Put(id, req);
         }
 
         [HttpDelete("{id}")]

@@ -23,7 +23,7 @@ namespace eBooks.Services
 
         public virtual async Task<PagedResult<TResponse>> GetPaged(TSearch search)
         {
-            List<TResponse> result = new List<TResponse>();
+            var result = new List<TResponse>();
             var query = _db.Set<TEntity>().AsQueryable();
             query = await AddFilter(search, query);
             int count = await query.CountAsync();

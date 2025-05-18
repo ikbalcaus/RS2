@@ -16,8 +16,8 @@ namespace eBooks.Services
     public class PaymentService : IPaymentService
     {
         protected ILogger<PaymentService> _logger;
-        private readonly EBooksContext _db;
-        private readonly IConfiguration _config;
+        protected EBooksContext _db;
+        protected IConfiguration _config;
         protected IHttpContextAccessor _httpContextAccessor;
 
         public PaymentService(EBooksContext db, IConfiguration config, IHttpContextAccessor httpContextAccessor, ILogger<PaymentService> logger)
@@ -31,10 +31,14 @@ namespace eBooks.Services
 
         public async Task<StripeRes> CreateCheckoutSession(int bookId)
         {
-            var userId = int.TryParse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var temp) ? temp : throw new ExceptionForbidden("User not logged in");
+            var userId = int.TryParse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var temp) ? temp : 0;
+            if (await _db.Set<AccessRight>().AnyAsync(x => x.UserId == userId && x.BookId == bookId))
+                throw new ExceptionBadRequest("You already possess this book");
             var book = await _db.Books.Include(x => x.Publisher).FirstOrDefaultAsync(x => x.BookId == bookId);
-            if (book == null || string.IsNullOrWhiteSpace(book.Publisher?.StripeAccountId))
+            if (book == null)
                 throw new ExceptionNotFound();
+            if (book.Price == 0)
+                throw new ExceptionBadRequest("This book is free, you cannot buy it");
             var priceInCents = (long)(book.Price * 100);
             var platformFee = (long)(book.Price * 100 * 0.10m);
             var options = new SessionCreateOptions

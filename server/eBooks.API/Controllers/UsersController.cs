@@ -11,19 +11,21 @@ namespace eBooks.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class UsersController : BaseCRUDController<UsersSearch, UsersCreateReq, UsersUpdateReq, UsersRes>
+    public class UsersController : BaseCRUDController<UsersSearch, UsersPostReq, UsersPutReq, UsersRes>
     {
         protected new IUsersService _service;
+        protected AccessControlHandler _accessControlHandler;
 
         public UsersController(IUsersService service, AccessControlHandler accessControlHandler)
-            : base(service, accessControlHandler)
+            : base(service)
         {
+            _accessControlHandler = accessControlHandler;
         }
 
         [Authorize(Policy = "Admin")]
-        public override async Task<PagedResult<UsersRes>> GetAll([FromQuery] UsersSearch search)
+        public override async Task<PagedResult<UsersRes>> GetPaged([FromQuery] UsersSearch search)
         {
-            return await base.GetAll(search);
+            return await base.GetPaged(search);
         }
 
         [Authorize(Policy = "User")]
@@ -33,16 +35,16 @@ namespace eBooks.API.Controllers
         }
 
         [AllowAnonymous]
-        public override async Task<UsersRes> Create(UsersCreateReq req)
+        public override async Task<UsersRes> Post(UsersPostReq req)
         {
-            return await base.Create(req);
+            return await base.Post(req);
         }
 
         [Authorize(Policy = "User")]
-        public override async Task<UsersRes> Update(int id, UsersUpdateReq req)
+        public override async Task<UsersRes> Put(int id, UsersPutReq req)
         {
             await _accessControlHandler.CheckIsOwnerByUserId(id);
-            return await base.Update(id, req);
+            return await base.Put(id, req);
         }
 
         [Authorize(Policy = "User")]
@@ -57,13 +59,6 @@ namespace eBooks.API.Controllers
         public async Task<UsersRes> UndoDelete(int id)
         {
             return await _service.UndoDelete(id);
-        }
-
-        [Authorize(Policy = "Admin")]
-        [HttpPatch("{id}/change-role/{roleId}")]
-        public async Task<UsersRes> ChangeRole(int id, int roleId)
-        {
-            return await _service.ChangeRole(id, roleId);
         }
 
         [AllowAnonymous]

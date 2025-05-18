@@ -2,7 +2,7 @@
 
 namespace eBooks.Interfaces
 {
-    public interface IReadingProgressService : IBaseUserContextService<ReadingProgressRes>
+    public interface IReadingProgressService : IBaseUserContextService<object, ReadingProgressRes>
     {
     }
 }

@@ -6,7 +6,7 @@ namespace eBooks.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class ReadingProgressController : BaseUserContextController<ReadingProgressRes>
+    public class ReadingProgressController : BaseUserContextController<object, ReadingProgressRes>
     {
         public ReadingProgressController(IReadingProgressService service)
             : base(service)

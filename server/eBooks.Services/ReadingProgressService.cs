@@ -7,10 +7,10 @@ using Microsoft.AspNetCore.Http;
 
 namespace eBooks.Services
 {
-    public class ReadingProgressService : BaseUserContextService<ReadingProgress, ReadingProgressRes>, IReadingProgressService
+    public class ReadingProgressService : BaseUserContextService<ReadingProgress, object, ReadingProgressRes>, IReadingProgressService
     {
         public ReadingProgressService(EBooksContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor)
-            : base(db, mapper, httpContextAccessor)
+            : base(db, mapper, httpContextAccessor, true)
         {
         }
     }

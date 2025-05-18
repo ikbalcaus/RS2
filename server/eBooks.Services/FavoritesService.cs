@@ -7,10 +7,10 @@ using Microsoft.AspNetCore.Http;
 
 namespace eBooks.Services
 {
-    public class FavoritesService : BaseUserContextService<Favorite, FavoritesRes>, IFavoritesService
+    public class FavoritesService : BaseUserContextService<Favorite, object, FavoritesRes>, IFavoritesService
     {
         public FavoritesService(EBooksContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor)
-            : base(db, mapper, httpContextAccessor)
+            : base(db, mapper, httpContextAccessor, true)
         {
         }
     }

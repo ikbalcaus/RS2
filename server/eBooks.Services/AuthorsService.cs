@@ -8,7 +8,7 @@ using MapsterMapper;
 
 namespace eBooks.Services
 {
-    public class AuthorsService : BaseCRUDService<Author, BaseSearch, AuthorsCreateReq, AuthorsUpdateReq, AuthorsRes>, IAuthorsService
+    public class AuthorsService : BaseCRUDService<Author, BaseSearch, AuthorsPostReq, AuthorsPutReq, AuthorsRes>, IAuthorsService
     {
         public AuthorsService(EBooksContext db, IMapper mapper)
             : base(db, mapper)

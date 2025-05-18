@@ -13,7 +13,7 @@ namespace eBooks.Services.BooksStateMachine
         {
         }
 
-        public override async Task<BooksRes> Update(int id, BooksUpdateReq req)
+        public override async Task<BooksRes> Update(int id, BooksPutReq req)
         {
             var set = _db.Set<Book>();
             var entity = await set.FindAsync(id);

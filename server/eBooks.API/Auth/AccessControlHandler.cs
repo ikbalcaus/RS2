@@ -49,7 +49,7 @@ namespace eBooks.API.Auth
                 throw new ExceptionForbidden("Only owner or admin can use this action");
         }
 
-        private int GetCurrentUserId()
+        protected int GetCurrentUserId()
         {
             var user = _httpContextAccessor.HttpContext?.User;
             var userId = user?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -58,7 +58,7 @@ namespace eBooks.API.Auth
             return int.Parse(userId);
         }
 
-        private string GetCurrentUserRole()
+        protected string GetCurrentUserRole()
         {
             var user = _httpContextAccessor.HttpContext?.User;
             var role = user?.FindFirst(ClaimTypes.Role)?.Value;
@@ -67,7 +67,7 @@ namespace eBooks.API.Auth
             return role;
         }
 
-        private async Task<Book> GetBookById(int id)
+        protected async Task<Book> GetBookById(int id)
         {
             var book = await _db.Set<Book>().FindAsync(id);
             if (book == null)

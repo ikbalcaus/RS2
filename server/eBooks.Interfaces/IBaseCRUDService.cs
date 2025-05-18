@@ -7,8 +7,8 @@ namespace eBooks.Interfaces
         where TSearch : BaseSearch
         where TResponse : class
     {
-        Task<TResponse> Create(TCreate req);
-        Task<TResponse> Update(int id, TUpdate req);
+        Task<TResponse> Post(TCreate req);
+        Task<TResponse> Put(int id, TUpdate req);
         Task<TResponse> Delete(int id);
     }
 }

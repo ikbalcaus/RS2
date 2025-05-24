@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using System.Net;
+using System.Security.Claims;
 using eBooks.Database;
 using eBooks.Database.Models;
 using eBooks.Interfaces;
@@ -29,6 +30,7 @@ namespace eBooks.Services
             _baseBooksState = baseBooksState;
             _httpContextAccessor = httpContextAccessor;
         }
+
         protected int GetUserId() => int.TryParse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : 0;
 
         public override async Task<PagedResult<BooksRes>> GetPaged(BooksSearch search)
@@ -58,9 +60,9 @@ namespace eBooks.Services
                 throw new ExceptionNotFound();
             var result = _mapper.Map<BooksRes>(entity);
             var userId = GetUserId();
-            var accessRight = await _db.Set<AccessRight>().FindAsync(userId, id);
+            var accessRight = await _db.Set<AccessRight>().AnyAsync(x => x.UserId == GetUserId() && x.BookId == id);
             var role = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.Role)?.Value;
-            if (accessRight == null && entity.PublisherId != userId && role != "Admin" && role != "Moderator")
+            if (!accessRight && entity.PublisherId != userId && role != "Admin" && role != "Moderator")
                 result.PdfPath = null;
             return result;
         }
@@ -87,18 +89,16 @@ namespace eBooks.Services
         {
             if (req.Price < 0)
                 throw new ExceptionBadRequest("Price must be zero or greater");
-            var entity = await GetById(id);
+            var entity = await _db.Set<Book>().FindAsync(id);
             if (entity == null)
                 throw new ExceptionNotFound();
             var state = await _baseBooksState.CheckState(entity.StateMachine);
-            _logger.LogInformation($"Book with title {entity.Title} updated.");
             return await state.Update(id, req);
         }
 
         public override async Task<BooksRes> Delete(int id)
         {
-            var set = _db.Set<Book>();
-            var entity = await set.FindAsync(id);
+            var entity = await _db.Set<Book>().FindAsync(id);
             if (entity == null)
                 throw new ExceptionNotFound();
             entity.IsDeleted = true;
@@ -109,13 +109,27 @@ namespace eBooks.Services
 
         public async Task<BooksRes> UndoDelete(int id)
         {
-            var set = _db.Set<Book>();
-            var entity = await set.FindAsync(id);
+            var entity = await _db.Set<Book>().FindAsync(id);
             if (entity == null)
                 throw new ExceptionNotFound();
             entity.IsDeleted = false;
             await _db.SaveChangesAsync();
             _logger.LogInformation($"Book with title {entity.Title} undo-deleted.");
+            return _mapper.Map<BooksRes>(entity);
+        }
+
+        public async Task<BooksRes> SetDiscount(int id, DiscountReq req)
+        {
+            var entity = await _db.Set<Book>().FindAsync(id);
+            if (entity == null)
+                throw new ExceptionNotFound();
+            if (req.DiscountPercentage <= 0 || req.DiscountPercentage >= 100)
+                throw new ExceptionBadRequest("Discount must be between 0 and 100");
+            if (req.DiscountStart >= req.DiscountEnd)
+                throw new ExceptionBadRequest("Discount start date must be before discount end date");
+            _mapper.Map(req, entity);
+            await _db.SaveChangesAsync();
+            _logger.LogInformation($"Book with title {entity.Title} is discounted by {req.DiscountPercentage}%.");
             return _mapper.Map<BooksRes>(entity);
         }
 
@@ -136,7 +150,7 @@ namespace eBooks.Services
 
         public async Task<BooksRes> Await(int id)
         {
-            var entity = await GetById(id);
+            var entity = await _db.Set<Book>().FindAsync(id);
             if (entity == null)
                 throw new ExceptionNotFound();
             var state = await _baseBooksState.CheckState(entity.StateMachine);
@@ -146,7 +160,7 @@ namespace eBooks.Services
 
         public async Task<BooksRes> Approve(int id)
         {
-            var entity = await GetById(id);
+            var entity = await _db.Set<Book>().FindAsync(id);
             if (entity == null)
                 throw new ExceptionNotFound();
             var state = await _baseBooksState.CheckState(entity.StateMachine);
@@ -156,7 +170,7 @@ namespace eBooks.Services
 
         public async Task<BooksRes> Reject(int id, string message)
         {
-            var entity = await GetById(id);
+            var entity = await _db.Set<Book>().FindAsync(id);
             if (entity == null)
                 throw new ExceptionNotFound();
             var state = await _baseBooksState.CheckState(entity.StateMachine);
@@ -166,7 +180,7 @@ namespace eBooks.Services
 
         public async Task<BooksRes> Hide(int id)
         {
-            var entity = await GetById(id);
+            var entity = await _db.Set<Book>().FindAsync(id);
             if (entity == null)
                 throw new ExceptionNotFound();
             var state = await _baseBooksState.CheckState(entity.StateMachine);
@@ -176,7 +190,7 @@ namespace eBooks.Services
 
         public async Task<List<string>> AllowedActions(int id)
         {
-            var entity = await _db.Books.FindAsync(id);
+            var entity = await _db.Set<Book>().FindAsync(id);
             if (entity == null)
                 throw new ExceptionNotFound();
             var state = await _baseBooksState.CheckState(entity.StateMachine);

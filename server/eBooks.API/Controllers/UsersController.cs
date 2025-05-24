@@ -4,8 +4,10 @@ using eBooks.Models;
 using eBooks.Models.Requests;
 using eBooks.Models.Responses;
 using eBooks.Models.Search;
+using eBooks.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Stripe;
 
 namespace eBooks.API.Controllers
 {
@@ -19,6 +21,7 @@ namespace eBooks.API.Controllers
         public UsersController(IUsersService service, AccessControlHandler accessControlHandler)
             : base(service)
         {
+            _service = service;
             _accessControlHandler = accessControlHandler;
         }
 
@@ -63,9 +66,17 @@ namespace eBooks.API.Controllers
 
         [AllowAnonymous]
         [HttpPost("login")]
-        public async Task<UsersRes> Login(string email, string password)
+        public async Task<LoginRes> Login(string email, string password)
         {
             return await _service.Login(email, password);
+        }
+
+        [Authorize(Policy = "User")]
+        [HttpPatch("{id}/verify-email/{token}")]
+        public async Task<UsersRes> VerifyEmail(int id, string token)
+        {
+            await _accessControlHandler.CheckIsOwnerByUserId(id);
+            return await _service.VerifyEmail(id, token);
         }
     }
 }

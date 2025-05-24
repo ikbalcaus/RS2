@@ -1,26 +1,35 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using eBooks.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using eBooks.Services;
-using Stripe;
 using eBooks.Models.Exceptions;
 using eBooks.Models.Responses;
+using eBooks.API.Auth;
 
 namespace eBooks.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class PaymentsController : ControllerBase
+    public class StripeController : ControllerBase
     {
-        protected readonly IPaymentService _service;
+        protected readonly IStripeService _service;
+        protected AccessControlHandler _accessControlHandler;
 
-        public PaymentsController(IPaymentService service)
+        public StripeController(IStripeService service, AccessControlHandler accessControlHandler)
         {
             _service = service;
+            _accessControlHandler = accessControlHandler;
         }
 
         [Authorize(Policy = "User")]
-        [HttpPost("{bookId}")]
+        [HttpGet("{userId}/stripe-account-link")]
+        public async Task<StripeRes> GetStripeAccountLink(int userId)
+        {
+            await _accessControlHandler.CheckIsOwnerByUserId(userId);
+            return await _service.GetStripeAccountLink(userId);
+        }
+
+        [Authorize(Policy = "User")]
+        [HttpPost("{bookId}/checkout-session")]
         public async Task<StripeRes> CreateCheckoutSession(int bookId)
         {
             return await _service.CreateCheckoutSession(bookId);

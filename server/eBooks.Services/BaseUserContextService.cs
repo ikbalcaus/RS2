@@ -19,14 +19,14 @@ namespace eBooks.Services
         protected EBooksContext _db;
         protected IMapper _mapper;
         protected IHttpContextAccessor _httpContextAccessor;
-        protected bool _shouldHaveBook;
+        protected bool _shouldPossessBook;
 
-        public BaseUserContextService(EBooksContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, bool shouldHaveBook)
+        public BaseUserContextService(EBooksContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, bool shouldPossessBook)
         {
             _db = db;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
-            _shouldHaveBook = shouldHaveBook;
+            _shouldPossessBook = shouldPossessBook;
         }
 
         protected int GetUserId() => int.TryParse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : 0;
@@ -69,9 +69,9 @@ namespace eBooks.Services
             if (await _db.Set<TEntity>().AnyAsync(x => x.UserId == userId && x.BookId == bookId))
                 throw new ExceptionBadRequest("Already exist");
             var accessRightExist = await AccessRightExist(bookId);
-            if (_shouldHaveBook && !accessRightExist)
+            if (_shouldPossessBook && !accessRightExist)
                 throw new ExceptionBadRequest("You have to possess this book");
-            if (!_shouldHaveBook && accessRightExist)
+            if (!_shouldPossessBook && accessRightExist)
                 throw new ExceptionBadRequest("You already possess this book");
             var entity = new TEntity
             {
@@ -90,7 +90,7 @@ namespace eBooks.Services
             var entity = await _db.Set<TEntity>().FirstOrDefaultAsync(x => x.UserId == userId && x.BookId == bookId);
             if (entity == null)
                 throw new ExceptionNotFound();
-            entity.ModifiedAt = DateTime.Now;
+            entity.ModifiedAt = DateTime.UtcNow;
             await _db.SaveChangesAsync();
             return _mapper.Map<TResponse>(entity);
         }

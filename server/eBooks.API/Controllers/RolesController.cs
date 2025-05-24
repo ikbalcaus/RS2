@@ -17,6 +17,7 @@ namespace eBooks.API.Controllers
         public RolesController(IRolesService service)
             : base(service)
         {
+            _service = service;
         }
 
         [Authorize(Policy = "Moderator")]

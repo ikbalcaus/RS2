@@ -19,13 +19,23 @@ public partial class Book
 
     public int PublisherId { get; set; }
 
-    public DateTime CreatedAt { get; set; }
+    public DateTime ModifiedAt { get; set; }
 
     public string? StateMachine { get; set; }
+
+    public int? DiscountPercentage { get; set; }
+
+    public DateTime? DiscountStart { get; set; }
+
+    public DateTime? DiscountEnd { get; set; }
 
     public string? RejectionReason { get; set; }
 
     public bool? IsDeleted { get; set; }
+
+    public int? ReviewedById { get; set; }
+
+    public string? Description { get; set; }
 
     public virtual ICollection<AccessRight> AccessRights { get; set; } = new List<AccessRight>();
 
@@ -46,6 +56,8 @@ public partial class Book
     public virtual ICollection<Purchase> Purchases { get; set; } = new List<Purchase>();
 
     public virtual ICollection<ReadingProgress> ReadingProgresses { get; set; } = new List<ReadingProgress>();
+
+    public virtual User? ReviewedBy { get; set; }
 
     public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
 

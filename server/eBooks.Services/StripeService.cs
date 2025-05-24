@@ -10,28 +10,67 @@ using System.Security.Claims;
 using eBooks.Database.Models;
 using Microsoft.Extensions.Logging;
 using eBooks.Models.Responses;
+using System.Globalization;
+using System.Net.Http.Headers;
+using System.Text.Json;
+using Org.BouncyCastle.Ocsp;
 
 namespace eBooks.Services
 {
-    public class PaymentService : IPaymentService
+    public class StripeService : IStripeService
     {
-        protected ILogger<PaymentService> _logger;
+        protected ILogger<StripeService> _logger;
         protected EBooksContext _db;
-        protected IConfiguration _config;
         protected IHttpContextAccessor _httpContextAccessor;
+        protected EmailService _emailService;
+        protected IConfiguration _config;
 
-        public PaymentService(EBooksContext db, IConfiguration config, IHttpContextAccessor httpContextAccessor, ILogger<PaymentService> logger)
+        public StripeService(EBooksContext db, IHttpContextAccessor httpContextAccessor, EmailService emailService, IConfiguration config, ILogger<StripeService> logger)
         {
             _logger = logger;
             _db = db;
-            _config = config;
             _httpContextAccessor = httpContextAccessor;
+            _emailService = emailService;
+            _config = config;
             StripeConfiguration.ApiKey = _config["Stripe:SecretKey"];
+        }
+
+        public async Task<StripeRes> GetStripeAccountLink(int userId)
+        {
+            var user = await _db.Set<User>().FindAsync(userId);
+            if (user == null)
+                throw new ExceptionNotFound();
+            var accountService = new AccountService();
+            var account = await accountService.GetAsync(user.StripeAccountId);
+            if (!account.DetailsSubmitted)
+            {
+                var accountLinkService = new AccountLinkService();
+                var accountLink = await accountLinkService.CreateAsync(new AccountLinkCreateOptions
+                {
+                    Account = user.StripeAccountId,
+                    RefreshUrl = "https://example.com/refresh",
+                    ReturnUrl = "https://example.com/return",
+                    Type = "account_onboarding"
+                });
+                return new StripeRes { Url = accountLink.Url };
+            }
+            else
+            {
+                using var httpClient = new HttpClient();
+                httpClient.BaseAddress = new Uri("https://api.stripe.com/v1/");
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _config["Stripe:SecretKey"]);
+                var response = await httpClient.PostAsync($"accounts/{user.StripeAccountId}/login_links", null);
+                var content = await response.Content.ReadAsStringAsync();
+                using var document = JsonDocument.Parse(content);
+                var loginUrl = document.RootElement.GetProperty("url").GetString();
+                return new StripeRes { Url = loginUrl };
+            }
         }
 
         public async Task<StripeRes> CreateCheckoutSession(int bookId)
         {
             var userId = int.TryParse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var temp) ? temp : 0;
+            var user = await _db.Set<User>().FindAsync(userId);
             if (await _db.Set<AccessRight>().AnyAsync(x => x.UserId == userId && x.BookId == bookId))
                 throw new ExceptionBadRequest("You already possess this book");
             var book = await _db.Books.Include(x => x.Publisher).FirstOrDefaultAsync(x => x.BookId == bookId);
@@ -39,8 +78,23 @@ namespace eBooks.Services
                 throw new ExceptionNotFound();
             if (book.Price == 0)
                 throw new ExceptionBadRequest("This book is free, you cannot buy it");
-            var priceInCents = (long)(book.Price * 100);
-            var platformFee = (long)(book.Price * 100 * 0.10m);
+            if (userId == book.PublisherId)
+                throw new ExceptionBadRequest("You cannot buy your own book");
+            if (book.StateMachine != "approve")
+                throw new ExceptionBadRequest("This book is not active right now");
+            if (!user.IsEmailVerified)
+            {
+                var verificationToken = Guid.NewGuid().ToString();
+                user.VerificationToken = verificationToken;
+                user.TokenExpiry = DateTime.UtcNow.AddHours(24);
+                await _db.SaveChangesAsync();
+                await _emailService.SendEmailAsync(user.Email, "Email verification", verificationToken);
+                throw new ExceptionBadRequest("Your email is not verified, please check your email and verifiy it");
+            }
+            var finalPrice = Helpers.CalculateDiscountedPrice(book.Price, book.DiscountPercentage, book.DiscountStart, book.DiscountEnd);
+            var priceInCents = (long)(finalPrice * 100);
+            var platformFee = (long)(finalPrice * 100 * 0.10m);
+            var imageUrls = await _db.Set<BookImage>().Where(x => x.BookId == bookId).OrderByDescending(x => x.ModifiedAt).Select(x => _config["AppSettings:ngrokURL"] + x.ImagePath).ToListAsync();
             var options = new SessionCreateOptions
             {
                 Metadata = new Dictionary<string, string>
@@ -48,9 +102,9 @@ namespace eBooks.Services
                     { "bookId", book.BookId.ToString() },
                     { "userId", userId.ToString() },
                     { "publisherId", book.PublisherId.ToString() },
-                    { "totalPrice", book.Price.ToString() }
+                    { "totalPrice", finalPrice.Value.ToString("F2", CultureInfo.InvariantCulture) }
                 },
-                PaymentMethodTypes = new List<string> { "card" },
+                PaymentMethodTypes = new List<string> { "card", "paypal" },
                 LineItems = new List<SessionLineItemOptions>
                 {
                     new SessionLineItemOptions
@@ -61,7 +115,9 @@ namespace eBooks.Services
                             UnitAmount = priceInCents,
                             ProductData = new SessionLineItemPriceDataProductDataOptions
                             {
-                                Name = book.Title
+                                Name = book.Title,
+                                Description = book.Description,
+                                Images = imageUrls.Take(1).ToList()
                             }
                         },
                         Quantity = 1
@@ -170,7 +226,7 @@ namespace eBooks.Services
                     };
                     _db.Set<Purchase>().Add(purchaseFailed);
                     await _db.SaveChangesAsync();
-                    _logger.LogInformation($"Payment failed userId:{userId} bookId:{bookId} totalPrice:{totalPrice}");
+                    _logger.LogError($"Payment failed userId:{userId} bookId:{bookId} totalPrice:{totalPrice}");
                 }
             }
             catch (StripeException ex)

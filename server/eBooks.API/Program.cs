@@ -40,7 +40,7 @@ builder.Services.AddTransient<IBooksService, BooksService>();
 builder.Services.AddTransient<IFavoritesService, FavoritesService>();
 builder.Services.AddTransient<IGenresService, GenresService>();
 builder.Services.AddTransient<ILanguagesService, LanguagesService>();
-builder.Services.AddTransient<IPaymentService, PaymentService>();
+builder.Services.AddTransient<IStripeService, StripeService>();
 builder.Services.AddTransient<IReadingProgressService, ReadingProgressService>();
 builder.Services.AddTransient<IReviewService, ReviewsService>();
 builder.Services.AddTransient<IRolesService, RolesService>();
@@ -53,6 +53,7 @@ builder.Services.AddTransient<HideBooksState>();
 builder.Services.AddTransient<AwaitBooksState>();
 builder.Services.AddTransient<DraftBooksState>();
 builder.Services.AddTransient<RejectBooksState>();
+builder.Services.AddTransient<EmailService>();
 
 builder.Services.AddAuthentication("BasicAuthentication").AddScheme<AuthenticationSchemeOptions, BasicAuthHandler>("BasicAuthentication", null);
 builder.Services.AddEndpointsApiExplorer();
@@ -88,6 +89,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseStaticFiles();
 app.UseHttpsRedirection();
 app.MapControllers();
 app.Run();

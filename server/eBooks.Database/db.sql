@@ -13,16 +13,19 @@ CREATE TABLE Roles (
 
 CREATE TABLE Users (
     UserId INT PRIMARY KEY IDENTITY,
-    UserName NVARCHAR(100) UNIQUE,
-    FirstName NVARCHAR(100),
-    LastName NVARCHAR(100),
-    Email NVARCHAR(100) UNIQUE,
-    PasswordHash NVARCHAR(255),
-    PasswordSalt NVARCHAR(255),
+    UserName NVARCHAR(100) UNIQUE NOT NULL,
+    FirstName NVARCHAR(100) NOT NULL,
+    LastName NVARCHAR(100) NOT NULL,
+    Email NVARCHAR(100) UNIQUE NOT NULL,
+    PasswordHash NVARCHAR(255) NOT NULL,
+    PasswordSalt NVARCHAR(255) NOT NULL,
     CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
-    isDeleted BIT DEFAULT 0,
+    IsEmailVerified BIT NOT NULL DEFAULT 0,
+    VerificationToken NVARCHAR(100),
+    TokenExpiry DATETIME,
+    isDeleted BIT NOT NULL DEFAULT 0,
     RoleId INT NOT NULL,
-    StripeAccountId NVARCHAR(255) NULL,
+    StripeAccountId NVARCHAR(255),
     FOREIGN KEY (RoleId) REFERENCES Roles(RoleId)
 );
 
@@ -46,17 +49,23 @@ CREATE TABLE Languages (
 CREATE TABLE Books (
     BookId INT PRIMARY KEY IDENTITY,
     Title NVARCHAR(255),
+    Description NVARCHAR(MAX),
     PdfPath NVARCHAR(255),
     Price DECIMAL(10,2),
     NumberOfPages INT,
     LanguageId INT NOT NULL,
     PublisherId INT NOT NULL,
-    CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
+    ReviewedById INT NULL,
+    ModifiedAt DATETIME NOT NULL DEFAULT GETDATE(),
     StateMachine NVARCHAR(50) DEFAULT 'draft',
+    DiscountPercentage INT,
+    DiscountStart DATETIME,
+    DiscountEnd DATETIME,
     RejectionReason NVARCHAR(500),
-    isDeleted BIT DEFAULT 0,
+    isDeleted BIT NOT NULL DEFAULT 0,
     FOREIGN KEY (LanguageId) REFERENCES Languages(LanguageId),
-    FOREIGN KEY (PublisherId) REFERENCES Users(UserId)
+    FOREIGN KEY (PublisherId) REFERENCES Users(UserId),
+    FOREIGN KEY (ReviewedById) REFERENCES Users(UserId)
 );
 
 CREATE TABLE BookGenres (
@@ -164,12 +173,12 @@ CREATE TABLE Reviews (
 
 CREATE TABLE Notifications (
     NotificationId INT PRIMARY KEY IDENTITY,
-    BookId INT NULL,
-    PublisherId INT NULL,
+    BookId INT,
+    PublisherId INT,
     UserId INT NOT NULL,
     Message NVARCHAR(MAX),
     ModifiedAt DATETIME NOT NULL DEFAULT GETDATE(),
-    IsRead BIT DEFAULT 0,
+    IsRead BIT NOT NULL DEFAULT 0,
     FOREIGN KEY (BookId) REFERENCES Books(BookId),
     FOREIGN KEY (PublisherId) REFERENCES Users(UserId),
     FOREIGN KEY (UserId) REFERENCES Users(UserId)

@@ -19,6 +19,7 @@ namespace eBooks.API.Controllers
         public BooksController(IBooksService service, AccessControlHandler accessControlHandler)
             : base(service)
         {
+            _service = service;
             _accessControlHandler = accessControlHandler;
         }
 
@@ -59,6 +60,14 @@ namespace eBooks.API.Controllers
         public async Task<BooksRes> UndoDelete(int id)
         {
             return await _service.UndoDelete(id);
+        }
+
+        [Authorize(Policy = "User")]
+        [HttpPut("{id}/set-discount")]
+        public async Task<BooksRes> SetDiscount(int id, DiscountReq req)
+        {
+            await _accessControlHandler.CheckIsOwnerByBookId(id);
+            return await _service.SetDiscount(id, req);
         }
 
         [Authorize(Policy = "User")]

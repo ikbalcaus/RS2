@@ -27,9 +27,17 @@ public partial class User
 
     public string? StripeAccountId { get; set; }
 
+    public bool IsEmailVerified { get; set; }
+
+    public string? VerificationToken { get; set; }
+
+    public DateTime? TokenExpiry { get; set; }
+
     public virtual ICollection<AccessRight> AccessRights { get; set; } = new List<AccessRight>();
 
-    public virtual ICollection<Book> Books { get; set; } = new List<Book>();
+    public virtual ICollection<Book> BookPublishers { get; set; } = new List<Book>();
+
+    public virtual ICollection<Book> BookReviewedBies { get; set; } = new List<Book>();
 
     public virtual ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
 

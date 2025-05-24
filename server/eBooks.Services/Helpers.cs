@@ -81,7 +81,7 @@ namespace eBooks.Services
         {
             if (file.ContentType != "application/pdf") throw new ExceptionBadRequest("Book created, file must be PDF");
             if (entity == null) return null;
-            var folderPath = Path.Combine("wwwroot", "pdf");
+            var folderPath = Path.Combine("wwwroot", "pdfs");
             if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
             if (!string.IsNullOrEmpty(entity.PdfPath))
             {
@@ -94,9 +94,24 @@ namespace eBooks.Services
             {
                 file.CopyTo(stream);
             }
-            entity.PdfPath = $"/pdf/{fileName}";
+            entity.PdfPath = $"/pdfs/{fileName}";
             db.SaveChanges();
             return mapper.Map<BooksRes>(entity);
+        }
+
+        public static decimal? CalculateDiscountedPrice(decimal? price, int? discountPercentage, DateTime? discountStart, DateTime? discountEnd)
+        {
+            if (price == null) return null;
+            if (discountPercentage.HasValue && discountStart.HasValue && discountEnd.HasValue)
+            {
+                var now = DateTime.UtcNow;
+                if (now >= discountStart.Value && now <= discountEnd.Value)
+                {
+                    decimal discountFactor = (100 - discountPercentage.Value) / 100m;
+                    return Math.Round(price.Value * discountFactor, 2);
+                }
+            }
+            return price;
         }
     }
 }

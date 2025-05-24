@@ -24,8 +24,4 @@
     <ProjectReference Include="../eBooks.Services/eBooks.Services.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="wwwroot\" />
-  </ItemGroup>
-
 </Project>

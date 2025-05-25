@@ -13,24 +13,28 @@ using eBooks.Models.Responses;
 using System.Globalization;
 using System.Net.Http.Headers;
 using System.Text.Json;
-using Org.BouncyCastle.Ocsp;
+using EasyNetQ;
+using eBooks.Models.Messages;
+using MapsterMapper;
 
 namespace eBooks.Services
 {
     public class StripeService : IStripeService
     {
-        protected ILogger<StripeService> _logger;
         protected EBooksContext _db;
+        protected IMapper _mapper;
         protected IHttpContextAccessor _httpContextAccessor;
-        protected EmailService _emailService;
+        protected IBus _bus;
         protected IConfiguration _config;
+        protected ILogger<StripeService> _logger;
 
-        public StripeService(EBooksContext db, IHttpContextAccessor httpContextAccessor, EmailService emailService, IConfiguration config, ILogger<StripeService> logger)
+        public StripeService(EBooksContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IBus bus, ILogger<StripeService> logger, IConfiguration config)
         {
-            _logger = logger;
             _db = db;
+            _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
-            _emailService = emailService;
+            _bus = bus;
+            _logger = logger;
             _config = config;
             StripeConfiguration.ApiKey = _config["Stripe:SecretKey"];
         }
@@ -88,7 +92,7 @@ namespace eBooks.Services
                 user.VerificationToken = verificationToken;
                 user.TokenExpiry = DateTime.UtcNow.AddHours(24);
                 await _db.SaveChangesAsync();
-                await _emailService.SendEmailAsync(user.Email, "Email verification", verificationToken);
+                _bus.PubSub.Publish(new EmailVerification { Token = _mapper.Map<TokenRes>(user) });
                 throw new ExceptionBadRequest("Your email is not verified, please check your email and verifiy it");
             }
             var finalPrice = Helpers.CalculateDiscountedPrice(book.Price, book.DiscountPercentage, book.DiscountStart, book.DiscountEnd);
@@ -172,13 +176,14 @@ namespace eBooks.Services
                     var paymentStatus = session.PaymentStatus;
                     var paymentIntentServiceSuccess = new PaymentIntentService();
                     var paymentIntentSuccess = await paymentIntentServiceSuccess.GetAsync(paymentIntentId);
-                    var purchaseSuccess = new Purchase
+                    totalPrice /= 100;
+                    var purchase = new Purchase
                     {
                         UserId = userId,
                         PublisherId = publisherId,
                         BookId = bookId,
                         TotalPrice = totalPrice,
-                        PaymentStatus = "paid",
+                        PaymentStatus = "success",
                         PaymentMethod = "card",
                         TransactionId = paymentIntentId
                     };
@@ -187,10 +192,14 @@ namespace eBooks.Services
                         UserId = userId,
                         BookId = bookId
                     };
-                    _db.Set<Purchase>().Add(purchaseSuccess);
+                    var wishlistItem = await _db.Set<Wishlist>().FindAsync(userId, bookId);
+                    _db.Set<Purchase>().Add(purchase);
                     _db.Set<AccessRight>().Add(accessRight);
+                    if (wishlistItem != null)
+                        _db.Set<Wishlist>().Remove(wishlistItem);
                     await _db.SaveChangesAsync();
                     _logger.LogInformation($"Payment successfull userId:{userId} bookId:{bookId} totalPrice:{totalPrice}");
+                    _bus.PubSub.Publish(new PaymentCompleted { Purchase = _mapper.Map<PurchasesRes>(purchase) });
                 }
                 else if (stripeEvent.Type == "payment_intent.payment_failed")
                 {
@@ -214,7 +223,8 @@ namespace eBooks.Services
                     var publisher = await _db.Users.FirstOrDefaultAsync(x => x.UserId == publisherId);
                     if (book == null || user == null || publisher == null)
                         return;
-                    var purchaseFailed = new Purchase
+                    totalPrice /= 100;
+                    var purchase = new Purchase
                     {
                         UserId = userId,
                         PublisherId = publisherId,
@@ -224,9 +234,10 @@ namespace eBooks.Services
                         PaymentMethod = "card",
                         TransactionId = paymentIntent.Id
                     };
-                    _db.Set<Purchase>().Add(purchaseFailed);
+                    _db.Set<Purchase>().Add(purchase);
                     await _db.SaveChangesAsync();
                     _logger.LogError($"Payment failed userId:{userId} bookId:{bookId} totalPrice:{totalPrice}");
+                    _bus.PubSub.Publish(new PaymentCompleted { Purchase = _mapper.Map<PurchasesRes>(purchase) });
                 }
             }
             catch (StripeException ex)

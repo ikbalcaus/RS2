@@ -9,5 +9,7 @@ namespace eBooks.Interfaces
         Task<UsersRes> UndoDelete(int id);
         Task<LoginRes> Login(string email, string password);
         Task<UsersRes> VerifyEmail(int id, string token);
+        Task<UsersRes> VerifyPublisher(int id);
+        Task<UsersRes> UnVerifyPublisher(int id);
     }
 }

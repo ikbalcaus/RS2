@@ -33,6 +33,8 @@ public partial class User
 
     public DateTime? TokenExpiry { get; set; }
 
+    public int? PublisherVerifiedById { get; set; }
+
     public virtual ICollection<AccessRight> AccessRights { get; set; } = new List<AccessRight>();
 
     public virtual ICollection<Book> BookPublishers { get; set; } = new List<Book>();
@@ -40,6 +42,8 @@ public partial class User
     public virtual ICollection<Book> BookReviewedBies { get; set; } = new List<Book>();
 
     public virtual ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
+
+    public virtual ICollection<User> InversePublisherVerifiedBy { get; set; } = new List<User>();
 
     public virtual ICollection<Notification> NotificationPublishers { get; set; } = new List<Notification>();
 
@@ -49,9 +53,7 @@ public partial class User
 
     public virtual ICollection<PublisherFollow> PublisherFollowUsers { get; set; } = new List<PublisherFollow>();
 
-    public virtual ICollection<PublisherVerification> PublisherVerificationAdmins { get; set; } = new List<PublisherVerification>();
-
-    public virtual PublisherVerification? PublisherVerificationPublisher { get; set; }
+    public virtual User? PublisherVerifiedBy { get; set; }
 
     public virtual ICollection<Purchase> PurchasePublishers { get; set; } = new List<Purchase>();
 

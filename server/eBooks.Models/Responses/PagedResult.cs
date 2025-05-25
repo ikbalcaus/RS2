@@ -1,4 +1,4 @@
-﻿namespace eBooks.Models
+﻿namespace eBooks.Models.Responses
 {
     public class PagedResult<T>
     {

@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "eBooks.Interfaces", "eBooks
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "eBooks.Database", "eBooks.Database\eBooks.Database.csproj", "{612C8C17-5374-47C8-8F39-E82006608D0B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "eBooks.Subscriber", "eBooks.Subscriber\eBooks.Subscriber.csproj", "{DD168A9B-1DDD-411D-BE0C-EF40EA131012}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{612C8C17-5374-47C8-8F39-E82006608D0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{612C8C17-5374-47C8-8F39-E82006608D0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{612C8C17-5374-47C8-8F39-E82006608D0B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD168A9B-1DDD-411D-BE0C-EF40EA131012}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD168A9B-1DDD-411D-BE0C-EF40EA131012}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD168A9B-1DDD-411D-BE0C-EF40EA131012}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD168A9B-1DDD-411D-BE0C-EF40EA131012}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

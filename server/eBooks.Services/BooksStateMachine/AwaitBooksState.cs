@@ -32,23 +32,12 @@ namespace eBooks.Services.BooksStateMachine
             var entity = await _db.Set<Book>().FindAsync(id);
             if (entity == null)
                 throw new ExceptionNotFound();
-            if (entity == null)
-                throw new ExceptionNotFound();
-            if (req.Title != null)
-                entity.Title = req.Title;
-            if (req.Description != null)
-                entity.Description = req.Description;
-            if (req.Price.HasValue)
-                entity.Price = req.Price.Value;
-            if (req.NumberOfPages.HasValue)
-                entity.NumberOfPages = req.NumberOfPages.Value;
+            var languageId = entity.LanguageId;
+            _mapper.Map(req, entity);
             if (req.LanguageId.HasValue)
-            {
-                var languageExists = await _db.Languages.AnyAsync(x => x.LanguageId == req.LanguageId.Value);
-                if (!languageExists)
-                    throw new ExceptionNotFound();
                 entity.LanguageId = req.LanguageId.Value;
-            }
+            else
+                entity.LanguageId = languageId;
             entity.StateMachine = "draft";
             await _db.SaveChangesAsync();
             if (req.Images != null && req.Images.Any()) Helpers.UploadImages(_db, _mapper, entity.BookId, req.Images);

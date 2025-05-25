@@ -38,8 +38,6 @@ public partial class EBooksContext : DbContext
 
     public virtual DbSet<PublisherFollow> PublisherFollows { get; set; }
 
-    public virtual DbSet<PublisherVerification> PublisherVerifications { get; set; }
-
     public virtual DbSet<Purchase> Purchases { get; set; }
 
     public virtual DbSet<ReadingProgress> ReadingProgresses { get; set; }
@@ -253,28 +251,6 @@ public partial class EBooksContext : DbContext
                 .HasConstraintName("FK__Publisher__UserI__778AC167");
         });
 
-        modelBuilder.Entity<PublisherVerification>(entity =>
-        {
-            entity.HasKey(e => e.VerificationId).HasName("PK__Publishe__306D4907C8D7DE8F");
-
-            entity.ToTable("PublisherVerification");
-
-            entity.HasIndex(e => e.PublisherId, "UQ__Publishe__4C657FAA6F121C24").IsUnique();
-
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-
-            entity.HasOne(d => d.Admin).WithMany(p => p.PublisherVerificationAdmins)
-                .HasForeignKey(d => d.AdminId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Publisher__Admin__09A971A2");
-
-            entity.HasOne(d => d.Publisher).WithOne(p => p.PublisherVerificationPublisher)
-                .HasForeignKey<PublisherVerification>(d => d.PublisherId)
-                .HasConstraintName("FK__Publisher__Publi__08B54D69");
-        });
-
         modelBuilder.Entity<Purchase>(entity =>
         {
             entity.HasKey(e => e.PurchaseId).HasName("PK__Purchase__6B0A6BBE3E99CFDE");
@@ -386,6 +362,10 @@ public partial class EBooksContext : DbContext
             entity.Property(e => e.TokenExpiry).HasColumnType("datetime");
             entity.Property(e => e.UserName).HasMaxLength(100);
             entity.Property(e => e.VerificationToken).HasMaxLength(100);
+
+            entity.HasOne(d => d.PublisherVerifiedBy).WithMany(p => p.InversePublisherVerifiedBy)
+                .HasForeignKey(d => d.PublisherVerifiedById)
+                .HasConstraintName("FK_Users_VerifiedBy");
 
             entity.HasOne(d => d.Role).WithMany(p => p.Users)
                 .HasForeignKey(d => d.RoleId)

@@ -78,5 +78,19 @@ namespace eBooks.API.Controllers
             await _accessControlHandler.CheckIsOwnerByUserId(id);
             return await _service.VerifyEmail(id, token);
         }
+
+        [Authorize(Policy = "Moderator")]
+        [HttpPatch("{id}/verify-publisher")]
+        public async Task<UsersRes> VerifyPublisher(int id)
+        {
+            return await _service.VerifyPublisher(id);
+        }
+
+        [Authorize(Policy = "Admin")]
+        [HttpPatch("{id}/unverify-publisher")]
+        public async Task<UsersRes> UnVerifyPublisher(int id)
+        {
+            return await _service.UnVerifyPublisher(id);
+        }
     }
 }

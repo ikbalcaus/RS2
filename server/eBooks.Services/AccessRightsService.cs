@@ -31,7 +31,10 @@ namespace eBooks.Services
                 UserId = userId,
                 BookId = bookId
             };
+            var wishlistItem = await _db.Set<Wishlist>().FindAsync(userId, bookId);
             _db.Set<AccessRight>().Add(entity);
+            if (wishlistItem != null)
+                _db.Set<Wishlist>().Remove(wishlistItem);
             await _db.SaveChangesAsync();
             return _mapper.Map<AccessRightsRes>(entity);
         }

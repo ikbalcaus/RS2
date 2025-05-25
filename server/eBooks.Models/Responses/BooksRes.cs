@@ -7,6 +7,7 @@
         public string Description { get; set; }
         public decimal Price { get; set; }
         public int NumberOfPages { get; set; }
+        public int NumberOfViews { get; set; }
         public string StateMachine { get; set; }
         public DateTime ModifiedAt { get; set; }
         public UsersRes Publisher { get; set; }

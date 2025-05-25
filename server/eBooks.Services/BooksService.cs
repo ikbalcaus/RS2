@@ -1,10 +1,10 @@
-﻿using System.Net;
-using System.Security.Claims;
+﻿using System.Security.Claims;
+using EasyNetQ;
 using eBooks.Database;
 using eBooks.Database.Models;
 using eBooks.Interfaces;
-using eBooks.Models;
 using eBooks.Models.Exceptions;
+using eBooks.Models.Messages;
 using eBooks.Models.Requests;
 using eBooks.Models.Responses;
 using eBooks.Models.Search;
@@ -33,11 +33,15 @@ namespace eBooks.Services
 
         protected int GetUserId() => int.TryParse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : 0;
 
+        public override async Task<IQueryable<Book>> AddIncludes(IQueryable<Book> query)
+        {
+            return query.Include(x => x.Publisher).Include(x => x.Language).Include(x => x.BookImages);
+        }
+
         public override async Task<PagedResult<BooksRes>> GetPaged(BooksSearch search)
         {
             var result = new List<BooksRes>();
             var query = _db.Set<Book>().AsQueryable();
-            query = await AddFilter(search, query);
             int count = await query.CountAsync();
             if (search?.Page.HasValue == true && search?.PageSize.HasValue == true)
                 query = query.Skip(search.Page.Value * search.PageSize.Value).Take(search.PageSize.Value);
@@ -60,6 +64,11 @@ namespace eBooks.Services
                 throw new ExceptionNotFound();
             var result = _mapper.Map<BooksRes>(entity);
             var userId = GetUserId();
+            if (userId != entity.PublisherId)
+            {
+                entity.NumberOfViews += 1;
+                await _db.SaveChangesAsync();
+            }
             var accessRight = await _db.Set<AccessRight>().AnyAsync(x => x.UserId == GetUserId() && x.BookId == id);
             var role = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.Role)?.Value;
             if (!accessRight && entity.PublisherId != userId && role != "Admin" && role != "Moderator")
@@ -130,6 +139,15 @@ namespace eBooks.Services
             _mapper.Map(req, entity);
             await _db.SaveChangesAsync();
             _logger.LogInformation($"Book with title {entity.Title} is discounted by {req.DiscountPercentage}%.");
+            try
+            {
+                var bus = RabbitHutch.CreateBus("host=localhost;username=guest;password=guest");
+                bus.PubSub.Publish(new BookDiscounted { Book = _mapper.Map<BooksRes>(entity) });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex.Message);
+            }
             return _mapper.Map<BooksRes>(entity);
         }
 

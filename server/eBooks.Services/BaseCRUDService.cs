@@ -5,7 +5,7 @@ using MapsterMapper;
 
 namespace eBooks.Services
 {
-    public abstract class BaseCRUDService<TEntity, TSearch, TCreate, TUpdate, TResponse> : BaseReadOnlyService<TEntity, TSearch, TResponse>
+    public abstract class BaseCRUDService<TEntity, TSearch, TCreate, TUpdate, TResponse> : BaseReadOnlyService<TEntity, TSearch, TResponse>, IBaseReadOnlyService<TSearch, TResponse>
         where TEntity : class
         where TResponse : class
         where TSearch : BaseSearch
@@ -17,7 +17,7 @@ namespace eBooks.Services
 
         public virtual async Task<TResponse> Post(TCreate req)
         {
-            TEntity entity = _mapper.Map<TEntity>(req);
+            var entity = _mapper.Map<TEntity>(req);
             _db.Add(entity);
             await _db.SaveChangesAsync();
             return _mapper.Map<TResponse>(entity);

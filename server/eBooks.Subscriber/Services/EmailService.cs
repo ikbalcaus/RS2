@@ -1,11 +1,10 @@
 ﻿using System.Net.Mail;
 using System.Net;
 using Microsoft.Extensions.Configuration;
-using eBooks.Interfaces;
 
-namespace eBooks.Services
+namespace eBooks.Subscriber.Services
 {
-    public class EmailService : IEmailService
+    public class EmailService
     {
         protected IConfiguration _config;
 

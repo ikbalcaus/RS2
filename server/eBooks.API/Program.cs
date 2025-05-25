@@ -1,3 +1,4 @@
+using EasyNetQ;
 using eBooks.API;
 using eBooks.API.Auth;
 using eBooks.API.Filters;
@@ -14,15 +15,10 @@ using Stripe;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddControllers();
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddControllers(x => x.Filters.Add<ExceptionFilter>());
+builder.Services.AddControllers(options => options.Filters.Add<ExceptionFilter>());
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
-
-builder.Services.AddDbContext<EBooksContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("Database"))
-);
 
 builder.Services.AddAuthorization(options =>
 {
@@ -31,7 +27,9 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("User", policy => policy.RequireRole("Admin", "Moderator", "User"));
 });
 
+builder.Services.AddDbContext<EBooksContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("Database")));
 builder.Services.AddScoped<IMapper, Mapper>();
+builder.Services.AddSingleton<IBus>(_ => RabbitHutch.CreateBus("host=localhost;username=guest;password=guest"));
 builder.Services.AddScoped<AccessControlHandler>();
 
 builder.Services.AddTransient<IAccessRightsService, AccessRightsService>();
@@ -40,8 +38,10 @@ builder.Services.AddTransient<IBooksService, BooksService>();
 builder.Services.AddTransient<IFavoritesService, FavoritesService>();
 builder.Services.AddTransient<IGenresService, GenresService>();
 builder.Services.AddTransient<ILanguagesService, LanguagesService>();
+builder.Services.AddTransient<IPublisherFollowsService, PublisherFollowsService>();
 builder.Services.AddTransient<IStripeService, StripeService>();
 builder.Services.AddTransient<IReadingProgressService, ReadingProgressService>();
+builder.Services.AddTransient<IPurchasesService, PurchasesService>();
 builder.Services.AddTransient<IReviewService, ReviewsService>();
 builder.Services.AddTransient<IRolesService, RolesService>();
 builder.Services.AddTransient<IUsersService, UsersService>();
@@ -53,18 +53,17 @@ builder.Services.AddTransient<HideBooksState>();
 builder.Services.AddTransient<AwaitBooksState>();
 builder.Services.AddTransient<DraftBooksState>();
 builder.Services.AddTransient<RejectBooksState>();
-builder.Services.AddTransient<EmailService>();
 
 builder.Services.AddAuthentication("BasicAuthentication").AddScheme<AuthenticationSchemeOptions, BasicAuthHandler>("BasicAuthentication", null);
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(x =>
+builder.Services.AddSwaggerGen(options =>
 {
-    x.AddSecurityDefinition("basicAuth", new Microsoft.OpenApi.Models.OpenApiSecurityScheme()
+    options.AddSecurityDefinition("basicAuth", new Microsoft.OpenApi.Models.OpenApiSecurityScheme()
     {
         Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
         Scheme = "basic"
     });
-    x.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement()
+    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement()
     {
         {
             new OpenApiSecurityScheme
@@ -72,7 +71,8 @@ builder.Services.AddSwaggerGen(x =>
                 Reference = new OpenApiReference{Type = ReferenceType.SecurityScheme, Id = "basicAuth"}
             },
             new string[] {}
-    } });
+        }
+    });
 });
 
 var app = builder.Build();

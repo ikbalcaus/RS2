@@ -6,8 +6,8 @@ using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using eBooks.Database.Models;
-using eBooks.Models;
 using eBooks.Models.SearchObjects;
+using eBooks.Models.Responses;
 
 namespace eBooks.Services
 {
@@ -36,12 +36,12 @@ namespace eBooks.Services
         {
             var userId = GetUserId();
             var search = new BaseSearch();
-            var entities = await _db.Set<TEntity>().Where(x => x.UserId == userId).ToListAsync();
             List<TResponse> result = new List<TResponse>();
-            var query = _db.Set<TEntity>().AsQueryable();
+            var query = _db.Set<TEntity>().Where(x => x.UserId == userId).AsQueryable();
             int count = await query.CountAsync();
             if (search?.Page.HasValue == true && search?.PageSize.HasValue == true)
                 query = query.Skip(search.Page.Value * search.PageSize.Value).Take(search.PageSize.Value);
+            query = await AddIncludes(query);
             var list = await query.ToListAsync();
             result = _mapper.Map(list, result);
             PagedResult<TResponse> pagedResult = new PagedResult<TResponse>
@@ -55,7 +55,9 @@ namespace eBooks.Services
         public virtual async Task<TResponse> GetByBookId(int bookId)
         {
             var userId = GetUserId();
-            var entity = await _db.Set<TEntity>().Where(x => x.UserId == userId && x.BookId == bookId).FirstOrDefaultAsync();
+            var query = _db.Set<TEntity>().Where(x => x.UserId == userId && x.BookId == bookId).AsQueryable();
+            query = await AddIncludes(query);
+            var entity = await query.FirstOrDefaultAsync();
             if (entity == null)
                 throw new ExceptionNotFound();
             return _mapper.Map<TResponse>(entity);
@@ -63,10 +65,11 @@ namespace eBooks.Services
 
         public virtual async Task<TResponse> Post(int bookId, TRequest req)
         {
+            var set = _db.Set<TEntity>();
             if (!await _db.Set<Book>().AnyAsync(x => x.BookId == bookId))
                 throw new ExceptionNotFound();
             var userId = GetUserId();
-            if (await _db.Set<TEntity>().AnyAsync(x => x.UserId == userId && x.BookId == bookId))
+            if (await set.AnyAsync(x => x.UserId == userId && x.BookId == bookId))
                 throw new ExceptionBadRequest("Already exist");
             var accessRightExist = await AccessRightExist(bookId);
             if (_shouldPossessBook && !accessRightExist)
@@ -79,7 +82,7 @@ namespace eBooks.Services
                 BookId = bookId
             };
             _mapper.Map(req, entity);
-            _db.Set<TEntity>().Add(entity);
+            set.Add(entity);
             await _db.SaveChangesAsync();
             return _mapper.Map<TResponse>(entity);
         }
@@ -105,6 +108,11 @@ namespace eBooks.Services
             set.Remove(entity);
             await _db.SaveChangesAsync();
             return null;
+        }
+
+        public virtual async Task<IQueryable<TEntity>> AddIncludes(IQueryable<TEntity> query)
+        {
+            return query;
         }
     }
 }

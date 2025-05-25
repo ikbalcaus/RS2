@@ -1,5 +1,5 @@
 ﻿using eBooks.Interfaces;
-using eBooks.Models;
+using eBooks.Models.Responses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

@@ -26,7 +26,9 @@ CREATE TABLE Users (
     isDeleted BIT NOT NULL DEFAULT 0,
     RoleId INT NOT NULL,
     StripeAccountId NVARCHAR(255),
-    FOREIGN KEY (RoleId) REFERENCES Roles(RoleId)
+    PublisherVerifiedById INT NULL,
+    FOREIGN KEY (RoleId) REFERENCES Roles(RoleId),
+    FOREIGN KEY (VerifiedById) REFERENCES Users(UserId)
 );
 
 CREATE TABLE Authors (
@@ -53,6 +55,7 @@ CREATE TABLE Books (
     PdfPath NVARCHAR(255),
     Price DECIMAL(10,2),
     NumberOfPages INT,
+    NumberOfViews INT,
     LanguageId INT NOT NULL,
     PublisherId INT NOT NULL,
     ReviewedById INT NULL,
@@ -164,7 +167,7 @@ CREATE TABLE Reviews (
     UserId INT,
     BookId INT,
     ModifiedAt DATETIME NOT NULL DEFAULT GETDATE(),
-    Rating INT,
+    Rating INT NOT NULL,
     Comment NVARCHAR(MAX),
     PRIMARY KEY (UserId, BookId),
     FOREIGN KEY (UserId) REFERENCES Users(UserId),
@@ -182,13 +185,4 @@ CREATE TABLE Notifications (
     FOREIGN KEY (BookId) REFERENCES Books(BookId),
     FOREIGN KEY (PublisherId) REFERENCES Users(UserId),
     FOREIGN KEY (UserId) REFERENCES Users(UserId)
-);
-
-CREATE TABLE PublisherVerification (
-    VerificationId INT PRIMARY KEY IDENTITY,
-    PublisherId INT UNIQUE,
-    AdminId INT NOT NULL,
-    CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
-    FOREIGN KEY (PublisherId) REFERENCES Users(UserId),
-    FOREIGN KEY (AdminId) REFERENCES Users(UserId)
 );

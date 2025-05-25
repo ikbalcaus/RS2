@@ -1,4 +1,4 @@
-﻿using eBooks.Models;
+﻿using eBooks.Models.Responses;
 
 namespace eBooks.Interfaces
 {

@@ -6,6 +6,5 @@
         public int BookId { get; set; }
         public string ModifiedAt { get; set; }
         public bool Hidden { get; set; }
-        public BooksRes Book { get; set; }
     }
 }

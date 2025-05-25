@@ -1,15 +1,16 @@
-﻿using System.Net.Http.Headers;
-using System.Text.Json;
+﻿using System.Security.Claims;
+using EasyNetQ;
 using eBooks.Database;
 using eBooks.Database.Models;
 using eBooks.Interfaces;
 using eBooks.Models.Exceptions;
+using eBooks.Models.Messages;
 using eBooks.Models.Requests;
 using eBooks.Models.Responses;
 using eBooks.Models.Search;
 using MapsterMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Stripe;
 
@@ -17,14 +18,16 @@ namespace eBooks.Services;
 
 public class UsersService : BaseCRUDService<User, UsersSearch, UsersPostReq, UsersPutReq, UsersRes>, IUsersService
 {
+    protected IHttpContextAccessor _httpContextAccessor;
+    protected IBus _bus;
     protected ILogger<UsersService> _logger;
-    protected EmailService _emailService;
 
-    public UsersService(EBooksContext db, IMapper mapper, ILogger<UsersService> logger, EmailService emailService)
+    public UsersService(EBooksContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IBus bus, ILogger<UsersService> logger)
         : base(db, mapper)
     {
+        _httpContextAccessor = httpContextAccessor;
+        _bus = bus;
         _logger = logger;
-        _emailService = emailService;
     }
 
     public virtual async Task<UsersRes> Post(UsersPostReq req)
@@ -42,25 +45,12 @@ public class UsersService : BaseCRUDService<User, UsersSearch, UsersPostReq, Use
         entity.PasswordSalt = Helpers.GenerateSalt();
         entity.PasswordHash = Helpers.GenerateHash(entity.PasswordSalt, req.Password);
         entity.RoleId = (await _db.Set<Role>().FirstOrDefaultAsync(x => x.Name == "User")).RoleId;
-        var accountOptions = new AccountCreateOptions
-        {
-            Type = "express",
-            Email = req.Email,
-            Capabilities = new AccountCapabilitiesOptions
-            {
-                CardPayments = new AccountCapabilitiesCardPaymentsOptions { Requested = true },
-                Transfers = new AccountCapabilitiesTransfersOptions { Requested = true }
-            }
-        };
-        var stripeService = new AccountService();
-        var stripeAccount = await stripeService.CreateAsync(accountOptions);
         var verificationToken = Guid.NewGuid().ToString();
-        entity.StripeAccountId = stripeAccount.Id;
         entity.VerificationToken = verificationToken;
         entity.TokenExpiry = DateTime.UtcNow.AddHours(24);
         _db.Add(entity);
         await _db.SaveChangesAsync();
-        await _emailService.SendEmailAsync(req.Email, "Email verification", verificationToken);
+        _bus.PubSub.Publish(new EmailVerification { Token = _mapper.Map<TokenRes>(entity) });
         return _mapper.Map<UsersRes>(entity);
     }
 
@@ -113,12 +103,12 @@ public class UsersService : BaseCRUDService<User, UsersSearch, UsersPostReq, Use
         var entity = await _db.Set<User>().Include(x => x.Role).FirstOrDefaultAsync(x => x.Email == email);
         if (entity == null)
         {
-            _logger.LogInformation($"User failed to log in {email}.");
+            _logger.LogInformation($"User with email {email} failed to log in. Wrong email.");
             return null;
         }
         if (Helpers.GenerateHash(entity.PasswordSalt, password) != entity.PasswordHash)
         {
-            _logger.LogInformation($"User with email {email} failed to log in.");
+            _logger.LogInformation($"User with email {email} failed to log in. Wrong password.");
             return null;
         }
         _logger.LogInformation($"User with email {email} logged in.");
@@ -138,7 +128,29 @@ public class UsersService : BaseCRUDService<User, UsersSearch, UsersPostReq, Use
         entity.TokenExpiry = null;
         entity.IsEmailVerified = true;
         await _db.SaveChangesAsync();
-        _logger.LogInformation($"User with email {entity.Email} verified.");
+        _logger.LogInformation($"User with email {entity.Email} verified email.");
+        return _mapper.Map<UsersRes>(entity);
+    }
+
+    public async Task<UsersRes> VerifyPublisher(int id)
+    {
+        var entity = await _db.Set<User>().FindAsync(id);
+        if (entity == null)
+            throw new ExceptionNotFound();
+        entity.PublisherVerifiedById = int.TryParse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId) ? userId : null;
+        await _db.SaveChangesAsync();
+        _logger.LogInformation($"Publisher with email {entity.Email} is verified.");
+        return _mapper.Map<UsersRes>(entity);
+    }
+
+    public async Task<UsersRes> UnVerifyPublisher(int id)
+    {
+        var entity = await _db.Set<User>().FindAsync(id);
+        if (entity == null)
+            throw new ExceptionNotFound();
+        entity.PublisherVerifiedById = null;
+        await _db.SaveChangesAsync();
+        _logger.LogInformation($"Publisher with email {entity.Email} is unverified.");
         return _mapper.Map<UsersRes>(entity);
     }
 }

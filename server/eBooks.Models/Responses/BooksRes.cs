@@ -5,6 +5,8 @@
         public int BookId { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }
+        public string FilePath { get; set; }
+        public bool HasAccessRight { get; set; }
         public decimal Price { get; set; }
         public int NumberOfPages { get; set; }
         public int NumberOfViews { get; set; }
@@ -18,7 +20,5 @@
         public int? DiscountPercentage { get; set; }
         public DateTime? DiscountStart { get; set; }
         public DateTime? DiscountEnd { get; set; }
-        public string PdfPath { get; set; }
-        public ICollection<BookImageRes> BookImages { get; set; } = new List<BookImageRes>();
     }
 }

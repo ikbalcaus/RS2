@@ -12,6 +12,7 @@ using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Stripe;
 
 namespace eBooks.Services;
 
@@ -31,20 +32,36 @@ public class UsersService : BaseCRUDService<User, UsersSearch, UsersPostReq, Use
 
     public virtual async Task<UsersRes> Post(UsersPostReq req)
     {
+        var errors = new Dictionary<string, List<string>>();
         req.Email = req.Email.Trim().ToLower();
         if (!Helpers.IsEmailValid(req.Email))
-            throw new ExceptionBadRequest("Email is not valid");
+            errors.AddError("Email", "Email is not valid");
         if (await _db.Users.AnyAsync(x => x.Email == req.Email))
-            throw new ExceptionBadRequest("Email already exist");
+            errors.AddError("Email", "Email already exists");
         if (await _db.Users.AnyAsync(x => x.UserName.Trim().ToLower() == req.UserName.Trim().ToLower()))
-            throw new ExceptionBadRequest("Username already exists");
+            errors.AddError("Username", "Username already exists");
         if (!Helpers.IsPasswordValid(req.Password))
-            throw new ExceptionBadRequest("Password is not valid");
+            errors.AddError("Password", "Password is not valid");
+        if (errors.Count > 0)
+            throw new ExceptionBadRequest(errors);
         var entity = _mapper.Map<User>(req);
         entity.PasswordSalt = Helpers.GenerateSalt();
         entity.PasswordHash = Helpers.GenerateHash(entity.PasswordSalt, req.Password);
         entity.RoleId = (await _db.Set<Role>().FirstOrDefaultAsync(x => x.Name == "User")).RoleId;
+        var accountOptions = new AccountCreateOptions
+        {
+            Type = "express",
+            Email = req.Email,
+            Capabilities = new AccountCapabilitiesOptions
+            {
+                CardPayments = new AccountCapabilitiesCardPaymentsOptions { Requested = true },
+                Transfers = new AccountCapabilitiesTransfersOptions { Requested = true }
+            }
+        };
+        var stripeService = new AccountService();
+        var stripeAccount = await stripeService.CreateAsync(accountOptions);
         var verificationToken = Guid.NewGuid().ToString();
+        entity.StripeAccountId = stripeAccount.Id;
         entity.VerificationToken = verificationToken;
         entity.TokenExpiry = DateTime.UtcNow.AddHours(24);
         _db.Add(entity);
@@ -55,18 +72,21 @@ public class UsersService : BaseCRUDService<User, UsersSearch, UsersPostReq, Use
 
     public override async Task<UsersRes> Put(int id, UsersPutReq req)
     {
+        var errors = new Dictionary<string, List<string>>();
         var entity = await _db.Set<User>().FindAsync(id);
         if (entity == null)
             throw new ExceptionNotFound();
         if (!string.IsNullOrWhiteSpace(req.UserName) && await _db.Set<User>().AnyAsync(x => x.UserName.Trim().ToLower() == req.UserName.Trim().ToLower()))
-            throw new ExceptionBadRequest("Username already exist");
+            errors.AddError("Username", "Username already exists");
         if (!string.IsNullOrWhiteSpace(req.Password))
         {
             if (!Helpers.IsPasswordValid(req.Password))
-                throw new ExceptionBadRequest("Password is not valid");
+                errors.AddError("Password", "Password is not valid");
             entity.PasswordSalt = Helpers.GenerateSalt();
             entity.PasswordHash = Helpers.GenerateHash(entity.PasswordSalt, req.Password);
         }
+        if (errors.Count > 0)
+            throw new ExceptionBadRequest(errors);
         _mapper.Map(req, entity);
         await _db.SaveChangesAsync();
         _logger.LogInformation($"User with email {entity.Email} updated.");
@@ -80,6 +100,20 @@ public class UsersService : BaseCRUDService<User, UsersSearch, UsersPostReq, Use
         if (entity == null)
             throw new ExceptionNotFound();
         entity.IsDeleted = true;
+        entity.DeleteReason = "Deleted by user";
+        await _db.SaveChangesAsync();
+        _logger.LogInformation($"User with email {entity.Email} deleted.");
+        return null;
+    }
+
+    public async Task<UsersRes> DeleteByAdmin(int id, string reason)
+    {
+        var set = _db.Set<User>();
+        var entity = await set.FindAsync(id);
+        if (entity == null)
+            throw new ExceptionNotFound();
+        entity.IsDeleted = true;
+        entity.DeleteReason = reason;
         await _db.SaveChangesAsync();
         _logger.LogInformation($"User with email {entity.Email} deleted.");
         return null;

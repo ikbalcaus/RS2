@@ -4,7 +4,6 @@ using eBooks.Interfaces;
 using eBooks.Models.Responses;
 using MapsterMapper;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 
 namespace eBooks.Services
 {

@@ -1,16 +1,13 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
-using eBooks.Database.Models;
 using Microsoft.AspNetCore.Http;
-using eBooks.Database;
-using MapsterMapper;
 using eBooks.Models.Exceptions;
-using eBooks.Models.Responses;
+using SixLabors.ImageSharp.Formats.Webp;
 
 namespace eBooks.Services
 {
-    public class Helpers
+    public static class Helpers
     {
         public static bool IsEmailValid(string email)
         {
@@ -49,55 +46,67 @@ namespace eBooks.Services
             }
         }
 
-        public static List<BookImageRes> UploadImages(EBooksContext db, IMapper mapper, int id, List<IFormFile> files)
+        public static void AddError(this Dictionary<string, List<string>> errors, string key, string errorMessage)
         {
-            var folderPath = Path.Combine("wwwroot", "images", $"book_{id.ToString()}");
-            if (!Directory.Exists(folderPath))
-                Directory.CreateDirectory(folderPath);
-            var uploadedImages = new List<BookImageRes>();
-            foreach (var file in files)
+            if (!errors.TryGetValue(key, out var errorList))
             {
-                if (file.ContentType != "image/jpeg" && file.ContentType != "image/png")
-                    throw new ExceptionBadRequest("Invalid file type. Only JPEG and PNG are allowed.");
-                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-                var filePath = Path.Combine(folderPath, fileName);
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    file.CopyTo(stream);
-                }
-                var bookImage = new BookImage
-                {
-                    BookId = id,
-                    ImagePath = Path.Combine("images", $"book_{id.ToString()}", fileName).Replace("\\", "/"),
-                    ModifiedAt = DateTime.UtcNow
-                };
-                db.Set<BookImage>().Add(bookImage);
-                var image = mapper.Map<BookImageRes>(bookImage);
-                uploadedImages.Add(image);
+                errorList = new List<string>();
+                errors[key] = errorList;
             }
-            db.SaveChanges();
-            return uploadedImages;
+            errorList.Add(errorMessage);
         }
 
-        public static void UploadPdfFile(Book entity, IFormFile file)
+        public static async Task UploadImageFile(string filePath, IFormFile file)
         {
-            if (file.ContentType != "application/pdf")
-                throw new ExceptionBadRequest("PDF file is not uploaded");
-            var folderPath = Path.Combine("wwwroot", "pdfs");
+            var allowedTypes = new[] { "image/jpeg", "image/png", "image/webp" };
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+            var extension = Path.GetExtension(file.FileName).ToLower();
+            if (!allowedExtensions.Contains(extension) || !allowedTypes.Contains(file.ContentType))
+                throw new ExceptionBadRequest("Only JPG, PNG or WEBP image formats are allowed.");
+            var rootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var folderPath = Path.Combine(rootPath, "images");
             if (!Directory.Exists(folderPath))
                 Directory.CreateDirectory(folderPath);
-            if (!string.IsNullOrEmpty(entity.PdfPath))
+            if (!string.IsNullOrEmpty(filePath))
             {
-                var oldFilePath = Path.Combine("wwwroot", entity.PdfPath.TrimStart('/'));
-                if (File.Exists(oldFilePath)) File.Delete(oldFilePath);
+                var oldFilePath = Path.Combine(rootPath, filePath.TrimStart('/'));
+                if (File.Exists(oldFilePath))
+                    File.Delete(oldFilePath);
             }
-            var fileName = $"{Guid.NewGuid()}.pdf";
-            var filePath = Path.Combine(folderPath, fileName);
-            using (var stream = new FileStream(filePath, FileMode.Create))
+            if (extension == ".webp")
             {
-                file.CopyTo(stream);
+                await using var stream = new FileStream(Path.Combine(folderPath, filePath + extension), FileMode.Create);
+                await file.CopyToAsync(stream);
             }
-            entity.PdfPath = $"/pdfs/{fileName}";
+            else
+            {
+                using var image = await SixLabors.ImageSharp.Image.LoadAsync(file.OpenReadStream());
+                var outputPath = Path.Combine(folderPath, filePath + ".webp");
+                await using var outputStream = new FileStream(outputPath, FileMode.Create);
+                var encoder = new WebpEncoder()
+                {
+                    Quality = 100
+                };
+                await image.SaveAsync(outputStream, encoder);
+            }
+        }
+
+        public static async Task UploadPdfFile(string filePath, IFormFile file, bool isBookPdf)
+        {
+            if (file.ContentType != "application/pdf" || Path.GetExtension(file.FileName).ToLower() != ".pdf")
+                throw new ExceptionBadRequest("Only PDF files are allowed.");
+            var rootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var folderPath = Path.Combine(rootPath, isBookPdf ? Path.Combine("pdfs", "books") : Path.Combine("pdfs", "previews"));
+            if (!Directory.Exists(folderPath))
+                Directory.CreateDirectory(folderPath);
+            if (!string.IsNullOrEmpty(filePath))
+            {
+                var oldFilePath = Path.Combine(rootPath, filePath.TrimStart('/'));
+                if (File.Exists(oldFilePath))
+                    File.Delete(oldFilePath);
+            }
+            await using var stream = new FileStream(Path.Combine(folderPath, $"{filePath}.pdf"), FileMode.Create);
+            await file.CopyToAsync(stream);
         }
 
         public static decimal? CalculateDiscountedPrice(decimal? price, int? discountPercentage, DateTime? discountStart, DateTime? discountEnd)

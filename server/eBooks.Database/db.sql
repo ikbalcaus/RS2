@@ -24,9 +24,10 @@ CREATE TABLE Users (
     VerificationToken NVARCHAR(100),
     TokenExpiry DATETIME,
     isDeleted BIT NOT NULL DEFAULT 0,
+    DeleteReason NVARCHAR(255),
     RoleId INT NOT NULL,
     StripeAccountId NVARCHAR(255),
-    PublisherVerifiedById INT NULL,
+    PublisherVerifiedById INT,
     FOREIGN KEY (RoleId) REFERENCES Roles(RoleId),
     FOREIGN KEY (PublisherVerifiedById) REFERENCES Users(UserId)
 );
@@ -50,15 +51,15 @@ CREATE TABLE Languages (
 
 CREATE TABLE Books (
     BookId INT PRIMARY KEY IDENTITY,
-    Title NVARCHAR(255),
+    Title NVARCHAR(255) NOT NULL,
     Description NVARCHAR(MAX),
-    PdfPath NVARCHAR(255),
+    FilePath NVARCHAR(255) NOT NULL,
     Price DECIMAL(10,2),
     NumberOfPages INT,
     NumberOfViews INT,
     LanguageId INT NOT NULL,
     PublisherId INT NOT NULL,
-    ReviewedById INT NULL,
+    ReviewedById INT,
     ModifiedAt DATETIME NOT NULL DEFAULT GETDATE(),
     StateMachine NVARCHAR(50) DEFAULT 'draft',
     DiscountPercentage INT,
@@ -66,6 +67,7 @@ CREATE TABLE Books (
     DiscountEnd DATETIME,
     RejectionReason NVARCHAR(500),
     isDeleted BIT NOT NULL DEFAULT 0,
+    DeleteReason NVARCHAR(255),
     FOREIGN KEY (LanguageId) REFERENCES Languages(LanguageId),
     FOREIGN KEY (PublisherId) REFERENCES Users(UserId),
     FOREIGN KEY (ReviewedById) REFERENCES Users(UserId)
@@ -87,14 +89,6 @@ CREATE TABLE BookAuthors (
     PRIMARY KEY (BookId, AuthorId),
     FOREIGN KEY (BookId) REFERENCES Books(BookId),
     FOREIGN KEY (AuthorId) REFERENCES Authors(AuthorId)
-);
-
-CREATE TABLE BookImages (
-    ImageId INT PRIMARY KEY IDENTITY,
-    BookId INT,
-    ImagePath NVARCHAR(255),
-    ModifiedAt DATETIME NOT NULL DEFAULT GETDATE(),
-    FOREIGN KEY (BookId) REFERENCES Books(BookId)
 );
 
 CREATE TABLE Favorites (
@@ -185,4 +179,16 @@ CREATE TABLE Notifications (
     FOREIGN KEY (BookId) REFERENCES Books(BookId),
     FOREIGN KEY (PublisherId) REFERENCES Users(UserId),
     FOREIGN KEY (UserId) REFERENCES Users(UserId)
+);
+
+CREATE TABLE Questions (
+    QuestionId INT PRIMARY KEY IDENTITY,
+    UserId INT NOT NULL,
+    Question NVARCHAR(MAX) NOT NULL,
+    Answer NVARCHAR(MAX),
+    AnsweredById INT,
+    CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
+    AnsweredAt DATETIME,
+    FOREIGN KEY (UserId) REFERENCES Users(UserId),
+    FOREIGN KEY (AnsweredById) REFERENCES Users(UserId)
 );

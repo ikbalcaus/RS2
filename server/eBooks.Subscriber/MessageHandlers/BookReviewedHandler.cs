@@ -17,10 +17,11 @@ namespace eBooks.MessageHandlers
 
         public async Task SendEmail(BookReviewed message)
         {
+            var email = message.Book.Publisher.Email;
             var status = message.Book.StateMachine;
             var notificationMessage = "Your book is " + (status == "approve" ? "approved" : $"rejected. Reason: {message.Book.RejectionReason}");
-            Console.WriteLine($"Sending email to: {message.Book.Publisher.Email}");
-            await _emailService.SendEmailAsync(message.Book.Publisher.Email, notificationMessage, notificationMessage);
+            Console.WriteLine($"Sending email to: {email}");
+            await _emailService.SendEmailAsync(email, notificationMessage, notificationMessage);
         }
 
         public async Task NotifyUser(BookReviewed message)

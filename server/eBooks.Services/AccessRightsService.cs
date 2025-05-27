@@ -18,16 +18,23 @@ namespace eBooks.Services
 
         public override async Task<AccessRightsRes> Post(int bookId, object req)
         {
+            var errors = new Dictionary<string, List<string>>();
             var book = await _db.Set<Book>().FindAsync(bookId);
             if (book == null)
                 throw new ExceptionNotFound();
-            if (await AccessRightExist(bookId))
-                throw new ExceptionBadRequest("You already possess this book");
-            if (book.StateMachine != "approve")
-                throw new ExceptionBadRequest("This book is not active right now");
-            if (book.Price > 0)
-                throw new ExceptionBadRequest("This book is not free");
             var userId = GetUserId();
+            if (await _db.Set<AccessRight>().AnyAsync(x => x.UserId == userId && x.BookId == bookId))
+                errors.AddError("Book", "You already possess this book");
+            if (book.Price == 0)
+                errors.AddError("Book", "This book is free, you cannot buy it");
+            if (userId == book.PublisherId)
+                errors.AddError("Book", "You cannot add your own book");
+            if (book.StateMachine != "approve")
+                errors.AddError("Book", "This book is not active right now");
+            if (errors.Count > 0)
+                throw new ExceptionBadRequest(errors);
+            if (errors.Count > 0)
+                throw new ExceptionBadRequest(errors);
             var entity = new AccessRight
             {
                 UserId = userId,

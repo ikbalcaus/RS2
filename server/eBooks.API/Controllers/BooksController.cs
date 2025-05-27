@@ -50,11 +50,18 @@ namespace eBooks.API.Controllers
         [Authorize(Policy = "User")]
         public override async Task<BooksRes> Delete(int id)
         {
-            await _accessControlHandler.CheckIsOwnerOrAdminByBookId(id);
+            await _accessControlHandler.CheckIsOwnerByBookId(id);
             return await base.Delete(id);
         }
 
-        [Authorize(Policy = "Moderator")]
+        [Authorize(Policy = "Admin")]
+        [HttpDelete("{id}/admin-delete")]
+        public async Task<BooksRes> DeleteByAdmin(int id, string reason)
+        {
+            return await _service.DeleteByAdmin(id, reason);
+        }
+
+        [Authorize(Policy = "Admin")]
         [HttpPatch("{id}/undo-delete")]
         public async Task<BooksRes> UndoDelete(int id)
         {
@@ -70,11 +77,11 @@ namespace eBooks.API.Controllers
         }
 
         [Authorize(Policy = "User")]
-        [HttpPatch("{id}/delete-image/{imageId}")]
-        public async Task<BookImageRes> DeleteImage(int id, int imageId)
+        [HttpGet("{id}/get-book-file")]
+        public async Task<IActionResult> GetBookFile(int id)
         {
-            await _accessControlHandler.CheckIsOwnerOrAdminByBookId(id);
-            return await _service.DeleteImage(id, imageId);
+            var file = await _service.GetBookFile(id);
+            return File(file.Item2, "application/pdf", file.Item1);
         }
 
         [Authorize(Policy = "User")]

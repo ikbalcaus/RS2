@@ -53,8 +53,15 @@ namespace eBooks.API.Controllers
         [Authorize(Policy = "User")]
         public override async Task<UsersRes> Delete(int id)
         {
-            await _accessControlHandler.CheckIsOwnerOrAdminByUserId(id);
+            await _accessControlHandler.CheckIsOwnerByUserId(id);
             return await base.Delete(id);
+        }
+
+        [Authorize(Policy = "Admin")]
+        [HttpDelete("{id}/admin-delete")]
+        public async Task<UsersRes> DeleteByAdmin(int id, string reason)
+        {
+            return await _service.DeleteByAdmin(id, reason);
         }
 
         [Authorize(Policy = "Admin")]

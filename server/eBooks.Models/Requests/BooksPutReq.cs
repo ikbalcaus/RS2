@@ -9,7 +9,8 @@ namespace eBooks.Models.Requests
         public decimal? Price { get; set; }
         public int? NumberOfPages { get; set; }
         public int? LanguageId { get; set; }
-        public IFormFile? PdfFile { get; set; }
-        public List<IFormFile>? Images { get; set; }
+        public IFormFile? BookPdfFile { get; set; }
+        public IFormFile? PreviewPdfFile { get; set; }
+        public IFormFile? ImageFile { get; set; }
     }
 }

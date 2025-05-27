@@ -1,5 +1,4 @@
-﻿using Azure;
-using eBooks.Database;
+﻿using eBooks.Database;
 using eBooks.Database.Models;
 using eBooks.Interfaces;
 using eBooks.Models.Exceptions;
@@ -44,10 +43,10 @@ namespace eBooks.Services
         public async Task<ReviewsRes> DeleteByUserAndBookId(int userId, int bookId)
         {
             var set = _db.Set<Review>();
-            var review = await set.FindAsync(userId, bookId);
-            if (review == null) 
+            var entity = await set.FindAsync(userId, bookId);
+            if (entity == null) 
                 throw new ExceptionNotFound();
-            set.Remove(review);
+            set.Remove(entity);
             await _db.SaveChangesAsync();
             return null;
         }

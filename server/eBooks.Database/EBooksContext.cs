@@ -26,8 +26,6 @@ public partial class EBooksContext : DbContext
 
     public virtual DbSet<BookGenre> BookGenres { get; set; }
 
-    public virtual DbSet<BookImage> BookImages { get; set; }
-
     public virtual DbSet<Favorite> Favorites { get; set; }
 
     public virtual DbSet<Genre> Genres { get; set; }
@@ -39,6 +37,8 @@ public partial class EBooksContext : DbContext
     public virtual DbSet<PublisherFollow> PublisherFollows { get; set; }
 
     public virtual DbSet<Purchase> Purchases { get; set; }
+
+    public virtual DbSet<Question> Questions { get; set; }
 
     public virtual DbSet<ReadingProgress> ReadingProgresses { get; set; }
 
@@ -86,13 +86,14 @@ public partial class EBooksContext : DbContext
         {
             entity.HasKey(e => e.BookId).HasName("PK__Books__3DE0C207479E280A");
 
+            entity.Property(e => e.DeleteReason).HasMaxLength(255);
             entity.Property(e => e.DiscountEnd).HasColumnType("datetime");
             entity.Property(e => e.DiscountStart).HasColumnType("datetime");
+            entity.Property(e => e.FilePath).HasMaxLength(255);
             entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");
             entity.Property(e => e.ModifiedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.PdfPath).HasMaxLength(255);
             entity.Property(e => e.Price).HasColumnType("decimal(10, 2)");
             entity.Property(e => e.RejectionReason).HasMaxLength(500);
             entity.Property(e => e.StateMachine)
@@ -151,20 +152,6 @@ public partial class EBooksContext : DbContext
                 .HasForeignKey(d => d.GenreId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__BookGenre__Genre__5441852A");
-        });
-
-        modelBuilder.Entity<BookImage>(entity =>
-        {
-            entity.HasKey(e => e.ImageId).HasName("PK__BookImag__7516F70CAF2D5237");
-
-            entity.Property(e => e.ImagePath).HasMaxLength(255);
-            entity.Property(e => e.ModifiedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-
-            entity.HasOne(d => d.Book).WithMany(p => p.BookImages)
-                .HasForeignKey(d => d.BookId)
-                .HasConstraintName("FK__BookImage__BookI__5CD6CB2B");
         });
 
         modelBuilder.Entity<Favorite>(entity =>
@@ -291,6 +278,25 @@ public partial class EBooksContext : DbContext
                 .HasConstraintName("FK_Purchases_User");
         });
 
+        modelBuilder.Entity<Question>(entity =>
+        {
+            entity.HasKey(e => e.QuestionId).HasName("PK__Question__0DC06FACFC16BE18");
+
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.Question1).HasColumnName("Question");
+
+            entity.HasOne(d => d.AnsweredBy).WithMany(p => p.QuestionAnsweredBies)
+                .HasForeignKey(d => d.AnsweredById)
+                .HasConstraintName("FK__Questions__Answe__0B91BA14");
+
+            entity.HasOne(d => d.User).WithMany(p => p.QuestionUsers)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__Questions__UserI__0A9D95DB");
+        });
+
         modelBuilder.Entity<ReadingProgress>(entity =>
         {
             entity.HasKey(e => new { e.UserId, e.BookId }).HasName("PK__ReadingP__7456C06C0BFC2661");
@@ -347,6 +353,7 @@ public partial class EBooksContext : DbContext
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
+            entity.Property(e => e.DeleteReason).HasMaxLength(255);
             entity.Property(e => e.Email).HasMaxLength(100);
             entity.Property(e => e.FirstName).HasMaxLength(100);
             entity.Property(e => e.IsDeleted).HasColumnName("isDeleted");

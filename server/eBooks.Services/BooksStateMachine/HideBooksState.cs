@@ -25,14 +25,16 @@ namespace eBooks.Services.BooksStateMachine
             var entity = await _db.Set<Book>().FindAsync(id);
             if (entity == null)
                 throw new ExceptionNotFound();
-            var languageId = entity.LanguageId;
             _mapper.Map(req, entity);
             entity.StateMachine = "draft";
-            if (req.PdfFile != null)
-                Helpers.UploadPdfFile(entity, req.PdfFile);
+            var filePath = entity.FilePath;
+            if (req.BookPdfFile != null)
+                await Helpers.UploadPdfFile(filePath, req.BookPdfFile, true);
+            if (req.PreviewPdfFile != null)
+                await Helpers.UploadPdfFile(filePath, req.PreviewPdfFile, false);
+            if (req.ImageFile != null)
+                await Helpers.UploadImageFile(filePath, req.ImageFile);
             await _db.SaveChangesAsync();
-            if (req.Images != null && req.Images.Any())
-                Helpers.UploadImages(_db, _mapper, entity.BookId, req.Images);
             _logger.LogInformation($"Book with title {entity.Title} updated.");
             return _mapper.Map<BooksRes>(entity);
         }

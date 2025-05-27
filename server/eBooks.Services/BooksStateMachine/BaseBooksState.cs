@@ -24,7 +24,7 @@ namespace eBooks.Services.BooksStateMachine
             _logger = logger;
         }
 
-        public virtual async Task<BooksRes> Update(int id, BooksPutReq req)
+        public virtual async Task<BooksRes> Approve(int id)
         {
             throw new ExceptionForbidden("Method not allowed");
         }
@@ -34,17 +34,17 @@ namespace eBooks.Services.BooksStateMachine
             throw new ExceptionForbidden("Method not allowed");
         }
 
-        public virtual async Task<BooksRes> Approve(int id)
-        {
-            throw new ExceptionForbidden("Method not allowed");
-        }
-
-        public virtual async Task<BooksRes> Reject(int id, string message)
+        public virtual async Task<BooksRes> Update(int id, BooksPutReq req)
         {
             throw new ExceptionForbidden("Method not allowed");
         }
 
         public virtual async Task<BooksRes> Hide(int id)
+        {
+            throw new ExceptionForbidden("Method not allowed");
+        }
+
+        public virtual async Task<BooksRes> Reject(int id, string message)
         {
             throw new ExceptionForbidden("Method not allowed");
         }
@@ -58,18 +58,18 @@ namespace eBooks.Services.BooksStateMachine
         {
             switch (state)
             {
-                case "draft":
-                    return _serviceProvider.GetService<DraftBooksState>();
-                case "await":
-                    return _serviceProvider.GetService<AwaitBooksState>();
                 case "approve":
                     return _serviceProvider.GetService<ApproveBooksState>();
+                case "await":
+                    return _serviceProvider.GetService<AwaitBooksState>();
+                case "draft":
+                    return _serviceProvider.GetService<DraftBooksState>();
+                case "hide":
+                    return _serviceProvider.GetService<HideBooksState>();
                 case "reject":
                     return _serviceProvider.GetService<RejectBooksState>();
-                case "archive":
-                    return _serviceProvider.GetService<HideBooksState>();
                 default:
-                    throw new ExceptionBadRequest("State not recognized");
+                    throw new Exception("State not recognized");
             }
         }
     }

@@ -6,9 +6,10 @@ namespace eBooks.Interfaces
 {
     public interface IBooksService : IBaseCRUDService<BooksSearch, BooksPostReq, BooksPutReq, BooksRes>
     {
+        Task<BooksRes> DeleteByAdmin(int id, string reason);
         Task<BooksRes> UndoDelete(int id);
         Task<BooksRes> SetDiscount(int id, DiscountReq req);
-        Task<BookImageRes> DeleteImage(int id, int imageId);
+        Task<Tuple<string, byte[]>> GetBookFile(int id);
         Task<BooksRes> Await(int id);
         Task<BooksRes> Approve(int id);
         Task<BooksRes> Reject(int id, string message);

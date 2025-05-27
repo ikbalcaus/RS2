@@ -35,6 +35,8 @@ public partial class User
 
     public int? PublisherVerifiedById { get; set; }
 
+    public string? DeleteReason { get; set; }
+
     public virtual ICollection<AccessRight> AccessRights { get; set; } = new List<AccessRight>();
 
     public virtual ICollection<Book> BookPublishers { get; set; } = new List<Book>();
@@ -58,6 +60,10 @@ public partial class User
     public virtual ICollection<Purchase> PurchasePublishers { get; set; } = new List<Purchase>();
 
     public virtual ICollection<Purchase> PurchaseUsers { get; set; } = new List<Purchase>();
+
+    public virtual ICollection<Question> QuestionAnsweredBies { get; set; } = new List<Question>();
+
+    public virtual ICollection<Question> QuestionUsers { get; set; } = new List<Question>();
 
     public virtual ICollection<ReadingProgress> ReadingProgresses { get; set; } = new List<ReadingProgress>();
 

@@ -11,7 +11,7 @@ public partial class Book
 
     public string? Description { get; set; }
 
-    public string? PdfPath { get; set; }
+    public string FilePath { get; set; } = null!;
 
     public decimal? Price { get; set; }
 
@@ -39,13 +39,13 @@ public partial class Book
 
     public bool IsDeleted { get; set; }
 
+    public string? DeleteReason { get; set; }
+
     public virtual ICollection<AccessRight> AccessRights { get; set; } = new List<AccessRight>();
 
     public virtual ICollection<BookAuthor> BookAuthors { get; set; } = new List<BookAuthor>();
 
     public virtual ICollection<BookGenre> BookGenres { get; set; } = new List<BookGenre>();
-
-    public virtual ICollection<BookImage> BookImages { get; set; } = new List<BookImage>();
 
     public virtual ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
 

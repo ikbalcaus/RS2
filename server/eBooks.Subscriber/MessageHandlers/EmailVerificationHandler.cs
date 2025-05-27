@@ -17,8 +17,9 @@ namespace eBooks.MessageHandlers
 
         public async Task SendEmail(EmailVerification message)
         {
-            Console.WriteLine($"Sending email to: {message.Token.Email}");
-            await _emailService.SendEmailAsync(message.Token.Email, "Email verification", message.Token.VerificationToken);
+            var email = message.Token.Email;
+            Console.WriteLine($"Sending email to: {email}");
+            await _emailService.SendEmailAsync(email, "Email verification", message.Token.VerificationToken);
         }
 
         public async Task NotifyUser(EmailVerification message)

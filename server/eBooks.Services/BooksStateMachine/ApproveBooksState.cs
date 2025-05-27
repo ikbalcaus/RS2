@@ -19,7 +19,7 @@ namespace eBooks.Services.BooksStateMachine
             var entity = await _db.Set<Book>().FindAsync(id);
             if (entity == null)
                 throw new ExceptionNotFound();
-            entity.StateMachine = "Hide";
+            entity.StateMachine = "hide";
             await _db.SaveChangesAsync();
             _logger.LogInformation($"Book with title {entity.Title} hidden.");
             return _mapper.Map<BooksRes>(entity);

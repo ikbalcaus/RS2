@@ -16,8 +16,9 @@ namespace eBooks.MessageHandlers
 
         public async Task SendEmail(PaymentCompleted message)
         {
-            Console.WriteLine($"Sending email to: {message.Purchase.User.Email}");
-            await _emailService.SendEmailAsync(message.Purchase.User.Email, "Payment completed", "Payment completed");
+            var email = message.Purchase.User.Email;
+            Console.WriteLine($"Sending email to: {email}");
+            await _emailService.SendEmailAsync(email, "Payment completed", "Payment completed");
         }
 
         public async Task NotifyUser(PaymentCompleted message)

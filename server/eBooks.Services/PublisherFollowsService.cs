@@ -7,7 +7,6 @@ using eBooks.Models.Responses;
 using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace eBooks.Services
 {

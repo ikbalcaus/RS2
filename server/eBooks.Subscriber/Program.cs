@@ -27,6 +27,7 @@ class Program
         services.AddTransient<IMessageHandler<EmailVerification>, EmailVerificationHandler>();
         services.AddTransient<IMessageHandler<PaymentCompleted>, PaymentCompletedHandler>();
         services.AddTransient<IMessageHandler<PublisherFollowNotification>, PublisherFollowNotificationHandler>();
+        services.AddTransient<IMessageHandler<QuestionAnswered>, QuestionAnsweredHandler>();
         services.AddSingleton<MessageDispatcher>();
         var serviceProvider = services.BuildServiceProvider();
         var dispatcher = serviceProvider.GetRequiredService<MessageDispatcher>();
@@ -39,6 +40,7 @@ class Program
             await bus.PubSub.SubscribeAsync<EmailVerification>("email_verification", dispatcher.Dispatch);
             await bus.PubSub.SubscribeAsync<PaymentCompleted>("payment_completed", dispatcher.Dispatch);
             await bus.PubSub.SubscribeAsync<PublisherFollowNotification>("publisher_follow_notification", dispatcher.Dispatch);
+            await bus.PubSub.SubscribeAsync<QuestionAnswered>("question_answered", dispatcher.Dispatch);
         }
         catch
         {

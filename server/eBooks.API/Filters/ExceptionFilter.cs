@@ -15,9 +15,15 @@ namespace eBooks.API.Filters
 
         public override void OnException(ExceptionContext context)
         {
-            if (context.Exception is ExceptionBadRequest)
+            if (context.Exception is ExceptionBadRequest ex)
             {
-                context.ModelState.AddModelError("error", context.Exception.Message);
+                foreach (var key in ex.Errors.Keys)
+                {
+                    foreach (var message in ex.Errors[key])
+                    {
+                        context.ModelState.AddModelError(key, message);
+                    }
+                }
                 context.HttpContext.Response.StatusCode = 400;
             }
             else if (context.Exception is ExceptionForbidden)

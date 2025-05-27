@@ -24,14 +24,6 @@ namespace eBooks.API.Auth
                 throw new ExceptionForbidden("Only owner can use this action");
         }
 
-        public async Task CheckIsOwnerOrAdminByUserId(int id)
-        {
-            int currentUserId = GetCurrentUserId();
-            string role = GetCurrentUserRole();
-            if (role != "Admin" && currentUserId != id)
-                throw new ExceptionForbidden("Only owner or admin can use this action");
-        }
-
         public async Task CheckIsOwnerByBookId(int id)
         {
             int currentUserId = GetCurrentUserId();
@@ -40,13 +32,13 @@ namespace eBooks.API.Auth
                 throw new ExceptionForbidden("Only owner can use this action");
         }
 
-        public async Task CheckIsOwnerOrAdminByBookId(int id)
+        public async Task CheckIsOwnerOrModeratorByBookId(int id)
         {
             int currentUserId = GetCurrentUserId();
             Book book = await GetBookById(id);
             string role = GetCurrentUserRole();
-            if (role != "Admin" && currentUserId != book.PublisherId)
-                throw new ExceptionForbidden("Only owner or admin can use this action");
+            if (role != "Admin" && role != "Moderator" && currentUserId != book.PublisherId)
+                throw new ExceptionForbidden("Only owner or moderator can use this action");
         }
 
         protected int GetCurrentUserId()

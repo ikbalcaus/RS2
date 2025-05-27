@@ -1,5 +1,4 @@
-﻿using eBooks.Database.Models;
-using eBooks.Models.Responses;
+﻿using eBooks.Models.Responses;
 
 namespace eBooks.Models.Messages
 {

@@ -9,7 +9,6 @@ using eBooks.Models.Requests;
 using eBooks.Models.Responses;
 using eBooks.Models.Search;
 using eBooks.Services.BooksStateMachine;
-using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -34,34 +33,18 @@ namespace eBooks.Services
         }
 
         protected int GetUserId() => int.TryParse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : 0;
+        protected async Task<bool> AccessRightExist(int bookId) => await _db.Set<AccessRight>().AnyAsync(x => x.UserId == GetUserId() && x.BookId == bookId);
 
         public override async Task<IQueryable<Book>> AddIncludes(IQueryable<Book> query)
         {
-            return query.Include(x => x.Publisher).Include(x => x.Language).Include(x => x.BookImages);
-        }
-
-        public override async Task<PagedResult<BooksRes>> GetPaged(BooksSearch search)
-        {
-            var result = new List<BooksRes>();
-            var query = _db.Set<Book>().AsQueryable();
-            int count = await query.CountAsync();
-            if (search?.Page.HasValue == true && search?.PageSize.HasValue == true)
-                query = query.Skip(search.Page.Value * search.PageSize.Value).Take(search.PageSize.Value);
-            var list = await query.ToListAsync();
-            var config = new TypeAdapterConfig();
-            config.NewConfig<Book, BooksRes>().Ignore(x => x.PdfPath);
-            result = list.Adapt<List<BooksRes>>(config);
-            PagedResult<BooksRes> pagedResult = new PagedResult<BooksRes>
-            {
-                ResultList = result,
-                Count = count
-            };
-            return pagedResult;
+            return query.Include(x => x.Publisher).Include(x => x.Language);
         }
 
         public override async Task<BooksRes> GetById(int id)
         {
-            var entity = await _db.Set<Book>().FindAsync(id);
+            var query = _db.Set<Book>().AsQueryable();
+            await AddIncludes(query);
+            var entity = query.FirstOrDefault(x => x.BookId == id);
             if (entity == null)
                 throw new ExceptionNotFound();
             var result = _mapper.Map<BooksRes>(entity);
@@ -71,10 +54,7 @@ namespace eBooks.Services
                 entity.NumberOfViews += 1;
                 await _db.SaveChangesAsync();
             }
-            var accessRight = await _db.Set<AccessRight>().AnyAsync(x => x.UserId == GetUserId() && x.BookId == id);
-            var role = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.Role)?.Value;
-            if (!accessRight && entity.PublisherId != userId && role != "Admin" && role != "Moderator")
-                result.PdfPath = null;
+            result.HasAccessRight = await AccessRightExist(id);
             return result;
         }
 
@@ -85,13 +65,17 @@ namespace eBooks.Services
             if (!await _db.Set<Language>().AnyAsync(x => x.LanguageId == req.LanguageId))
                 throw new ExceptionNotFound();
             var entity = _mapper.Map<Book>(req);
+            var filePath = $"{Guid.NewGuid():N}";
             entity.PublisherId = GetUserId();
-            if (req.PdfFile != null)
-                Helpers.UploadPdfFile(entity, req.PdfFile);
+            entity.FilePath = filePath;
+            if (req.BookPdfFile != null)
+                await Helpers.UploadPdfFile(filePath, req.BookPdfFile, true);
+            if (req.PreviewPdfFile != null)
+                await Helpers.UploadPdfFile(filePath, req.PreviewPdfFile, false);
+            if (req.ImageFile != null)
+                await Helpers.UploadImageFile(filePath, req.ImageFile);
             _db.Add(entity);
             await _db.SaveChangesAsync();
-            if (req.Images != null && req.Images.Any())
-                Helpers.UploadImages(_db, _mapper, entity.BookId, req.Images);
             _logger.LogInformation($"Book with title {entity.Title} created.");
             return _mapper.Map<BooksRes>(entity);
         }
@@ -113,6 +97,19 @@ namespace eBooks.Services
             if (entity == null)
                 throw new ExceptionNotFound();
             entity.IsDeleted = true;
+            entity.DeleteReason = "Deleted by user";
+            await _db.SaveChangesAsync();
+            _logger.LogInformation($"Book with title {entity.Title} deleted.");
+            return null;
+        }
+
+        public async Task<BooksRes> DeleteByAdmin(int id, string reason)
+        {
+            var entity = await _db.Set<Book>().FindAsync(id);
+            if (entity == null)
+                throw new ExceptionNotFound();
+            entity.IsDeleted = true;
+            entity.DeleteReason = reason;
             await _db.SaveChangesAsync();
             _logger.LogInformation($"Book with title {entity.Title} deleted.");
             return null;
@@ -131,13 +128,16 @@ namespace eBooks.Services
 
         public async Task<BooksRes> SetDiscount(int id, DiscountReq req)
         {
+            var errors = new Dictionary<string, List<string>>();
             var entity = await _db.Set<Book>().FindAsync(id);
             if (entity == null)
                 throw new ExceptionNotFound();
             if (req.DiscountPercentage <= 0 || req.DiscountPercentage >= 100)
-                throw new ExceptionBadRequest("Discount must be between 0 and 100");
+                errors.AddError("Discount", "Discount must be between 0 and 100");
             if (req.DiscountStart >= req.DiscountEnd)
-                throw new ExceptionBadRequest("Discount start date must be before discount end date");
+                errors.AddError("Discount", "Discount start date must be before discount end date");
+            if (errors.Count > 0)
+                throw new ExceptionBadRequest(errors);
             _mapper.Map(req, entity);
             await _db.SaveChangesAsync();
             _logger.LogInformation($"Book with title {entity.Title} is discounted by {req.DiscountPercentage}%.");
@@ -146,19 +146,20 @@ namespace eBooks.Services
             return _mapper.Map<BooksRes>(entity);
         }
 
-        public async Task<BookImageRes> DeleteImage(int id, int imageId)
+        public async Task<Tuple<string, byte[]>> GetBookFile(int id)
         {
-            if (!await _db.Set<Book>().AnyAsync(x => x.BookId == id))
+            var entity = await _db.Set<Book>().FindAsync(id);
+            if (entity == null)
                 throw new ExceptionNotFound();
-            var set = _db.Set<BookImage>();
-            var bookImage = await set.FirstOrDefaultAsync(img => img.ImageId == imageId && img.BookId == id);
-            if (bookImage == null)
-                throw new ExceptionNotFound();
-            var imagePath = Path.Combine("wwwroot", bookImage.ImagePath.TrimStart('/'));
-            if (File.Exists(imagePath)) File.Delete(imagePath);
-            set.Remove(bookImage);
-            await _db.SaveChangesAsync();
-            return null;
+            var role = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.Role)?.Value;
+            if (!await AccessRightExist(id) && entity.PublisherId != GetUserId() && role != "Admin" && role != "Moderator")
+                throw new ExceptionForbidden("You do not have access to this book");
+            var fileName = $"{entity.FilePath}.pdf";
+            var filePath = Path.Combine("wwwroot", "pdfs", "books", fileName);
+            if (!System.IO.File.Exists(filePath))
+                throw new ExceptionBadRequest($"PDF file does not exist");
+            var fileContent = await System.IO.File.ReadAllBytesAsync(filePath);
+            return new Tuple<string, byte[]>(fileName, fileContent);
         }
 
         public async Task<BooksRes> Await(int id)

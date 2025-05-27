@@ -3,7 +3,6 @@ using eBooks.API;
 using eBooks.API.Auth;
 using eBooks.API.Filters;
 using eBooks.Database;
-using eBooks.Database.Models;
 using eBooks.Interfaces;
 using eBooks.Services;
 using eBooks.Services.BooksStateMachine;
@@ -11,6 +10,7 @@ using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.OpenApi.Models;
 using Stripe;
 
@@ -48,10 +48,12 @@ builder.Services.AddTransient<IBooksService, BooksService>();
 builder.Services.AddTransient<IFavoritesService, FavoritesService>();
 builder.Services.AddTransient<IGenresService, GenresService>();
 builder.Services.AddTransient<ILanguagesService, LanguagesService>();
+builder.Services.AddTransient<INotificationsService, NotificationsService>();
 builder.Services.AddTransient<IPublisherFollowsService, PublisherFollowsService>();
 builder.Services.AddTransient<IStripeService, StripeService>();
 builder.Services.AddTransient<IReadingProgressService, ReadingProgressService>();
 builder.Services.AddTransient<IPurchasesService, PurchasesService>();
+builder.Services.AddTransient<IQuestionsService, QuestionsService>();
 builder.Services.AddTransient<IReviewService, ReviewsService>();
 builder.Services.AddTransient<IRolesService, RolesService>();
 builder.Services.AddTransient<IUsersService, UsersService>();
@@ -97,7 +99,16 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseStaticFiles();
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images")),
+    RequestPath = "/images"
+});
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "pdfs", "previews")),
+    RequestPath = "/pdfs/previews"
+});
 app.UseHttpsRedirection();
 app.MapControllers();
 app.Run();

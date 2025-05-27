@@ -3,9 +3,11 @@ using eBooks.API;
 using eBooks.API.Auth;
 using eBooks.API.Filters;
 using eBooks.Database;
+using eBooks.Database.Models;
 using eBooks.Interfaces;
 using eBooks.Services;
 using eBooks.Services.BooksStateMachine;
+using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
@@ -27,13 +29,21 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("User", policy => policy.RequireRole("Admin", "Moderator", "User"));
 });
 
-builder.Services.AddDbContext<EBooksContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("Database")));
+var mapsterConfig = TypeAdapterConfig.GlobalSettings;
+mapsterConfig.Default.IgnoreNullValues(true);
+builder.Services.AddSingleton(mapsterConfig);
 builder.Services.AddScoped<IMapper, Mapper>();
+
+builder.Services.AddDbContext<EBooksContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("Database")));
 builder.Services.AddSingleton<IBus>(_ => RabbitHutch.CreateBus("host=localhost;username=guest;password=guest"));
 builder.Services.AddScoped<AccessControlHandler>();
+builder.Services.AddAuthentication("BasicAuthentication").AddScheme<AuthenticationSchemeOptions, BasicAuthHandler>("BasicAuthentication", null);
+builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddTransient<IAccessRightsService, AccessRightsService>();
 builder.Services.AddTransient<IAuthorsService, AuthorsService>();
+builder.Services.AddTransient<IBookAuthorsService, BookAuthorsService>();
+builder.Services.AddTransient<IBookGenresService, BookGenresService>();
 builder.Services.AddTransient<IBooksService, BooksService>();
 builder.Services.AddTransient<IFavoritesService, FavoritesService>();
 builder.Services.AddTransient<IGenresService, GenresService>();
@@ -54,8 +64,6 @@ builder.Services.AddTransient<AwaitBooksState>();
 builder.Services.AddTransient<DraftBooksState>();
 builder.Services.AddTransient<RejectBooksState>();
 
-builder.Services.AddAuthentication("BasicAuthentication").AddScheme<AuthenticationSchemeOptions, BasicAuthHandler>("BasicAuthentication", null);
-builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
     options.AddSecurityDefinition("basicAuth", new Microsoft.OpenApi.Models.OpenApiSecurityScheme()

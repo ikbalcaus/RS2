@@ -8,16 +8,16 @@ using eBooks.Subscriber.MessageHandlers;
 
 namespace eBooks.MessageHandlers
 {
-    public class BookDiscountHandler : BaseMessageHandler<BookDiscounted>, IMessageHandler<BookDiscounted>
+    public class BookDiscountedHandler : BaseMessageHandler<BookDiscounted>, IMessageHandler<BookDiscounted>
     {
-        public BookDiscountHandler(EBooksContext db, EmailService emailService)
+        public BookDiscountedHandler(EBooksContext db, EmailService emailService)
             : base(db, emailService)
         {
         }
 
         public async Task SendEmail(BookDiscounted message)
         {
-            var emails = await _db.Set<Wishlist>().Include(x => x.User).Where(x => x.BookId == message.Book.BookId).Select(x => x.User.Email).ToListAsync();
+            var emails = await _db.Set<Wishlist>().Where(x => x.BookId == message.Book.BookId).Include(x => x.User).Select(x => x.User.Email).ToListAsync();
             foreach (var email in emails)
             {
                 Console.WriteLine($"Sending email to: {email}");
@@ -29,8 +29,7 @@ namespace eBooks.MessageHandlers
 
         public async Task NotifyUser(BookDiscounted message)
         {
-            var users = await _db.Set<Wishlist>().Where(x => x.BookId == message.Book.BookId).ToListAsync();
-            var userIds = users.Select(x => x.UserId).ToList();
+            var userIds = await _db.Set<Wishlist>().Where(x => x.BookId == message.Book.BookId).Select(x => x.UserId).ToListAsync();
             Console.WriteLine($"Sending notification to users: {string.Join(", ", userIds)}");
             var notifications = userIds.Select(userId => new Notification
             {

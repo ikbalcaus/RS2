@@ -52,11 +52,13 @@ namespace eBooks.Services
         public static List<BookImageRes> UploadImages(EBooksContext db, IMapper mapper, int id, List<IFormFile> files)
         {
             var folderPath = Path.Combine("wwwroot", "images", $"book_{id.ToString()}");
-            if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
+            if (!Directory.Exists(folderPath))
+                Directory.CreateDirectory(folderPath);
             var uploadedImages = new List<BookImageRes>();
             foreach (var file in files)
             {
-                if (file.ContentType != "image/jpeg" && file.ContentType != "image/png") throw new ExceptionBadRequest("Invalid file type. Only JPEG and PNG are allowed.");
+                if (file.ContentType != "image/jpeg" && file.ContentType != "image/png")
+                    throw new ExceptionBadRequest("Invalid file type. Only JPEG and PNG are allowed.");
                 var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
                 var filePath = Path.Combine(folderPath, fileName);
                 using (var stream = new FileStream(filePath, FileMode.Create))
@@ -77,12 +79,13 @@ namespace eBooks.Services
             return uploadedImages;
         }
 
-        public static BooksRes UploadPdfFile(EBooksContext db, IMapper mapper, Book entity, IFormFile file)
+        public static void UploadPdfFile(Book entity, IFormFile file)
         {
-            if (file.ContentType != "application/pdf") throw new ExceptionBadRequest("Book created, file must be PDF");
-            if (entity == null) return null;
+            if (file.ContentType != "application/pdf")
+                throw new ExceptionBadRequest("PDF file is not uploaded");
             var folderPath = Path.Combine("wwwroot", "pdfs");
-            if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
+            if (!Directory.Exists(folderPath))
+                Directory.CreateDirectory(folderPath);
             if (!string.IsNullOrEmpty(entity.PdfPath))
             {
                 var oldFilePath = Path.Combine("wwwroot", entity.PdfPath.TrimStart('/'));
@@ -95,8 +98,6 @@ namespace eBooks.Services
                 file.CopyTo(stream);
             }
             entity.PdfPath = $"/pdfs/{fileName}";
-            db.SaveChanges();
-            return mapper.Map<BooksRes>(entity);
         }
 
         public static decimal? CalculateDiscountedPrice(decimal? price, int? discountPercentage, DateTime? discountStart, DateTime? discountEnd)

@@ -23,6 +23,8 @@ namespace eBooks.Services
                 throw new ExceptionNotFound();
             if (await AccessRightExist(bookId))
                 throw new ExceptionBadRequest("You already possess this book");
+            if (book.StateMachine != "approve")
+                throw new ExceptionBadRequest("This book is not active right now");
             if (book.Price > 0)
                 throw new ExceptionBadRequest("This book is not free");
             var userId = GetUserId();

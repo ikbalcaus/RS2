@@ -7,31 +7,31 @@ public partial class User
 {
     public int UserId { get; set; }
 
-    public string? UserName { get; set; }
+    public string UserName { get; set; } = null!;
 
-    public string? FirstName { get; set; }
+    public string FirstName { get; set; } = null!;
 
-    public string? LastName { get; set; }
+    public string LastName { get; set; } = null!;
 
-    public string? Email { get; set; }
+    public string Email { get; set; } = null!;
 
-    public string? PasswordHash { get; set; }
+    public string PasswordHash { get; set; } = null!;
 
-    public string? PasswordSalt { get; set; }
+    public string PasswordSalt { get; set; } = null!;
 
     public DateTime CreatedAt { get; set; }
-
-    public bool? IsDeleted { get; set; }
-
-    public int RoleId { get; set; }
-
-    public string? StripeAccountId { get; set; }
 
     public bool IsEmailVerified { get; set; }
 
     public string? VerificationToken { get; set; }
 
     public DateTime? TokenExpiry { get; set; }
+
+    public bool IsDeleted { get; set; }
+
+    public int RoleId { get; set; }
+
+    public string? StripeAccountId { get; set; }
 
     public int? PublisherVerifiedById { get; set; }
 

@@ -9,8 +9,11 @@
         public int NumberOfPages { get; set; }
         public int NumberOfViews { get; set; }
         public string StateMachine { get; set; }
+        public string RejectionReason { get; set; }
         public DateTime ModifiedAt { get; set; }
+        public int PublisherId { get; set; }
         public UsersRes Publisher { get; set; }
+        public int LanguageId { get; set; }
         public LanguagesRes Language { get; set; }
         public int? DiscountPercentage { get; set; }
         public DateTime? DiscountStart { get; set; }

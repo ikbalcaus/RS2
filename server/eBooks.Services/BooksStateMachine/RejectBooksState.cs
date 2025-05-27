@@ -27,14 +27,12 @@ namespace eBooks.Services.BooksStateMachine
                 throw new ExceptionNotFound();
             var languageId = entity.LanguageId;
             _mapper.Map(req, entity);
-            if (req.LanguageId.HasValue)
-                entity.LanguageId = req.LanguageId.Value;
-            else
-                entity.LanguageId = languageId;
             entity.StateMachine = "draft";
+            if (req.PdfFile != null)
+                Helpers.UploadPdfFile(entity, req.PdfFile);
             await _db.SaveChangesAsync();
-            if (req.Images != null && req.Images.Any()) Helpers.UploadImages(_db, _mapper, entity.BookId, req.Images);
-            if (req.PdfFile != null) Helpers.UploadPdfFile(_db, _mapper, entity, req.PdfFile);
+            if (req.Images != null && req.Images.Any())
+                Helpers.UploadImages(_db, _mapper, entity.BookId, req.Images);
             _logger.LogInformation($"Book with title {entity.Title} updated.");
             return _mapper.Map<BooksRes>(entity);
         }

@@ -33,14 +33,12 @@ namespace eBooks.Services.BooksStateMachine
                 throw new ExceptionNotFound();
             var languageId = entity.LanguageId;
             _mapper.Map(req, entity);
-            if (req.LanguageId.HasValue)
-                entity.LanguageId = req.LanguageId.Value;
-            else
-                entity.LanguageId = languageId;
             entity.StateMachine = "draft";
+            if (req.PdfFile != null)
+                Helpers.UploadPdfFile(entity, req.PdfFile);
             await _db.SaveChangesAsync();
-            if (req.Images != null && req.Images.Any()) Helpers.UploadImages(_db, _mapper, entity.BookId, req.Images);
-            if (req.PdfFile != null) Helpers.UploadPdfFile(_db, _mapper, entity, req.PdfFile);
+            if (req.Images != null && req.Images.Any())
+                Helpers.UploadImages(_db, _mapper, entity.BookId, req.Images);
             _logger.LogInformation($"Book with title {entity.Title} updated.");
             return _mapper.Map<BooksRes>(entity);
         }
@@ -52,10 +50,10 @@ namespace eBooks.Services.BooksStateMachine
                 throw new ExceptionNotFound();
             if (string.IsNullOrWhiteSpace(entity.Title) || string.IsNullOrWhiteSpace(entity.Description) || entity.Price == null || entity.NumberOfPages == null || entity.LanguageId == 0 || string.IsNullOrWhiteSpace(entity.PdfPath))
                 throw new ExceptionBadRequest("You must fill out all data before awaiting book");
-            var accountService = new Stripe.AccountService();
-            var account = await accountService.GetAsync(entity.Publisher.StripeAccountId);
             if (entity.Price > 0)
             {
+                var accountService = new Stripe.AccountService();
+                var account = await accountService.GetAsync(entity.Publisher.StripeAccountId);
                 if (!account.DetailsSubmitted)
                     throw new ExceptionBadRequest("Stripe account is not fully onboarded");
                 var transfersCapability = account.Capabilities?.Transfers;

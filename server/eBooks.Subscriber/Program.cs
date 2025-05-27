@@ -7,6 +7,7 @@ using eBooks.Models.Messages;
 using eBooks.MessageHandlers;
 using eBooks.Subscriber.Services;
 using eBooks.Subscriber.Interfaces;
+using eBooks.Subscriber.MessageHandlers;
 
 class Program
 {
@@ -21,9 +22,11 @@ class Program
         services.AddSingleton<IConfiguration>(configuration);
         services.AddDbContext<EBooksContext>(options => options.UseSqlServer(configuration.GetConnectionString("Database")));
         services.AddTransient<EmailService>();
-        services.AddTransient<IMessageHandler<BookDiscounted>, BookDiscountHandler>();
+        services.AddTransient<IMessageHandler<BookDiscounted>, BookDiscountedHandler>();
+        services.AddTransient<IMessageHandler<BookReviewed>, BookReviewedHandler>();
         services.AddTransient<IMessageHandler<EmailVerification>, EmailVerificationHandler>();
         services.AddTransient<IMessageHandler<PaymentCompleted>, PaymentCompletedHandler>();
+        services.AddTransient<IMessageHandler<PublisherFollowNotification>, PublisherFollowNotificationHandler>();
         services.AddSingleton<MessageDispatcher>();
         var serviceProvider = services.BuildServiceProvider();
         var dispatcher = serviceProvider.GetRequiredService<MessageDispatcher>();
@@ -32,8 +35,10 @@ class Program
             Console.WriteLine("Listening for messages, press <return> key to exit...");
             var bus = RabbitHutch.CreateBus("host=localhost;username=guest;password=guest");
             await bus.PubSub.SubscribeAsync<BookDiscounted>("book_discounted", dispatcher.Dispatch);
+            await bus.PubSub.SubscribeAsync<BookReviewed>("book_reviewed", dispatcher.Dispatch);
             await bus.PubSub.SubscribeAsync<EmailVerification>("email_verification", dispatcher.Dispatch);
             await bus.PubSub.SubscribeAsync<PaymentCompleted>("payment_completed", dispatcher.Dispatch);
+            await bus.PubSub.SubscribeAsync<PublisherFollowNotification>("publisher_follow_notification", dispatcher.Dispatch);
         }
         catch
         {

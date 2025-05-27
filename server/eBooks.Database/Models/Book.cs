@@ -9,15 +9,21 @@ public partial class Book
 
     public string? Title { get; set; }
 
+    public string? Description { get; set; }
+
     public string? PdfPath { get; set; }
 
     public decimal? Price { get; set; }
 
     public int? NumberOfPages { get; set; }
 
+    public int? NumberOfViews { get; set; }
+
     public int LanguageId { get; set; }
 
     public int PublisherId { get; set; }
+
+    public int? ReviewedById { get; set; }
 
     public DateTime ModifiedAt { get; set; }
 
@@ -31,13 +37,7 @@ public partial class Book
 
     public string? RejectionReason { get; set; }
 
-    public bool? IsDeleted { get; set; }
-
-    public int? ReviewedById { get; set; }
-
-    public string? Description { get; set; }
-
-    public int NumberOfViews { get; set; }
+    public bool IsDeleted { get; set; }
 
     public virtual ICollection<AccessRight> AccessRights { get; set; } = new List<AccessRight>();
 

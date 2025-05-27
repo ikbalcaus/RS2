@@ -28,7 +28,7 @@ CREATE TABLE Users (
     StripeAccountId NVARCHAR(255),
     PublisherVerifiedById INT NULL,
     FOREIGN KEY (RoleId) REFERENCES Roles(RoleId),
-    FOREIGN KEY (VerifiedById) REFERENCES Users(UserId)
+    FOREIGN KEY (PublisherVerifiedById) REFERENCES Users(UserId)
 );
 
 CREATE TABLE Authors (

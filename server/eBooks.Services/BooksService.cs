@@ -19,16 +19,18 @@ namespace eBooks.Services
 {
     public class BooksService : BaseCRUDService<Book, BooksSearch, BooksPostReq, BooksPutReq, BooksRes>, IBooksService
     {
-        protected ILogger<BooksService> _logger;
         protected BaseBooksState _baseBooksState;
         protected IHttpContextAccessor _httpContextAccessor;
+        protected IBus _bus;
+        protected ILogger<BooksService> _logger;
 
-        public BooksService(EBooksContext db, IMapper mapper, ILogger<BooksService> logger, BaseBooksState baseBooksState, IHttpContextAccessor httpContextAccessor)
+        public BooksService(EBooksContext db, IMapper mapper, BaseBooksState baseBooksState, IHttpContextAccessor httpContextAccessor, IBus bus, ILogger<BooksService> logger)
             : base(db, mapper)
         {
-            _logger = logger;
             _baseBooksState = baseBooksState;
             _httpContextAccessor = httpContextAccessor;
+            _bus = bus;
+            _logger = logger;
         }
 
         protected int GetUserId() => int.TryParse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : 0;
@@ -84,12 +86,12 @@ namespace eBooks.Services
                 throw new ExceptionNotFound();
             var entity = _mapper.Map<Book>(req);
             entity.PublisherId = GetUserId();
+            if (req.PdfFile != null)
+                Helpers.UploadPdfFile(entity, req.PdfFile);
             _db.Add(entity);
             await _db.SaveChangesAsync();
             if (req.Images != null && req.Images.Any())
                 Helpers.UploadImages(_db, _mapper, entity.BookId, req.Images);
-            if (req.PdfFile != null)
-                Helpers.UploadPdfFile(_db, _mapper, entity, req.PdfFile);
             _logger.LogInformation($"Book with title {entity.Title} created.");
             return _mapper.Map<BooksRes>(entity);
         }
@@ -139,15 +141,8 @@ namespace eBooks.Services
             _mapper.Map(req, entity);
             await _db.SaveChangesAsync();
             _logger.LogInformation($"Book with title {entity.Title} is discounted by {req.DiscountPercentage}%.");
-            try
-            {
-                var bus = RabbitHutch.CreateBus("host=localhost;username=guest;password=guest");
-                bus.PubSub.Publish(new BookDiscounted { Book = _mapper.Map<BooksRes>(entity) });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex.Message);
-            }
+            _bus.PubSub.Publish(new PublisherFollowNotification { Book = _mapper.Map<BooksRes>(entity), Action = "added discount to a" });
+            _bus.PubSub.Publish(new BookDiscounted { Book = _mapper.Map<BooksRes>(entity) });
             return _mapper.Map<BooksRes>(entity);
         }
 

@@ -17,7 +17,7 @@ public partial class Notification
 
     public DateTime ModifiedAt { get; set; }
 
-    public bool? IsRead { get; set; }
+    public bool IsRead { get; set; }
 
     public virtual Book? Book { get; set; }
 

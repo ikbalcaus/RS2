@@ -22,6 +22,7 @@ class Program
         services.AddSingleton<IConfiguration>(configuration);
         services.AddDbContext<EBooksContext>(options => options.UseSqlServer(configuration.GetConnectionString("Database")));
         services.AddTransient<EmailService>();
+        services.AddTransient<IMessageHandler<AccountReactivated>, AccountReactivatedHandler>();
         services.AddTransient<IMessageHandler<BookDiscounted>, BookDiscountedHandler>();
         services.AddTransient<IMessageHandler<BookReviewed>, BookReviewedHandler>();
         services.AddTransient<IMessageHandler<EmailVerification>, EmailVerificationHandler>();
@@ -35,6 +36,7 @@ class Program
         {
             Console.WriteLine("Listening for messages, press <return> key to exit...");
             var bus = RabbitHutch.CreateBus("host=localhost;username=guest;password=guest");
+            await bus.PubSub.SubscribeAsync<AccountReactivated>("account_reactivated", dispatcher.Dispatch);
             await bus.PubSub.SubscribeAsync<BookDiscounted>("book_discounted", dispatcher.Dispatch);
             await bus.PubSub.SubscribeAsync<BookReviewed>("book_reviewed", dispatcher.Dispatch);
             await bus.PubSub.SubscribeAsync<EmailVerification>("email_verification", dispatcher.Dispatch);

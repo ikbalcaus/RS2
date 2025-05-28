@@ -29,13 +29,13 @@ public partial class User
 
     public bool IsDeleted { get; set; }
 
+    public string? DeleteReason { get; set; }
+
     public int RoleId { get; set; }
 
     public string? StripeAccountId { get; set; }
 
     public int? PublisherVerifiedById { get; set; }
-
-    public string? DeleteReason { get; set; }
 
     public virtual ICollection<AccessRight> AccessRights { get; set; } = new List<AccessRight>();
 

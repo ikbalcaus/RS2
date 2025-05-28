@@ -18,7 +18,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\eBooks.Database\eBooks.Database.csproj" />
+    <ProjectReference Include="..\eBooks.Interfaces\eBooks.Interfaces.csproj" />
     <ProjectReference Include="..\eBooks.Models\eBooks.Models.csproj" />
+    <ProjectReference Include="..\eBooks.Services\eBooks.Services.csproj" />
   </ItemGroup>
 
 </Project>

@@ -97,7 +97,7 @@ namespace eBooks.Services
             if (entity == null)
                 throw new ExceptionNotFound();
             entity.IsDeleted = true;
-            entity.DeleteReason = "Deleted by user";
+            entity.RejectionReason = "Deleted by user";
             await _db.SaveChangesAsync();
             _logger.LogInformation($"Book with title {entity.Title} deleted.");
             return null;
@@ -109,7 +109,7 @@ namespace eBooks.Services
             if (entity == null)
                 throw new ExceptionNotFound();
             entity.IsDeleted = true;
-            entity.DeleteReason = reason;
+            entity.RejectionReason = reason;
             await _db.SaveChangesAsync();
             _logger.LogInformation($"Book with title {entity.Title} deleted.");
             return null;
@@ -121,8 +121,10 @@ namespace eBooks.Services
             if (entity == null)
                 throw new ExceptionNotFound();
             entity.IsDeleted = false;
+            entity.RejectionReason = null;
             await _db.SaveChangesAsync();
             _logger.LogInformation($"Book with title {entity.Title} undo-deleted.");
+            _bus.PubSub.Publish(new BookReviewed { Book = _mapper.Map<BooksRes>(entity), Status = "reactivate" });
             return _mapper.Map<BooksRes>(entity);
         }
 

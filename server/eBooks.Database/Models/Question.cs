@@ -17,6 +17,8 @@ public partial class Question
 
     public DateTime CreatedAt { get; set; }
 
+    public DateTime? AnsweredAt { get; set; }
+
     public virtual User? AnsweredBy { get; set; }
 
     public virtual User User { get; set; } = null!;

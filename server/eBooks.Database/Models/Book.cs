@@ -7,7 +7,7 @@ public partial class Book
 {
     public int BookId { get; set; }
 
-    public string? Title { get; set; }
+    public string Title { get; set; } = null!;
 
     public string? Description { get; set; }
 
@@ -38,8 +38,6 @@ public partial class Book
     public string? RejectionReason { get; set; }
 
     public bool IsDeleted { get; set; }
-
-    public string? DeleteReason { get; set; }
 
     public virtual ICollection<AccessRight> AccessRights { get; set; } = new List<AccessRight>();
 

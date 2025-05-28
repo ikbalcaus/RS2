@@ -128,23 +128,24 @@ public class UsersService : BaseCRUDService<User, UsersSearch, UsersPostReq, Use
         entity.IsDeleted = false;
         await _db.SaveChangesAsync();
         _logger.LogInformation($"User with email {entity.Email} undo-deleted.");
+        _bus.PubSub.Publish(new AccountReactivated { User = _mapper.Map<UsersRes>(entity) });
         return _mapper.Map<UsersRes>(entity);
     }
 
-    public async Task<LoginRes> Login(string email, string password)
+    public async Task<LoginRes> Login(LoginReq req)
     {
-        var entity = await _db.Set<User>().Include(x => x.Role).FirstOrDefaultAsync(x => x.Email == email);
+        var entity = await _db.Set<User>().Include(x => x.Role).FirstOrDefaultAsync(x => x.Email == req.Email);
         if (entity == null)
         {
-            _logger.LogInformation($"User with email {email} failed to log in. Wrong email.");
+            _logger.LogInformation($"User with email {req.Email} failed to log in. Wrong email.");
             return null;
         }
-        if (Helpers.GenerateHash(entity.PasswordSalt, password) != entity.PasswordHash)
+        if (Helpers.GenerateHash(entity.PasswordSalt, req.Password) != entity.PasswordHash)
         {
-            _logger.LogInformation($"User with email {email} failed to log in. Wrong password.");
+            _logger.LogInformation($"User with email {req.Email} failed to log in. Wrong password.");
             return null;
         }
-        _logger.LogInformation($"User with email {email} logged in.");
+        _logger.LogInformation($"User with email {req.Email} logged in.");
         return _mapper.Map<LoginRes>(entity);
     }
 

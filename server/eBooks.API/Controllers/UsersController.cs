@@ -73,9 +73,9 @@ namespace eBooks.API.Controllers
 
         [AllowAnonymous]
         [HttpPost("login")]
-        public async Task<LoginRes> Login(string email, string password)
+        public async Task<LoginRes> Login(LoginReq req)
         {
-            return await _service.Login(email, password);
+            return await _service.Login(req);
         }
 
         [Authorize(Policy = "User")]

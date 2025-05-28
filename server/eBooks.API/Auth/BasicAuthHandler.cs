@@ -1,4 +1,5 @@
 ﻿using eBooks.Interfaces;
+using eBooks.Models.Requests;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 using System.Net.Http.Headers;
@@ -26,9 +27,12 @@ namespace eBooks.API
             var authHeader = AuthenticationHeaderValue.Parse(Request.Headers["Authorization"]);
             var credentialsBytes = Convert.FromBase64String(authHeader.Parameter);
             var credentials = Encoding.UTF8.GetString(credentialsBytes).Split(':');
-            var email = credentials[0];
-            var password = credentials[1];
-            var user = await _usersService.Login(email, password);
+            var req = new LoginReq
+            {
+                Email = credentials[0],
+                Password = credentials[1]
+            };
+            var user = await _usersService.Login(req);
             if (user == null) return AuthenticateResult.Fail("Auth failed");
             else
             {

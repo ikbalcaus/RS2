@@ -5,6 +5,7 @@ using eBooks.Database.Models;
 using eBooks.Subscriber.Services;
 using eBooks.Subscriber.Interfaces;
 using eBooks.Subscriber.MessageHandlers;
+using eBooks.Services;
 
 namespace eBooks.MessageHandlers
 {
@@ -22,7 +23,7 @@ namespace eBooks.MessageHandlers
             {
                 Console.WriteLine($"Sending email to: {email}");
                 string subject = $"Book \"{message.Book.Title}\" is on discount";
-                string body = $"Book \"{message.Book.Title}\" is on discount";
+                string body = $"Book \"{message.Book.Title}\" is on discount, new price is {Helpers.CalculateDiscountedPrice(message.Book.Price, message.Book.DiscountPercentage, message.Book.DiscountStart, message.Book.DiscountEnd)}";
                 await _emailService.SendEmailAsync(email, subject, body);
             }
         }
@@ -35,7 +36,7 @@ namespace eBooks.MessageHandlers
             {
                 BookId = message.Book.BookId,
                 UserId = userId,
-                Message = $"Book {message.Book.Title} is on discount"
+                Message = $"Book \"{message.Book.Title}\" is on discount, new price is {Helpers.CalculateDiscountedPrice(message.Book.Price, message.Book.DiscountPercentage, message.Book.DiscountStart, message.Book.DiscountEnd)}"
             }).ToList();
             _db.Set<Notification>().AddRange(notifications);
             await _db.SaveChangesAsync();

@@ -60,7 +60,7 @@ namespace eBooks.Services.BooksStateMachine
             entity.ReviewedById = GetUserId();
             await _db.SaveChangesAsync();
             _logger.LogInformation($"Book with title {entity.Title} approved.");
-            _bus.PubSub.Publish(new BookReviewed { Book = _mapper.Map<BooksRes>(entity) });
+            _bus.PubSub.Publish(new BookReviewed { Book = _mapper.Map<BooksRes>(entity), Status = "approved" });
             _bus.PubSub.Publish(new PublisherFollowNotification { Book = _mapper.Map<BooksRes>(entity), Action = "added new" });
             return _mapper.Map<BooksRes>(entity);
         }
@@ -75,7 +75,7 @@ namespace eBooks.Services.BooksStateMachine
             entity.ReviewedById = GetUserId();
             await _db.SaveChangesAsync();
             _logger.LogInformation($"Book with title {entity.Title} rejected. Reason: {message}");
-            _bus.PubSub.Publish(new BookReviewed { Book = _mapper.Map<BooksRes>(entity) });
+            _bus.PubSub.Publish(new BookReviewed { Book = _mapper.Map<BooksRes>(entity), Status = "rejected" });
             return _mapper.Map<BooksRes>(entity);
         }
 

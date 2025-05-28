@@ -65,9 +65,8 @@ CREATE TABLE Books (
     DiscountPercentage INT,
     DiscountStart DATETIME,
     DiscountEnd DATETIME,
-    RejectionReason NVARCHAR(500),
+    RejectionReason NVARCHAR(255),
     isDeleted BIT NOT NULL DEFAULT 0,
-    DeleteReason NVARCHAR(255),
     FOREIGN KEY (LanguageId) REFERENCES Languages(LanguageId),
     FOREIGN KEY (PublisherId) REFERENCES Users(UserId),
     FOREIGN KEY (ReviewedById) REFERENCES Users(UserId)

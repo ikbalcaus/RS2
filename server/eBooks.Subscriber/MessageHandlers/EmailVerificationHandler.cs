@@ -30,7 +30,7 @@ namespace eBooks.MessageHandlers
             {
                 UserId = user.UserId,
                 PublisherId = user.UserId,
-                Message = "Please check your email and verify it"
+                Message = "Verification token has been sent to you email. Please verify it"
             };
             _db.Set<Notification>().Add(notification);
             await _db.SaveChangesAsync();

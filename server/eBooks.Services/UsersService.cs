@@ -35,13 +35,13 @@ public class UsersService : BaseCRUDService<User, UsersSearch, UsersPostReq, Use
         var errors = new Dictionary<string, List<string>>();
         req.Email = req.Email.Trim().ToLower();
         if (!Helpers.IsEmailValid(req.Email))
-            errors.AddError("Email", "Email is not valid");
+            errors.AddError("Email", "Email must be in following format: example@example.com");
         if (await _db.Users.AnyAsync(x => x.Email == req.Email))
             errors.AddError("Email", "Email already exists");
         if (await _db.Users.AnyAsync(x => x.UserName.Trim().ToLower() == req.UserName.Trim().ToLower()))
             errors.AddError("Username", "Username already exists");
         if (!Helpers.IsPasswordValid(req.Password))
-            errors.AddError("Password", "Password is not valid");
+            errors.AddError("Password", "Password must include at least 8 characters, one uppercase letter, one lowercase letter and one digit");
         if (errors.Count > 0)
             throw new ExceptionBadRequest(errors);
         var entity = _mapper.Map<User>(req);
@@ -81,7 +81,7 @@ public class UsersService : BaseCRUDService<User, UsersSearch, UsersPostReq, Use
         if (!string.IsNullOrWhiteSpace(req.Password))
         {
             if (!Helpers.IsPasswordValid(req.Password))
-                errors.AddError("Password", "Password is not valid");
+                errors.AddError("Password", "Password must include at least 8 characters, one uppercase letter, one lowercase letter and one digit");
             entity.PasswordSalt = Helpers.GenerateSalt();
             entity.PasswordHash = Helpers.GenerateHash(entity.PasswordSalt, req.Password);
         }
@@ -134,17 +134,25 @@ public class UsersService : BaseCRUDService<User, UsersSearch, UsersPostReq, Use
 
     public async Task<LoginRes> Login(LoginReq req)
     {
+        var errors = new Dictionary<string, List<string>>();
+        if (!Helpers.IsEmailValid(req.Email))
+            errors.AddError("Email", "Email must be in following format: example@example.com");
+        if (!Helpers.IsPasswordValid(req.Password))
+            errors.AddError("Password", "Password must include at least 8 characters, one uppercase letter, one lowercase letter and one digit");
         var entity = await _db.Set<User>().Include(x => x.Role).FirstOrDefaultAsync(x => x.Email == req.Email);
         if (entity == null)
         {
             _logger.LogInformation($"User with email {req.Email} failed to log in. Wrong email.");
-            return null;
+            errors.AddError("Email", "Email not found");
+            throw new ExceptionBadRequest(errors);
         }
         if (Helpers.GenerateHash(entity.PasswordSalt, req.Password) != entity.PasswordHash)
         {
             _logger.LogInformation($"User with email {req.Email} failed to log in. Wrong password.");
-            return null;
+            errors.AddError("Password", "Password is not correct");
         }
+        if (errors.Count > 0)
+            throw new ExceptionBadRequest(errors);
         _logger.LogInformation($"User with email {req.Email} logged in.");
         return _mapper.Map<LoginRes>(entity);
     }

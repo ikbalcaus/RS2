@@ -2,7 +2,6 @@
 using eBooks.Database;
 using eBooks.Database.Models;
 using eBooks.Models.Exceptions;
-using Microsoft.IdentityModel.Tokens;
 
 namespace eBooks.API.Auth
 {

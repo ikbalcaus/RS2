@@ -34,8 +34,8 @@ namespace eBooks.MessageHandlers
             Console.WriteLine($"Sending notification to users: {string.Join(", ", userIds)}");
             var notifications = userIds.Select(userId => new Notification
             {
-                BookId = message.Book.BookId,
                 UserId = userId,
+                BookId = message.Book.BookId,
                 Message = $"Book \"{message.Book.Title}\" is on discount, new price is {Helpers.CalculateDiscountedPrice(message.Book.Price, message.Book.DiscountPercentage, message.Book.DiscountStart, message.Book.DiscountEnd)}"
             }).ToList();
             _db.Set<Notification>().AddRange(notifications);

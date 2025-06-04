@@ -1,7 +1,7 @@
 ﻿using eBooks.Interfaces;
 using eBooks.Models.Requests;
 using eBooks.Models.Responses;
-using eBooks.Models.SearchObjects;
+using eBooks.Models.Search;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

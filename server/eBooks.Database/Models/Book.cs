@@ -27,7 +27,7 @@ public partial class Book
 
     public DateTime ModifiedAt { get; set; }
 
-    public string? StateMachine { get; set; }
+    public string StateMachine { get; set; } = null!;
 
     public int? DiscountPercentage { get; set; }
 
@@ -37,7 +37,7 @@ public partial class Book
 
     public string? RejectionReason { get; set; }
 
-    public bool IsDeleted { get; set; }
+    public string? DeletionReason { get; set; }
 
     public virtual ICollection<AccessRight> AccessRights { get; set; } = new List<AccessRight>();
 

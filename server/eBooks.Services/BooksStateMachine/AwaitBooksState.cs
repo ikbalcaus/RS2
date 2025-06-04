@@ -60,9 +60,10 @@ namespace eBooks.Services.BooksStateMachine
             entity.ReviewedById = GetUserId();
             await _db.SaveChangesAsync();
             _logger.LogInformation($"Book with title {entity.Title} approved.");
-            _bus.PubSub.Publish(new BookReviewed { Book = _mapper.Map<BooksRes>(entity), Status = "approved" });
-            _bus.PubSub.Publish(new PublisherFollowNotification { Book = _mapper.Map<BooksRes>(entity), Action = "added new" });
-            return _mapper.Map<BooksRes>(entity);
+            var result = _mapper.Map<BooksRes>(entity);
+            _bus.PubSub.Publish(new BookReviewed { Book = result });
+            _bus.PubSub.Publish(new PublisherFollowing { Book = result, Action = "added new" });
+            return result;
         }
 
         public override async Task<BooksRes> Reject(int id, string message)
@@ -75,11 +76,12 @@ namespace eBooks.Services.BooksStateMachine
             entity.ReviewedById = GetUserId();
             await _db.SaveChangesAsync();
             _logger.LogInformation($"Book with title {entity.Title} rejected. Reason: {message}");
-            _bus.PubSub.Publish(new BookReviewed { Book = _mapper.Map<BooksRes>(entity), Status = "rejected" });
-            return _mapper.Map<BooksRes>(entity);
+            var result = _mapper.Map<BooksRes>(entity);
+            _bus.PubSub.Publish(new BookReviewed { Book = result });
+            return result;
         }
 
-        public override async Task<List<string>> AllowedActions(Book entity)
+        public override List<string> AllowedActions(Book entity)
         {
             return new List<string>() { nameof(Update), nameof(Approve), nameof(Reject) };
         }

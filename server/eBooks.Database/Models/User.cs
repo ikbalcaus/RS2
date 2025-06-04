@@ -19,7 +19,7 @@ public partial class User
 
     public string PasswordSalt { get; set; } = null!;
 
-    public DateTime CreatedAt { get; set; }
+    public DateTime ModifiedAt { get; set; }
 
     public bool IsEmailVerified { get; set; }
 
@@ -27,9 +27,7 @@ public partial class User
 
     public DateTime? TokenExpiry { get; set; }
 
-    public bool IsDeleted { get; set; }
-
-    public string? DeleteReason { get; set; }
+    public string? DeletionReason { get; set; }
 
     public int RoleId { get; set; }
 
@@ -39,13 +37,19 @@ public partial class User
 
     public virtual ICollection<AccessRight> AccessRights { get; set; } = new List<AccessRight>();
 
+    public virtual ICollection<Author> Authors { get; set; } = new List<Author>();
+
     public virtual ICollection<Book> BookPublishers { get; set; } = new List<Book>();
 
     public virtual ICollection<Book> BookReviewedBies { get; set; } = new List<Book>();
 
     public virtual ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
 
+    public virtual ICollection<Genre> Genres { get; set; } = new List<Genre>();
+
     public virtual ICollection<User> InversePublisherVerifiedBy { get; set; } = new List<User>();
+
+    public virtual ICollection<Language> Languages { get; set; } = new List<Language>();
 
     public virtual ICollection<Notification> NotificationPublishers { get; set; } = new List<Notification>();
 

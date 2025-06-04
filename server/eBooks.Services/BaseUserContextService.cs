@@ -6,7 +6,7 @@ using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using eBooks.Database.Models;
-using eBooks.Models.SearchObjects;
+using eBooks.Models.Search;
 using eBooks.Models.Responses;
 
 namespace eBooks.Services
@@ -39,8 +39,8 @@ namespace eBooks.Services
             List<TResponse> result = new List<TResponse>();
             var query = _db.Set<TEntity>().Where(x => x.UserId == userId).AsQueryable();
             int count = await query.CountAsync();
-            if (search?.Page.HasValue == true && search?.PageSize.HasValue == true)
-                query = query.Skip(search.Page.Value * search.PageSize.Value).Take(search.PageSize.Value);
+            if (search?.Page.HasValue == true && search?.PageSize.HasValue == true && search.Page.Value > 0)
+                query = query.Skip((search.Page.Value - 1) * search.PageSize.Value).Take(search.PageSize.Value);
             query = await AddIncludes(query);
             var list = await query.OrderByDescending(x => x.ModifiedAt).ToListAsync();
             result = _mapper.Map(list, result);

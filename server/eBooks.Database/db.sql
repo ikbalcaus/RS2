@@ -19,12 +19,11 @@ CREATE TABLE Users (
     Email NVARCHAR(100) UNIQUE NOT NULL,
     PasswordHash NVARCHAR(255) NOT NULL,
     PasswordSalt NVARCHAR(255) NOT NULL,
-    CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
+    ModifiedAt DATETIME NOT NULL DEFAULT GETDATE(),
     IsEmailVerified BIT NOT NULL DEFAULT 0,
     VerificationToken NVARCHAR(100),
     TokenExpiry DATETIME,
-    isDeleted BIT NOT NULL DEFAULT 0,
-    DeleteReason NVARCHAR(255),
+    DeletionReason NVARCHAR(255),
     RoleId INT NOT NULL,
     StripeAccountId NVARCHAR(255),
     PublisherVerifiedById INT,
@@ -34,19 +33,26 @@ CREATE TABLE Users (
 
 CREATE TABLE Authors (
     AuthorId INT PRIMARY KEY IDENTITY,
-    FirstName NVARCHAR(100) NOT NULL,
-    LastName NVARCHAR(100) NOT NULL
+    Name NVARCHAR(100) NOT NULL UNIQUE,
+    ModifiedAt DATETIME NOT NULL DEFAULT GETDATE(),
+    ModifiedById INT,
+    FOREIGN KEY (ModifiedById) REFERENCES Users(UserId)
 );
 
 CREATE TABLE Genres (
     GenreId INT PRIMARY KEY IDENTITY,
-    Name NVARCHAR(100) NOT NULL UNIQUE
+    Name NVARCHAR(100) NOT NULL UNIQUE,
+    ModifiedAt DATETIME NOT NULL DEFAULT GETDATE(),
+    ModifiedById INT,
+    FOREIGN KEY (ModifiedById) REFERENCES Users(UserId)
 );
 
 CREATE TABLE Languages (
     LanguageId INT PRIMARY KEY IDENTITY,
     Name NVARCHAR(100) NOT NULL UNIQUE,
-    Abbreviation NVARCHAR(10) NOT NULL UNIQUE
+    ModifiedAt DATETIME NOT NULL DEFAULT GETDATE(),
+    ModifiedById INT,
+    FOREIGN KEY (ModifiedById) REFERENCES Users(UserId)
 );
 
 CREATE TABLE Books (
@@ -61,12 +67,12 @@ CREATE TABLE Books (
     PublisherId INT NOT NULL,
     ReviewedById INT,
     ModifiedAt DATETIME NOT NULL DEFAULT GETDATE(),
-    StateMachine NVARCHAR(50) DEFAULT 'draft',
+    StateMachine NVARCHAR(50) NOT NULL DEFAULT 'draft',
     DiscountPercentage INT,
     DiscountStart DATETIME,
     DiscountEnd DATETIME,
     RejectionReason NVARCHAR(255),
-    isDeleted BIT NOT NULL DEFAULT 0,
+    DeletionReason NVARCHAR(255),
     FOREIGN KEY (LanguageId) REFERENCES Languages(LanguageId),
     FOREIGN KEY (PublisherId) REFERENCES Users(UserId),
     FOREIGN KEY (ReviewedById) REFERENCES Users(UserId)
@@ -128,7 +134,7 @@ CREATE TABLE ReadingProgresses (
     FOREIGN KEY (BookId) REFERENCES Books(BookId)
 );
 
-CREATE TABLE dbo.Purchases
+CREATE TABLE Purchases
 (
     PurchaseId INT IDENTITY(1,1) PRIMARY KEY,
     UserId INT NOT NULL,
@@ -142,9 +148,9 @@ CREATE TABLE dbo.Purchases
     FailureMessage VARCHAR(255),
     FailureCode VARCHAR(50),
     FailureReason VARCHAR(255),
-    CONSTRAINT FK_Purchases_User FOREIGN KEY (UserId) REFERENCES dbo.Users(UserId),
-    CONSTRAINT FK_Purchases_Publisher FOREIGN KEY (PublisherId) REFERENCES dbo.Users(UserId),
-    CONSTRAINT FK_Purchases_Book FOREIGN KEY (BookId) REFERENCES dbo.Books(BookId)
+    FOREIGN KEY (UserId) REFERENCES Users(UserId),
+    FOREIGN KEY (PublisherId) REFERENCES Users(UserId),
+    FOREIGN KEY (BookId) REFERENCES Books(BookId)
 );
 
 CREATE TABLE PublisherFollows (
@@ -186,7 +192,7 @@ CREATE TABLE Questions (
     Question NVARCHAR(MAX) NOT NULL,
     Answer NVARCHAR(MAX),
     AnsweredById INT,
-    CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
+    ModifiedAt DATETIME NOT NULL DEFAULT GETDATE(),
     AnsweredAt DATETIME,
     FOREIGN KEY (UserId) REFERENCES Users(UserId),
     FOREIGN KEY (AnsweredById) REFERENCES Users(UserId)

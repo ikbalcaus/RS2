@@ -1,0 +1,481 @@
+import "package:ebooks_admin/models/roles/role.dart";
+import "package:ebooks_admin/models/users/user.dart";
+import "package:ebooks_admin/models/search_result.dart";
+import "package:ebooks_admin/providers/auth_provider.dart";
+import "package:ebooks_admin/providers/roles_provider.dart";
+import "package:ebooks_admin/providers/users_provider.dart";
+import "package:ebooks_admin/screens/master_screen.dart";
+import "package:ebooks_admin/utils/constants.dart";
+import "package:ebooks_admin/utils/helpers.dart";
+import "package:flutter/material.dart";
+import "package:provider/provider.dart";
+
+class UsersScreen extends StatefulWidget {
+  const UsersScreen({super.key});
+
+  @override
+  State<UsersScreen> createState() => _UsersScreenState();
+}
+
+class _UsersScreenState extends State<UsersScreen> {
+  late UsersProvider _usersProvider;
+  late RolesProvider _rolesProvider;
+  SearchResult<User>? users;
+  SearchResult<Role>? roles;
+  bool _isLoading = true;
+  int _currentPage = 1;
+  Map<String, dynamic> _currentFilter = {};
+  String _orderBy = "Username (A-Z)";
+
+  final TextEditingController _firstNameEditingController =
+      TextEditingController();
+  final TextEditingController _lastNameEditingController =
+      TextEditingController();
+  final TextEditingController _userNameEditingController =
+      TextEditingController();
+  final TextEditingController _emailEditingController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _usersProvider = context.read<UsersProvider>();
+    _rolesProvider = context.read<RolesProvider>();
+    fetchUsers();
+    fetchRoles();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MasterScreen(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSearch(),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : _buildResultView(),
+          ),
+          _buildPagination(),
+        ],
+      ),
+    );
+  }
+
+  Future fetchUsers() async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      final users = await _usersProvider.getPaged(
+        page: _currentPage,
+        filter: _currentFilter,
+      );
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        this.users = users;
+      });
+    } catch (ex) {
+      if (!mounted) return;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) {
+          return;
+        }
+        Helpers.showErrorMessage(context, ex);
+      });
+    } finally {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future fetchRoles() async {
+    final roles = await _rolesProvider.getPaged();
+    if (!mounted) return;
+    setState(() {
+      this.roles = roles;
+    });
+  }
+
+  Future _assignRoleDialog(BuildContext context, int userId) async {
+    String? selectedRoleId = roles!.resultList.first.roleId.toString();
+    await showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text("Assign role"),
+          content: StatefulBuilder(
+            builder: (context, setState) {
+              return DropdownButton<String>(
+                isExpanded: true,
+                value: selectedRoleId,
+                onChanged: (String? newValue) {
+                  setState(() {
+                    selectedRoleId = newValue!;
+                  });
+                },
+                items: roles!.resultList.map((role) {
+                  return DropdownMenuItem<String>(
+                    value: role.roleId.toString(),
+                    child: Text(
+                      role.name!,
+                      style: const TextStyle(fontWeight: FontWeight.normal),
+                    ),
+                  );
+                }).toList(),
+              );
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                Navigator.of(dialogContext).pop();
+                await Future.delayed(const Duration(milliseconds: 250));
+                try {
+                  await _rolesProvider.assignRole(
+                    userId,
+                    int.parse(selectedRoleId!),
+                  );
+                  Helpers.showSuccessMessage(context);
+                } catch (ex) {
+                  Helpers.showErrorMessage(context, ex);
+                }
+              },
+              child: const Text("Assign"),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text("Cancel"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future _verifyPublisherDialog(
+    BuildContext context,
+    int id,
+    bool notVerified,
+  ) async {
+    await showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: notVerified
+              ? const Text("Confirm verify publisher")
+              : const Text("Confirm unverify publisher"),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                Navigator.of(dialogContext).pop(true);
+                await Future.delayed(const Duration(milliseconds: 250));
+                try {
+                  await _usersProvider.verifyPublisher(id);
+                  Helpers.showSuccessMessage(context);
+                  await fetchUsers();
+                } catch (ex) {
+                  Helpers.showErrorMessage(context, ex);
+                }
+              },
+              child: notVerified
+                  ? const Text("Verify")
+                  : const Text("Unverify"),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(dialogContext).pop(false);
+              },
+              child: const Text("Cancel"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future _deleteUserDialog(BuildContext context, int id) async {
+    final TextEditingController dialogController = TextEditingController();
+    await showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text("Confirm delete"),
+          content: TextField(
+            controller: dialogController,
+            decoration: const InputDecoration(
+              labelText: "Enter reason for deleting...",
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                if (dialogController.text.trim().isNotEmpty) {
+                  Navigator.of(dialogContext).pop(true);
+                  await Future.delayed(const Duration(milliseconds: 250));
+                  if (dialogController.text.trim().isNotEmpty) {
+                    try {
+                      await _usersProvider.adminDelete(
+                        id,
+                        dialogController.text,
+                      );
+                      Helpers.showSuccessMessage(context);
+                      await fetchUsers();
+                    } catch (ex) {
+                      Helpers.showErrorMessage(context, ex);
+                    }
+                  }
+                }
+              },
+              child: const Text("Delete"),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(dialogContext).pop(false);
+              },
+              child: const Text("Cancel"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future _undoDeleteUserDialog(BuildContext context, int id) async {
+    await showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text("Confirm undo delete"),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                Navigator.of(dialogContext).pop(true);
+                await Future.delayed(const Duration(milliseconds: 250));
+                try {
+                  await _usersProvider.adminDelete(id, null);
+                  Helpers.showSuccessMessage(context);
+                  await fetchUsers();
+                } catch (ex) {
+                  Helpers.showErrorMessage(context, ex);
+                }
+              },
+              child: const Text("Undo delete"),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(dialogContext).pop(false);
+              },
+              child: const Text("Cancel"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildSearch() {
+    return Padding(
+      padding: const EdgeInsets.all(Constants.defaultSpacing),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _firstNameEditingController,
+              decoration: const InputDecoration(labelText: "First name"),
+            ),
+          ),
+          const SizedBox(width: Constants.defaultSpacing),
+          Expanded(
+            child: TextField(
+              controller: _lastNameEditingController,
+              decoration: const InputDecoration(labelText: "Last name"),
+            ),
+          ),
+          const SizedBox(width: Constants.defaultSpacing),
+          Expanded(
+            child: TextField(
+              controller: _userNameEditingController,
+              decoration: const InputDecoration(labelText: "User name"),
+            ),
+          ),
+          const SizedBox(width: Constants.defaultSpacing),
+          Expanded(
+            child: TextField(
+              controller: _emailEditingController,
+              decoration: const InputDecoration(labelText: "Email"),
+            ),
+          ),
+          const SizedBox(width: Constants.defaultSpacing),
+          Expanded(
+            child: DropdownButtonFormField<String>(
+              value: _orderBy,
+              onChanged: (value) {
+                setState(() {
+                  _orderBy = value!;
+                });
+              },
+              items: ["Username (A-Z)", "Username (Z-A)"].map((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(
+                    value,
+                    style: const TextStyle(fontWeight: FontWeight.normal),
+                  ),
+                );
+              }).toList(),
+              decoration: const InputDecoration(labelText: "Sort by"),
+            ),
+          ),
+          const SizedBox(width: Constants.defaultSpacing),
+          ElevatedButton(
+            onPressed: () async {
+              _currentPage = 1;
+              _currentFilter = {
+                "FirstName": _firstNameEditingController.text,
+                "LastName": _lastNameEditingController.text,
+                "UserName": _userNameEditingController.text,
+                "Email": _emailEditingController.text,
+                "OrderBy": _orderBy,
+              };
+              await fetchUsers();
+            },
+            child: const Text("Search"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildResultView() {
+    return SizedBox(
+      width: double.infinity,
+      child: SingleChildScrollView(
+        child: DataTable(
+          columns: [
+            const DataColumn(label: Text("First name")),
+            const DataColumn(label: Text("Last name")),
+            const DataColumn(label: Text("User name")),
+            const DataColumn(label: Text("Email")),
+            const DataColumn(label: Text("Deletion reason")),
+            if (AuthProvider.role == "Admin")
+              const DataColumn(label: Text("Actions")),
+          ],
+          rows:
+              users?.resultList
+                  .map(
+                    (user) => DataRow(
+                      cells: [
+                        DataCell(Text(user.firstName ?? "")),
+                        DataCell(Text(user.lastName ?? "")),
+                        DataCell(Text(user.userName ?? "")),
+                        DataCell(Text(user.email ?? "")),
+                        DataCell(Text(user.deletionReason ?? "")),
+                        if (AuthProvider.role == "Admin")
+                          DataCell(
+                            Row(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.admin_panel_settings),
+                                  tooltip: "Assign role",
+                                  onPressed: () async {
+                                    await _assignRoleDialog(
+                                      context,
+                                      user.userId!,
+                                    );
+                                  },
+                                ),
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.verified,
+                                    color: user.publisherVerifiedById != null
+                                        ? Colors.green
+                                        : null,
+                                  ),
+                                  tooltip: user.publisherVerifiedById == null
+                                      ? "Verify publisher"
+                                      : "Unverify publisher",
+                                  onPressed: () async {
+                                    await _verifyPublisherDialog(
+                                      context,
+                                      user.userId!,
+                                      user.publisherVerifiedById == null,
+                                    );
+                                  },
+                                ),
+                                if (user.deletionReason == null)
+                                  IconButton(
+                                    icon: const Icon(Icons.delete),
+                                    tooltip: "Delete user",
+                                    onPressed: () async {
+                                      await _deleteUserDialog(
+                                        context,
+                                        user.userId!,
+                                      );
+                                    },
+                                  ),
+                                if (user.deletionReason != null)
+                                  IconButton(
+                                    icon: const Icon(Icons.restore),
+                                    tooltip: "Undo delete",
+                                    onPressed: () async {
+                                      await _undoDeleteUserDialog(
+                                        context,
+                                        user.userId!,
+                                      );
+                                    },
+                                  ),
+                              ],
+                            ),
+                          ),
+                      ],
+                    ),
+                  )
+                  .toList() ??
+              [],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPagination() {
+    if (users == null || users!.totalPages <= 1) {
+      return const SizedBox.shrink();
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: Constants.defaultSpacing),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.chevron_left),
+            onPressed: _currentPage > 1
+                ? () async {
+                    _isLoading = true;
+                    _currentPage -= 1;
+                    await fetchUsers();
+                  }
+                : null,
+          ),
+          Text("Page $_currentPage of ${users!.totalPages}"),
+          IconButton(
+            icon: const Icon(Icons.chevron_right),
+            onPressed: _currentPage < users!.totalPages
+                ? () async {
+                    _isLoading = true;
+                    _currentPage += 1;
+                    await fetchUsers();
+                  }
+                : null,
+          ),
+        ],
+      ),
+    );
+  }
+}

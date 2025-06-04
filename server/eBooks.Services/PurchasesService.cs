@@ -2,9 +2,8 @@
 using eBooks.Database;
 using eBooks.Interfaces;
 using eBooks.Models.Responses;
-using eBooks.Models.SearchObjects;
+using eBooks.Models.Search;
 using MapsterMapper;
-using Microsoft.EntityFrameworkCore;
 
 namespace eBooks.Services
 {
@@ -13,11 +12,6 @@ namespace eBooks.Services
         public PurchasesService(EBooksContext db, IMapper mapper)
             : base(db, mapper)
         {
-        }
-
-        public override async Task<IQueryable<Purchase>> AddIncludes(IQueryable<Purchase> query)
-        {
-            return query.Include(x => x.User).Include(x => x.Publisher).Include(x => x.Book).ThenInclude(x => x.Language);
         }
     }
 }

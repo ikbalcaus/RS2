@@ -19,32 +19,22 @@ namespace eBooks.Services
     public class BooksService : BaseCRUDService<Book, BooksSearch, BooksPostReq, BooksPutReq, BooksRes>, IBooksService
     {
         protected BaseBooksState _baseBooksState;
-        protected IHttpContextAccessor _httpContextAccessor;
         protected IBus _bus;
         protected ILogger<BooksService> _logger;
 
-        public BooksService(EBooksContext db, IMapper mapper, BaseBooksState baseBooksState, IHttpContextAccessor httpContextAccessor, IBus bus, ILogger<BooksService> logger)
-            : base(db, mapper)
+        public BooksService(EBooksContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, BaseBooksState baseBooksState, IBus bus, ILogger<BooksService> logger)
+            : base(db, mapper, httpContextAccessor)
         {
             _baseBooksState = baseBooksState;
-            _httpContextAccessor = httpContextAccessor;
             _bus = bus;
             _logger = logger;
         }
 
-        protected int GetUserId() => int.TryParse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : 0;
         protected async Task<bool> AccessRightExist(int bookId) => await _db.Set<AccessRight>().AnyAsync(x => x.UserId == GetUserId() && x.BookId == bookId);
-
-        public override async Task<IQueryable<Book>> AddIncludes(IQueryable<Book> query)
-        {
-            return query.Include(x => x.Publisher).Include(x => x.Language);
-        }
 
         public override async Task<BooksRes> GetById(int id)
         {
-            var query = _db.Set<Book>().AsQueryable();
-            await AddIncludes(query);
-            var entity = query.FirstOrDefault(x => x.BookId == id);
+            var entity = _db.Set<Book>().FirstOrDefault(x => x.BookId == id);
             if (entity == null)
                 throw new ExceptionNotFound();
             var result = _mapper.Map<BooksRes>(entity);
@@ -87,45 +77,38 @@ namespace eBooks.Services
             var entity = await _db.Set<Book>().FindAsync(id);
             if (entity == null)
                 throw new ExceptionNotFound();
-            var state = await _baseBooksState.CheckState(entity.StateMachine);
+            var state = _baseBooksState.CheckState(entity.StateMachine);
             return await state.Update(id, req);
         }
 
         public override async Task<BooksRes> Delete(int id)
         {
-            var entity = await _db.Set<Book>().FindAsync(id);
+            var entity = await _db.Set<Book>().Include(x => x.Publisher).FirstOrDefaultAsync(x => x.BookId == id);
             if (entity == null)
                 throw new ExceptionNotFound();
-            entity.IsDeleted = true;
             entity.RejectionReason = "Deleted by user";
             await _db.SaveChangesAsync();
             _logger.LogInformation($"Book with title {entity.Title} deleted.");
-            return null;
+            var result = _mapper.Map<BooksRes>(entity);
+            _bus.PubSub.Publish(new BookDeactivated { Book = result });
+            return result;
         }
 
-        public async Task<BooksRes> DeleteByAdmin(int id, string reason)
+        public async Task<BooksRes> DeleteByAdmin(int id, string? reason)
         {
-            var entity = await _db.Set<Book>().FindAsync(id);
+            var entity = await _db.Set<Book>().Include(x => x.Publisher).FirstOrDefaultAsync(x => x.BookId == id);
             if (entity == null)
                 throw new ExceptionNotFound();
-            entity.IsDeleted = true;
-            entity.RejectionReason = reason;
+            if (entity.DeletionReason == null && reason == null)
+                throw new ExceptionBadRequest("Not deleted");
+            if (entity.DeletionReason != null && reason != null)
+                throw new ExceptionBadRequest("Already deleted");
+            entity.DeletionReason = reason;
             await _db.SaveChangesAsync();
             _logger.LogInformation($"Book with title {entity.Title} deleted.");
-            return null;
-        }
-
-        public async Task<BooksRes> UndoDelete(int id)
-        {
-            var entity = await _db.Set<Book>().FindAsync(id);
-            if (entity == null)
-                throw new ExceptionNotFound();
-            entity.IsDeleted = false;
-            entity.RejectionReason = null;
-            await _db.SaveChangesAsync();
-            _logger.LogInformation($"Book with title {entity.Title} undo-deleted.");
-            _bus.PubSub.Publish(new BookReviewed { Book = _mapper.Map<BooksRes>(entity), Status = "reactivate" });
-            return _mapper.Map<BooksRes>(entity);
+            var result = _mapper.Map<BooksRes>(entity);
+            _bus.PubSub.Publish(new BookDeactivated { Book = result });
+            return result;
         }
 
         public async Task<BooksRes> SetDiscount(int id, DiscountReq req)
@@ -143,9 +126,10 @@ namespace eBooks.Services
             _mapper.Map(req, entity);
             await _db.SaveChangesAsync();
             _logger.LogInformation($"Book with title {entity.Title} is discounted by {req.DiscountPercentage}%.");
-            _bus.PubSub.Publish(new PublisherFollowNotification { Book = _mapper.Map<BooksRes>(entity), Action = "added discount to a" });
-            _bus.PubSub.Publish(new BookDiscounted { Book = _mapper.Map<BooksRes>(entity) });
-            return _mapper.Map<BooksRes>(entity);
+            var result = _mapper.Map<BooksRes>(entity);
+            _bus.PubSub.Publish(new PublisherFollowing { Book = result, Action = "added discount to a" });
+            _bus.PubSub.Publish(new BookDiscounted { Book = result });
+            return result;
         }
 
         public async Task<Tuple<string, byte[]>> GetBookFile(int id)
@@ -169,7 +153,7 @@ namespace eBooks.Services
             var entity = await _db.Set<Book>().FindAsync(id);
             if (entity == null)
                 throw new ExceptionNotFound();
-            var state = await _baseBooksState.CheckState(entity.StateMachine);
+            var state = _baseBooksState.CheckState(entity.StateMachine);
             _logger.LogInformation($"Book with title {entity.Title} awaited.");
             return await state.Await(id);
         }
@@ -179,7 +163,7 @@ namespace eBooks.Services
             var entity = await _db.Set<Book>().FindAsync(id);
             if (entity == null)
                 throw new ExceptionNotFound();
-            var state = await _baseBooksState.CheckState(entity.StateMachine);
+            var state = _baseBooksState.CheckState(entity.StateMachine);
             _logger.LogInformation($"Book with title {entity.Title} approved.");
             return await state.Approve(id);
         }
@@ -189,7 +173,7 @@ namespace eBooks.Services
             var entity = await _db.Set<Book>().FindAsync(id);
             if (entity == null)
                 throw new ExceptionNotFound();
-            var state = await _baseBooksState.CheckState(entity.StateMachine);
+            var state = _baseBooksState.CheckState(entity.StateMachine);
             _logger.LogInformation($"Book with title {entity.Title} rejected with message \"{message}\".");
             return await state.Reject(id, message);
         }
@@ -199,7 +183,7 @@ namespace eBooks.Services
             var entity = await _db.Set<Book>().FindAsync(id);
             if (entity == null)
                 throw new ExceptionNotFound();
-            var state = await _baseBooksState.CheckState(entity.StateMachine);
+            var state = _baseBooksState.CheckState(entity.StateMachine);
             _logger.LogInformation($"Book with title {entity.Title} is hidden/not hidden.");
             return await state.Hide(id);
         }
@@ -209,8 +193,13 @@ namespace eBooks.Services
             var entity = await _db.Set<Book>().FindAsync(id);
             if (entity == null)
                 throw new ExceptionNotFound();
-            var state = await _baseBooksState.CheckState(entity.StateMachine);
-            return await state.AllowedActions(entity);
+            var state = _baseBooksState.CheckState(entity.StateMachine);
+            return state.AllowedActions(entity);
+        }
+
+        public async Task<List<string>> BookStates()
+        {
+            return new List<string> { "Approved", "Awaited", "Drafted", "Hidden", "Rejected" };
         }
     }
 }

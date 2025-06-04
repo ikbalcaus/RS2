@@ -1,5 +1,5 @@
 ﻿using eBooks.Models.Responses;
-using eBooks.Models.SearchObjects;
+using eBooks.Models.Search;
 using eBooks.Services;
 
 namespace eBooks.Interfaces

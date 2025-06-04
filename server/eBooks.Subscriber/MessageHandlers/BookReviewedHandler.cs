@@ -18,16 +18,23 @@ namespace eBooks.MessageHandlers
         public async Task SendEmail(BookReviewed message)
         {
             var email = message.Book.Publisher.Email;
-            var notificationMessage = "Your book is " + (message.Status == "approved" ? message.Status : $"{message.Status}. Reason: {message.Book.RejectionReason}");
+            string notificationMessage;
+            if (message.Book.StateMachine == "approve")
+                notificationMessage = "Your book is approved";
+            else
+                notificationMessage = $"Your book is rejected. Reason: {message.Book.RejectionReason}";
             Console.WriteLine($"Sending email to: {email}");
             await _emailService.SendEmailAsync(email, "Book reviewed", notificationMessage);
         }
 
         public async Task NotifyUser(BookReviewed message)
         {
-            var status = message.Book.StateMachine;
-            var notificationMessage = "Your book is " + (message.Status == "approved" ? message.Status : $"{message.Status}. Reason: {message.Book.RejectionReason}");
-            var user = await _db.Set<User>().FirstOrDefaultAsync(x => x.UserId == message.Book.PublisherId);
+            string notificationMessage;
+            if (message.Book.StateMachine == "approve")
+                notificationMessage = "Your book is approved";
+            else
+                notificationMessage = $"Your book is rejected. Reason: {message.Book.RejectionReason}";
+            var user = await _db.Set<User>().FirstOrDefaultAsync(x => x.UserId == message.Book.Publisher.UserId);
             Console.WriteLine($"Sending notification to user: {user.UserId}");
             var notification = new Notification
             {

@@ -1,7 +1,7 @@
 ﻿using eBooks.Database;
 using eBooks.Models.Responses;
 using eBooks.Models.Exceptions;
-using eBooks.Models.SearchObjects;
+using eBooks.Models.Search;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 
@@ -25,10 +25,10 @@ namespace eBooks.Services
         {
             var result = new List<TResponse>();
             var query = _db.Set<TEntity>().AsQueryable();
+            query = AddFilters(query, search);
             int count = await query.CountAsync();
-            query = await AddIncludes(query);
-            if (search?.Page.HasValue == true && search?.PageSize.HasValue == true)
-                query = query.Skip(search.Page.Value * search.PageSize.Value).Take(search.PageSize.Value);
+            if (search?.Page.HasValue == true && search?.PageSize.HasValue == true && search.Page.Value > 0)
+                query = query.Skip((search.Page.Value - 1) * search.PageSize.Value).Take(search.PageSize.Value);
             var list = await query.ToListAsync();
             result = _mapper.Map(list, result);
             PagedResult<TResponse> pagedResult = new PagedResult<TResponse>
@@ -41,16 +41,13 @@ namespace eBooks.Services
 
         public virtual async Task<TResponse> GetById(int id)
         {
-            var query = _db.Set<TEntity>().AsQueryable();
-            query = await AddIncludes(query);
-            var idProperty = typeof(TEntity).GetProperties().FirstOrDefault(p => p.Name.EndsWith("Id") && p.PropertyType == typeof(int));
-            var entity = await query.FirstOrDefaultAsync(e => EF.Property<int>(e, idProperty.Name) == id);
+            var entity = await _db.Set<TEntity>().FindAsync(id);
             if (entity == null)
                 throw new ExceptionNotFound();
             return _mapper.Map<TResponse>(entity);
         }
 
-        public virtual async Task<IQueryable<TEntity>> AddIncludes(IQueryable<TEntity> query)
+        public virtual IQueryable<TEntity> AddFilters(IQueryable<TEntity> query, TSearch search)
         {
             return query;
         }

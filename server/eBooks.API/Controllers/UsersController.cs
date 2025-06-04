@@ -25,7 +25,7 @@ namespace eBooks.API.Controllers
             _accessControlHandler = accessControlHandler;
         }
 
-        [Authorize(Policy = "Admin")]
+        [Authorize(Policy = "Moderator")]
         public override async Task<PagedResult<UsersRes>> GetPaged([FromQuery] UsersSearch search)
         {
             return await base.GetPaged(search);
@@ -59,16 +59,9 @@ namespace eBooks.API.Controllers
 
         [Authorize(Policy = "Admin")]
         [HttpDelete("{id}/admin-delete")]
-        public async Task<UsersRes> DeleteByAdmin(int id, string reason)
+        public async Task<UsersRes> DeleteByAdmin(int id, string? reason)
         {
             return await _service.DeleteByAdmin(id, reason);
-        }
-
-        [Authorize(Policy = "Admin")]
-        [HttpPatch("{id}/undo-delete")]
-        public async Task<UsersRes> UndoDelete(int id)
-        {
-            return await _service.UndoDelete(id);
         }
 
         [AllowAnonymous]
@@ -86,18 +79,11 @@ namespace eBooks.API.Controllers
             return await _service.VerifyEmail(id, token);
         }
 
-        [Authorize(Policy = "Moderator")]
+        [Authorize(Policy = "Admin")]
         [HttpPatch("{id}/verify-publisher")]
         public async Task<UsersRes> VerifyPublisher(int id)
         {
             return await _service.VerifyPublisher(id);
-        }
-
-        [Authorize(Policy = "Admin")]
-        [HttpPatch("{id}/unverify-publisher")]
-        public async Task<UsersRes> UnVerifyPublisher(int id)
-        {
-            return await _service.UnVerifyPublisher(id);
         }
     }
 }

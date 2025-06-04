@@ -7,7 +7,7 @@ using eBooks.Models.Exceptions;
 using eBooks.Models.Messages;
 using eBooks.Models.Requests;
 using eBooks.Models.Responses;
-using eBooks.Models.SearchObjects;
+using eBooks.Models.Search;
 using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -48,8 +48,9 @@ namespace eBooks.Services
             entity.AnsweredById = GetUserId();
             entity.Answer = req.Message;
             await _db.SaveChangesAsync();
-            _bus.PubSub.Publish(new QuestionAnswered { Question = _mapper.Map<QuestionsRes>(entity) });
-            return _mapper.Map<QuestionsRes>(entity);
+            var result = _mapper.Map<QuestionsRes>(entity);
+            _bus.PubSub.Publish(new QuestionAnswered { Question = result });
+            return result;
         }
     }
 }

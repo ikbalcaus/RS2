@@ -91,6 +91,7 @@ using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<EBooksContext>();
     DbSeeder.SeedRoles(context);
+    DbSeeder.SeedLanguages(context);
 }
 
 if (app.Environment.IsDevelopment())
@@ -109,6 +110,7 @@ app.UseStaticFiles(new StaticFileOptions
     FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "pdfs", "previews")),
     RequestPath = "/pdfs/previews"
 });
+
 app.UseHttpsRedirection();
 app.MapControllers();
 app.Run();

@@ -56,16 +56,9 @@ namespace eBooks.API.Controllers
 
         [Authorize(Policy = "Admin")]
         [HttpDelete("{id}/admin-delete")]
-        public async Task<BooksRes> DeleteByAdmin(int id, string reason)
+        public async Task<BooksRes> DeleteByAdmin(int id, string? reason)
         {
             return await _service.DeleteByAdmin(id, reason);
-        }
-
-        [Authorize(Policy = "Admin")]
-        [HttpPatch("{id}/undo-delete")]
-        public async Task<BooksRes> UndoDelete(int id)
-        {
-            return await _service.UndoDelete(id);
         }
 
         [Authorize(Policy = "User")]
@@ -119,6 +112,13 @@ namespace eBooks.API.Controllers
         public async Task<List<string>> AllowedActions(int id)
         {
             return await _service.AllowedActions(id);
+        }
+
+        [Authorize(Policy = "Moderator")]
+        [HttpGet("book-states")]
+        public async Task<List<string>> BookStates()
+        {
+            return await _service.BookStates();
         }
     }
 }

@@ -49,28 +49,22 @@ namespace eBooks.Services.BooksStateMachine
             throw new ExceptionForbidden("Method not allowed");
         }
 
-        public virtual async Task<List<string>> AllowedActions(Book entity)
+        public virtual List<string> AllowedActions(Book entity)
         {
             throw new ExceptionForbidden("Method not allowed");
         }
 
-        public async Task<BaseBooksState> CheckState(string state)
+        public BaseBooksState CheckState(string state)
         {
-            switch (state)
+            return state switch
             {
-                case "approve":
-                    return _serviceProvider.GetService<ApproveBooksState>();
-                case "await":
-                    return _serviceProvider.GetService<AwaitBooksState>();
-                case "draft":
-                    return _serviceProvider.GetService<DraftBooksState>();
-                case "hide":
-                    return _serviceProvider.GetService<HideBooksState>();
-                case "reject":
-                    return _serviceProvider.GetService<RejectBooksState>();
-                default:
-                    throw new Exception("State not recognized");
-            }
+                "approve" => _serviceProvider.GetService<ApproveBooksState>(),
+                "await" => _serviceProvider.GetService<AwaitBooksState>(),
+                "draft" => _serviceProvider.GetService<DraftBooksState>(),
+                "hide" => _serviceProvider.GetService<HideBooksState>(),
+                "reject" => _serviceProvider.GetService<RejectBooksState>(),
+                _ => throw new Exception("State not recognized"),
+            };
         }
     }
 }

@@ -28,18 +28,18 @@ namespace eBooks.API.Filters
             }
             else if (context.Exception is ExceptionForbidden)
             {
-                context.ModelState.AddModelError("error", context.Exception.Message);
+                context.ModelState.AddModelError("Error", context.Exception.Message);
                 context.HttpContext.Response.StatusCode = 403;
             }
             else if (context.Exception is ExceptionNotFound)
             {
-                context.ModelState.AddModelError("error", context.Exception.Message);
+                context.ModelState.AddModelError("Error", context.Exception.Message);
                 context.HttpContext.Response.StatusCode = 404;
             }
             else
             {
                 _logger.LogError(context.Exception, context.Exception.Message);
-                context.ModelState.AddModelError("error", "Server side error");
+                context.ModelState.AddModelError("Error", "Server side error");
                 context.HttpContext.Response.StatusCode = 500;
             }
             var list = context.ModelState.Where(x => x.Value.Errors.Count() > 0).ToDictionary(x => x.Key, y => y.Value.Errors.Select(z => z.ErrorMessage));

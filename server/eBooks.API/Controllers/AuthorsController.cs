@@ -1,17 +1,15 @@
-﻿using eBooks.API.Auth;
-using eBooks.Interfaces;
+﻿using eBooks.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using eBooks.Models.SearchObjects;
+using eBooks.Models.Search;
 using eBooks.Models.Requests;
 using eBooks.Models.Responses;
-using eBooks.Models;
 
 namespace eBooks.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class AuthorsController : BaseCRUDController<BaseSearch, AuthorsPostReq, AuthorsPutReq, AuthorsRes>
+    public class AuthorsController : BaseCRUDController<AuthorsSearch, AuthorsReq, AuthorsReq, AuthorsRes>
     {
         public AuthorsController(IAuthorsService service)
             : base(service)
@@ -19,7 +17,7 @@ namespace eBooks.API.Controllers
         }
 
         [AllowAnonymous]
-        public override async Task<PagedResult<AuthorsRes>> GetPaged([FromQuery] BaseSearch search)
+        public override async Task<PagedResult<AuthorsRes>> GetPaged([FromQuery] AuthorsSearch search)
         {
             return await base.GetPaged(search);
         }
@@ -31,13 +29,13 @@ namespace eBooks.API.Controllers
         }
 
         [Authorize(Policy = "User")]
-        public override async Task<AuthorsRes> Post(AuthorsPostReq req)
+        public override async Task<AuthorsRes> Post(AuthorsReq req)
         {
             return await base.Post(req);
         }
 
         [Authorize(Policy = "Moderator")]
-        public override async Task<AuthorsRes> Put(int id, AuthorsPutReq req)
+        public override async Task<AuthorsRes> Put(int id, AuthorsReq req)
         {
             return await base.Put(id, req);
         }

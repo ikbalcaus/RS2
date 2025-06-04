@@ -1,17 +1,15 @@
-﻿using eBooks.API.Auth;
-using eBooks.Interfaces;
+﻿using eBooks.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using eBooks.Models.Responses;
 using eBooks.Models.Requests;
-using eBooks.Models.SearchObjects;
-using eBooks.Models;
+using eBooks.Models.Search;
 
 namespace eBooks.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class GenresController : BaseCRUDController<BaseSearch, GenresReq, GenresReq, GenresRes>
+    public class GenresController : BaseCRUDController<GenresSearch, GenresReq, GenresReq, GenresRes>
     {
         public GenresController(IGenresService service)
             : base(service)
@@ -19,7 +17,7 @@ namespace eBooks.API.Controllers
         }
 
         [AllowAnonymous]
-        public override async Task<PagedResult<GenresRes>> GetPaged([FromQuery] BaseSearch search)
+        public override async Task<PagedResult<GenresRes>> GetPaged([FromQuery] GenresSearch search)
         {
             return await base.GetPaged(search);
         }

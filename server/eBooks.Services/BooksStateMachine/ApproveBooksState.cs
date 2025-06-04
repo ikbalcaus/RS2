@@ -25,7 +25,7 @@ namespace eBooks.Services.BooksStateMachine
             return _mapper.Map<BooksRes>(entity);
         }
 
-        public override async Task<List<string>> AllowedActions(Book entity)
+        public override List<string> AllowedActions(Book entity)
         {
             return new List<string>() { nameof(Hide) };
         }

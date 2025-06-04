@@ -31,15 +31,6 @@ namespace eBooks.API.Auth
                 throw new ExceptionForbidden("Only owner can use this action");
         }
 
-        public async Task CheckIsOwnerOrModeratorByBookId(int id)
-        {
-            int currentUserId = GetCurrentUserId();
-            Book book = await GetBookById(id);
-            string role = GetCurrentUserRole();
-            if (role != "Admin" && role != "Moderator" && currentUserId != book.PublisherId)
-                throw new ExceptionForbidden("Only owner or moderator can use this action");
-        }
-
         protected int GetCurrentUserId()
         {
             var user = _httpContextAccessor.HttpContext?.User;

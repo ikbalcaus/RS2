@@ -5,7 +5,7 @@ using eBooks.Database.Models;
 using eBooks.Interfaces;
 using eBooks.Models.Exceptions;
 using eBooks.Models.Responses;
-using eBooks.Models.SearchObjects;
+using eBooks.Models.Search;
 using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -32,8 +32,8 @@ namespace eBooks.Services
             var result = new List<NotificationsRes>();
             var query = _db.Set<Notification>().Where(x => x.UserId == GetUserId()).AsQueryable();
             int count = await query.CountAsync();
-            if (search?.Page.HasValue == true && search?.PageSize.HasValue == true)
-                query = query.Skip(search.Page.Value * search.PageSize.Value).Take(search.PageSize.Value);
+            if (search?.Page.HasValue == true && search?.PageSize.HasValue == true && search.Page.Value > 0)
+                query = query.Skip((search.Page.Value - 1) * search.PageSize.Value).Take(search.PageSize.Value);
             var list = await query.OrderByDescending(x => x.ModifiedAt).ToListAsync();
             result = _mapper.Map(list, result);
             PagedResult<NotificationsRes> pagedResult = new PagedResult<NotificationsRes>

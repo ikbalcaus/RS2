@@ -1,17 +1,15 @@
-﻿using eBooks.API.Auth;
-using eBooks.Interfaces;
-using eBooks.Models;
+﻿using eBooks.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using eBooks.Models.Responses;
 using eBooks.Models.Requests;
-using eBooks.Models.SearchObjects;
+using eBooks.Models.Search;
 
 namespace eBooks.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class LanguagesController : BaseCRUDController<BaseSearch, LanguagesPostReq, LanguagesPutReq, LanguagesRes>
+    public class LanguagesController : BaseCRUDController<LanguagesSearch, LanguagesReq, LanguagesReq, LanguagesRes>
     {
         public LanguagesController(ILanguagesService service)
             : base(service)
@@ -19,7 +17,7 @@ namespace eBooks.API.Controllers
         }
 
         [AllowAnonymous]
-        public override async Task<PagedResult<LanguagesRes>> GetPaged([FromQuery] BaseSearch search)
+        public override async Task<PagedResult<LanguagesRes>> GetPaged([FromQuery] LanguagesSearch search)
         {
             return await base.GetPaged(search);
         }
@@ -31,13 +29,13 @@ namespace eBooks.API.Controllers
         }
 
         [Authorize(Policy = "User")]
-        public override async Task<LanguagesRes> Post(LanguagesPostReq req)
+        public override async Task<LanguagesRes> Post(LanguagesReq req)
         {
             return await base.Post(req);
         }
 
         [Authorize(Policy = "Moderator")]
-        public override async Task<LanguagesRes> Put(int id, LanguagesPutReq req)
+        public override async Task<LanguagesRes> Put(int id, LanguagesReq req)
         {
             return await base.Put(id, req);
         }

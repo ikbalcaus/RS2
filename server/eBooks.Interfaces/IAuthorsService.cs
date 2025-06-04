@@ -1,10 +1,10 @@
 ﻿using eBooks.Models.Requests;
 using eBooks.Models.Responses;
-using eBooks.Models.SearchObjects;
+using eBooks.Models.Search;
 
 namespace eBooks.Interfaces
 {
-    public interface IAuthorsService : IBaseCRUDService<BaseSearch, AuthorsPostReq, AuthorsPutReq, AuthorsRes>
+    public interface IAuthorsService : IBaseCRUDService<AuthorsSearch, AuthorsReq, AuthorsReq, AuthorsRes>
     {
     }
 }

@@ -70,7 +70,7 @@ namespace eBooks.API.Controllers
         }
 
         [Authorize(Policy = "User")]
-        [HttpGet("{id}/get-book-file")]
+        [HttpGet("{id}/book-file")]
         public async Task<IActionResult> GetBookFile(int id)
         {
             var file = await _service.GetBookFile(id);
@@ -94,9 +94,9 @@ namespace eBooks.API.Controllers
 
         [Authorize(Policy = "Moderator")]
         [HttpPatch("{id}/reject")]
-        public async Task<BooksRes> Reject(int id, string message)
+        public async Task<BooksRes> Reject(int id, string reason)
         {
-            return await _service.Reject(id, message);
+            return await _service.Reject(id, reason);
         }
 
         [Authorize(Policy = "User")]
@@ -107,14 +107,21 @@ namespace eBooks.API.Controllers
             return await _service.Hide(id);
         }
 
-        [AllowAnonymous]
-        [HttpGet("{id}/allowed-actions")]
-        public async Task<List<string>> AllowedActions(int id)
+        [Authorize(Policy = "Moderator")]
+        [HttpGet("{id}/admin-allowed-actions")]
+        public async Task<List<string>> AdminAllowedActions(int id)
         {
-            return await _service.AllowedActions(id);
+            return await _service.AdminAllowedActions(id);
         }
 
-        [Authorize(Policy = "Moderator")]
+        [Authorize(Policy = "User")]
+        [HttpGet("{id}/user-allowed-actions")]
+        public async Task<List<string>> UserllowedActions(int id)
+        {
+            return await _service.UserAllowedActions(id);
+        }
+
+        [AllowAnonymous]
         [HttpGet("book-states")]
         public async Task<List<string>> BookStates()
         {

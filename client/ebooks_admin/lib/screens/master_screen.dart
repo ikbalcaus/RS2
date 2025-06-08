@@ -4,6 +4,8 @@ import "package:ebooks_admin/screens/books_screen.dart";
 import "package:ebooks_admin/screens/genres_screen.dart";
 import "package:ebooks_admin/screens/languages_screen.dart";
 import "package:ebooks_admin/screens/login_screen.dart";
+import "package:ebooks_admin/screens/purchases_screen.dart";
+import "package:ebooks_admin/screens/questions_screen.dart";
 import "package:ebooks_admin/screens/users_screen.dart";
 import "package:ebooks_admin/utils/constants.dart";
 import "package:flutter/material.dart";
@@ -132,6 +134,32 @@ class MasterScreen extends StatelessWidget {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => LanguagesScreen()),
+                );
+              });
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.question_mark),
+            title: const Text("Questions"),
+            onTap: () {
+              Navigator.pop(context);
+              Future.delayed(Duration(milliseconds: 250), () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => QuestionsScreen()),
+                );
+              });
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.payment),
+            title: const Text("Purchases"),
+            onTap: () {
+              Navigator.pop(context);
+              Future.delayed(Duration(milliseconds: 250), () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => PurchasesScreen()),
                 );
               });
             },

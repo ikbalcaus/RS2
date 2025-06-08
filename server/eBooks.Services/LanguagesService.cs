@@ -19,7 +19,7 @@ namespace eBooks.Services
         public override IQueryable<Language> AddFilters(IQueryable<Language> query, LanguagesSearch search)
         {
             if (!string.IsNullOrWhiteSpace(search.Name))
-                query = query.Where(x => x.Name.StartsWith(search.Name));
+                query = query.Where(x => x.Name.ToLower().StartsWith(search.Name.ToLower()));
             query = search.OrderBy switch
             {
                 "First modified" => query.OrderBy(x => x.ModifiedAt),

@@ -8,7 +8,8 @@ import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 
 class GenresScreen extends StatefulWidget {
-  const GenresScreen({super.key});
+  final String? name;
+  const GenresScreen({super.key, this.name});
 
   @override
   State<GenresScreen> createState() => _GenresScreenState();
@@ -16,17 +17,19 @@ class GenresScreen extends StatefulWidget {
 
 class _GenresScreenState extends State<GenresScreen> {
   late GenresProvider _genresProvider;
-  SearchResult<Genre>? genres;
+  SearchResult<Genre>? _genres;
   bool _isLoading = true;
   int _currentPage = 1;
-  Map<String, dynamic> _currentFilter = {};
   String _orderBy = "Last modified";
+  Map<String, dynamic> _currentFilter = {};
 
   final TextEditingController _nameEditingController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    _nameEditingController.text = widget.name ?? "";
+    _currentFilter = {"name": widget.name ?? ""};
     _genresProvider = context.read<GenresProvider>();
     fetchGenres();
   }
@@ -62,7 +65,7 @@ class _GenresScreenState extends State<GenresScreen> {
         return;
       }
       setState(() {
-        this.genres = genres;
+        _genres = genres;
       });
     } catch (ex) {
       if (!mounted) return;
@@ -98,19 +101,16 @@ class _GenresScreenState extends State<GenresScreen> {
           actions: [
             TextButton(
               onPressed: () async {
-                if (dialogController.text.trim().isNotEmpty) {
+                final dialogText = dialogController.text.trim();
+                if (dialogText.isNotEmpty) {
                   Navigator.of(dialogContext).pop(true);
                   await Future.delayed(const Duration(milliseconds: 250));
-                  if (dialogController.text.trim().isNotEmpty) {
-                    try {
-                      await _genresProvider.put(id, {
-                        "name": dialogController.text,
-                      });
-                      Helpers.showSuccessMessage(context);
-                      await fetchGenres();
-                    } catch (ex) {
-                      Helpers.showErrorMessage(context, ex);
-                    }
+                  try {
+                    await _genresProvider.put(id, {"name": dialogText});
+                    Helpers.showSuccessMessage(context);
+                    await fetchGenres();
+                  } catch (ex) {
+                    Helpers.showErrorMessage(context, ex);
                   }
                 }
               },
@@ -169,7 +169,7 @@ class _GenresScreenState extends State<GenresScreen> {
           Expanded(
             child: TextField(
               controller: _nameEditingController,
-              decoration: const InputDecoration(labelText: "Name"),
+              decoration: const InputDecoration(labelText: "Genre"),
             ),
           ),
           const SizedBox(width: Constants.defaultSpacing),
@@ -177,9 +177,7 @@ class _GenresScreenState extends State<GenresScreen> {
             child: DropdownButtonFormField<String>(
               value: _orderBy,
               onChanged: (value) {
-                setState(() {
-                  _orderBy = value!;
-                });
+                _orderBy = value!;
               },
               items:
                   [
@@ -238,12 +236,12 @@ class _GenresScreenState extends State<GenresScreen> {
       child: SingleChildScrollView(
         child: DataTable(
           columns: const [
-            DataColumn(label: Text("Name")),
+            DataColumn(label: Text("Genre")),
             DataColumn(label: Text("Modified by")),
             DataColumn(label: Text("Actions")),
           ],
           rows:
-              genres?.resultList
+              _genres?.resultList
                   .map(
                     (genre) => DataRow(
                       cells: [
@@ -287,7 +285,7 @@ class _GenresScreenState extends State<GenresScreen> {
   }
 
   Widget _buildPagination() {
-    if (genres == null || genres!.totalPages <= 1) {
+    if (_genres == null || _genres!.totalPages <= 1) {
       return const SizedBox.shrink();
     }
     return Padding(
@@ -305,10 +303,10 @@ class _GenresScreenState extends State<GenresScreen> {
                   }
                 : null,
           ),
-          Text("Page $_currentPage of ${genres!.totalPages}"),
+          Text("Page $_currentPage of ${_genres!.totalPages}"),
           IconButton(
             icon: const Icon(Icons.chevron_right),
-            onPressed: _currentPage < genres!.totalPages
+            onPressed: _currentPage < _genres!.totalPages
                 ? () async {
                     _isLoading = true;
                     _currentPage += 1;

@@ -45,6 +45,18 @@ abstract class BaseProvider<T> with ChangeNotifier {
     }
   }
 
+  Future getById(int id) async {
+    var uri = Uri.parse("${Constants.apiAddress}/$_endpoint/$id");
+    var headers = createHeaders();
+    var response = await http.get(uri, headers: headers);
+    if (isValidResponse(response)) {
+      var data = jsonDecode(response.body);
+      return fromJson(data);
+    } else {
+      throw response.body;
+    }
+  }
+
   Future post(dynamic request) async {
     var uri = Uri.parse("${Constants.apiAddress}/$_endpoint");
     var headers = createHeaders();

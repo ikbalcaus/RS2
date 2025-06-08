@@ -3,11 +3,12 @@ import "package:ebooks_admin/utils/constants.dart";
 import "package:flutter/material.dart";
 
 class Helpers {
-  static void showSuccessMessage(BuildContext context) {
+  static void showSuccessMessage(BuildContext context, [String? message]) {
+    message ??= Constants.successMessage;
     if (context.mounted) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text(Constants.successMessage)));
+      ).showSnackBar(SnackBar(content: Text(message)));
     }
   }
 

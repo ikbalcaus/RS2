@@ -9,7 +9,7 @@ namespace eBooks.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class QuestionsController : BaseReadOnlyController<BaseSearch, QuestionsRes>
+    public class QuestionsController : BaseReadOnlyController<QuestionsSearch, QuestionsRes>
     {
         protected new IQuestionsService _service;
 
@@ -20,7 +20,7 @@ namespace eBooks.API.Controllers
         }
 
         [Authorize(Policy = "Moderator")]
-        public override async Task<PagedResult<QuestionsRes>> GetPaged([FromQuery] BaseSearch search)
+        public override async Task<PagedResult<QuestionsRes>> GetPaged([FromQuery] QuestionsSearch search)
         {
             return await base.GetPaged(search);
         }
@@ -40,9 +40,9 @@ namespace eBooks.API.Controllers
 
         [Authorize(Policy = "Moderator")]
         [HttpPatch("{id}")]
-        public async Task<QuestionsRes> Answer(int id, QuestionsReq req)
+        public async Task<QuestionsRes> Patch(int id, QuestionsReq req)
         {
-            return await _service.Answer(id, req);
+            return await _service.Patch(id, req);
         }
     }
 }

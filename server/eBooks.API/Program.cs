@@ -100,6 +100,16 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+var imagesPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
+var summaryPdfPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "pdfs", "summary");
+var booksPdfPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "pdfs", "books");
+if (!Directory.Exists(imagesPath))
+    Directory.CreateDirectory(imagesPath);
+if (!Directory.Exists(summaryPdfPath))
+    Directory.CreateDirectory(summaryPdfPath);
+if (!Directory.Exists(booksPdfPath))
+    Directory.CreateDirectory(booksPdfPath);
+
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images")),
@@ -107,8 +117,8 @@ app.UseStaticFiles(new StaticFileOptions
 });
 app.UseStaticFiles(new StaticFileOptions
 {
-    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "pdfs", "previews")),
-    RequestPath = "/pdfs/previews"
+    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "pdfs", "summary")),
+    RequestPath = "/pdfs/summary"
 });
 
 app.UseHttpsRedirection();

@@ -4,6 +4,8 @@ import "package:ebooks_admin/providers/authors_provider.dart";
 import "package:ebooks_admin/providers/books_provider.dart";
 import "package:ebooks_admin/providers/genres_provider.dart";
 import "package:ebooks_admin/providers/languages_provider.dart";
+import "package:ebooks_admin/providers/purchases_provider.dart";
+import "package:ebooks_admin/providers/questions_provider.dart";
 import "package:ebooks_admin/providers/roles_provider.dart";
 import "package:ebooks_admin/providers/users_provider.dart";
 import "package:ebooks_admin/screens/books_screen.dart";
@@ -14,6 +16,7 @@ import "package:provider/provider.dart";
 import "package:window_manager/window_manager.dart";
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -31,6 +34,8 @@ void main() async {
         ChangeNotifierProvider(create: (_) => BooksProvider()),
         ChangeNotifierProvider(create: (_) => GenresProvider()),
         ChangeNotifierProvider(create: (_) => LanguagesProvider()),
+        ChangeNotifierProvider(create: (_) => PurchasesProvider()),
+        ChangeNotifierProvider(create: (_) => QuestionsProvider()),
         ChangeNotifierProvider(create: (_) => RolesProvider()),
         ChangeNotifierProvider(create: (_) => UsersProvider()),
       ],

@@ -11,7 +11,8 @@ import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 
 class UsersScreen extends StatefulWidget {
-  const UsersScreen({super.key});
+  final String? userName;
+  const UsersScreen({super.key, this.userName});
 
   @override
   State<UsersScreen> createState() => _UsersScreenState();
@@ -20,12 +21,13 @@ class UsersScreen extends StatefulWidget {
 class _UsersScreenState extends State<UsersScreen> {
   late UsersProvider _usersProvider;
   late RolesProvider _rolesProvider;
-  SearchResult<User>? users;
-  SearchResult<Role>? roles;
+  SearchResult<User>? _users;
+  SearchResult<Role>? _roles;
   bool _isLoading = true;
   int _currentPage = 1;
-  Map<String, dynamic> _currentFilter = {};
   String _orderBy = "Username (A-Z)";
+  String _isDeleted = "All users";
+  Map<String, dynamic> _currentFilter = {};
 
   final TextEditingController _firstNameEditingController =
       TextEditingController();
@@ -38,6 +40,8 @@ class _UsersScreenState extends State<UsersScreen> {
   @override
   void initState() {
     super.initState();
+    _userNameEditingController.text = widget.userName ?? "";
+    _currentFilter = {"UserName": widget.userName ?? ""};
     _usersProvider = context.read<UsersProvider>();
     _rolesProvider = context.read<RolesProvider>();
     fetchUsers();
@@ -75,7 +79,7 @@ class _UsersScreenState extends State<UsersScreen> {
         return;
       }
       setState(() {
-        this.users = users;
+        _users = users;
       });
     } catch (ex) {
       if (!mounted) return;
@@ -97,14 +101,16 @@ class _UsersScreenState extends State<UsersScreen> {
 
   Future fetchRoles() async {
     final roles = await _rolesProvider.getPaged();
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     setState(() {
-      this.roles = roles;
+      _roles = roles;
     });
   }
 
   Future _assignRoleDialog(BuildContext context, int userId) async {
-    String? selectedRoleId = roles!.resultList.first.roleId.toString();
+    String? selectedRoleId = _roles!.resultList.first.roleId.toString();
     await showDialog(
       context: context,
       builder: (dialogContext) {
@@ -116,11 +122,9 @@ class _UsersScreenState extends State<UsersScreen> {
                 isExpanded: true,
                 value: selectedRoleId,
                 onChanged: (String? newValue) {
-                  setState(() {
-                    selectedRoleId = newValue!;
-                  });
+                  selectedRoleId = newValue!;
                 },
-                items: roles!.resultList.map((role) {
+                items: _roles!.resultList.map((role) {
                   return DropdownMenuItem<String>(
                     value: role.roleId.toString(),
                     child: Text(
@@ -216,20 +220,16 @@ class _UsersScreenState extends State<UsersScreen> {
           actions: [
             TextButton(
               onPressed: () async {
-                if (dialogController.text.trim().isNotEmpty) {
+                final dialogText = dialogController.text.trim();
+                if (dialogText.isNotEmpty) {
                   Navigator.of(dialogContext).pop(true);
                   await Future.delayed(const Duration(milliseconds: 250));
-                  if (dialogController.text.trim().isNotEmpty) {
-                    try {
-                      await _usersProvider.adminDelete(
-                        id,
-                        dialogController.text,
-                      );
-                      Helpers.showSuccessMessage(context);
-                      await fetchUsers();
-                    } catch (ex) {
-                      Helpers.showErrorMessage(context, ex);
-                    }
+                  try {
+                    await _usersProvider.adminDelete(id, dialogText);
+                    Helpers.showSuccessMessage(context);
+                    await fetchUsers();
+                  } catch (ex) {
+                    Helpers.showErrorMessage(context, ex);
                   }
                 }
               },
@@ -315,11 +315,30 @@ class _UsersScreenState extends State<UsersScreen> {
           const SizedBox(width: Constants.defaultSpacing),
           Expanded(
             child: DropdownButtonFormField<String>(
+              value: _isDeleted,
+              onChanged: (value) {
+                _isDeleted = value!;
+              },
+              items: ["All users", "Not deleted", "Deleted"].map((
+                String value,
+              ) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(
+                    value,
+                    style: const TextStyle(fontWeight: FontWeight.normal),
+                  ),
+                );
+              }).toList(),
+              decoration: const InputDecoration(labelText: "Is deleted"),
+            ),
+          ),
+          const SizedBox(width: Constants.defaultSpacing),
+          Expanded(
+            child: DropdownButtonFormField<String>(
               value: _orderBy,
               onChanged: (value) {
-                setState(() {
-                  _orderBy = value!;
-                });
+                _orderBy = value!;
               },
               items: ["Username (A-Z)", "Username (Z-A)"].map((String value) {
                 return DropdownMenuItem<String>(
@@ -368,7 +387,7 @@ class _UsersScreenState extends State<UsersScreen> {
               const DataColumn(label: Text("Actions")),
           ],
           rows:
-              users?.resultList
+              _users?.resultList
                   .map(
                     (user) => DataRow(
                       cells: [
@@ -445,7 +464,7 @@ class _UsersScreenState extends State<UsersScreen> {
   }
 
   Widget _buildPagination() {
-    if (users == null || users!.totalPages <= 1) {
+    if (_users == null || _users!.totalPages <= 1) {
       return const SizedBox.shrink();
     }
     return Padding(
@@ -463,10 +482,10 @@ class _UsersScreenState extends State<UsersScreen> {
                   }
                 : null,
           ),
-          Text("Page $_currentPage of ${users!.totalPages}"),
+          Text("Page $_currentPage of ${_users!.totalPages}"),
           IconButton(
             icon: const Icon(Icons.chevron_right),
-            onPressed: _currentPage < users!.totalPages
+            onPressed: _currentPage < _users!.totalPages
                 ? () async {
                     _isLoading = true;
                     _currentPage += 1;

@@ -32,13 +32,17 @@ namespace eBooks.Services
         public override IQueryable<User> AddFilters(IQueryable<User> query, UsersSearch search)
         {
             if (!string.IsNullOrWhiteSpace(search.FirstName))
-                query = query.Where(x => x.FirstName.StartsWith(search.FirstName));
+                query = query.Where(x => x.FirstName.ToLower().StartsWith(search.FirstName.ToLower()));
             if (!string.IsNullOrWhiteSpace(search.LastName))
-                query = query.Where(x => x.LastName.StartsWith(search.LastName));
+                query = query.Where(x => x.LastName.ToLower().StartsWith(search.LastName.ToLower()));
             if (!string.IsNullOrWhiteSpace(search.UserName))
-                query = query.Where(x => x.UserName.StartsWith(search.UserName));
+                query = query.Where(x => x.UserName.ToLower().StartsWith(search.UserName.ToLower()));
             if (!string.IsNullOrWhiteSpace(search.Email))
-                query = query.Where(x => x.Email.StartsWith(search.Email));
+                query = query.Where(x => x.Email.ToLower().StartsWith(search.Email.ToLower()));
+            if (search.IsDeleted == "Not deleted")
+                query = query.Where(x => x.DeletionReason == null);
+            else if (search.IsDeleted == "Deleted")
+                query = query.Where(x => x.DeletionReason != null);
             if (search.OrderBy == "Username (Z-A)")
                 query = query.OrderByDescending(x => x.UserName);
             else

@@ -49,7 +49,12 @@ namespace eBooks.Services.BooksStateMachine
             throw new ExceptionForbidden("Method not allowed");
         }
 
-        public virtual List<string> AllowedActions(Book entity)
+        public virtual List<string> AdminAllowedActions(Book entity)
+        {
+            throw new ExceptionForbidden("Method not allowed");
+        }
+
+        public virtual List<string> UserAllowedActions(Book entity)
         {
             throw new ExceptionForbidden("Method not allowed");
         }

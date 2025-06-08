@@ -4,6 +4,6 @@
     {
         public int UserId { get; set; }
         public int BookId { get; set; }
-        public string ModifiedAt { get; set; }
+        public DateTime ModifiedAt { get; set; }
     }
 }

@@ -11,9 +11,10 @@ namespace eBooks.Interfaces
         Task<Tuple<string, byte[]>> GetBookFile(int id);
         Task<BooksRes> Await(int id);
         Task<BooksRes> Approve(int id);
-        Task<BooksRes> Reject(int id, string message);
+        Task<BooksRes> Reject(int id, string reason);
         Task<BooksRes> Hide(int id);
-        Task<List<string>> AllowedActions(int id);
+        Task<List<string>> AdminAllowedActions(int id);
+        Task<List<string>> UserAllowedActions(int id);
         Task<List<string>> BookStates();
     }
 }

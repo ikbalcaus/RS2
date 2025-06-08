@@ -1,3 +1,9 @@
+import "package:ebooks_admin/models/authors/author.dart";
+import "package:ebooks_admin/models/books/book_author.dart";
+import "package:ebooks_admin/models/books/book_genre.dart";
+import "package:ebooks_admin/models/genres/genre.dart";
+import "package:ebooks_admin/models/languages/language.dart";
+import "package:ebooks_admin/models/users/user.dart";
 import "package:json_annotation/json_annotation.dart";
 
 part "book.g.dart";
@@ -11,17 +17,22 @@ class Book {
   double? price;
   int? numberOfPages;
   int? numberOfViews;
-  String? stateMachine;
+  String? status;
   String? rejectionReason;
   String? deletionReason;
   DateTime? modifiedAt;
-  int? publisherId;
-  //Publisher? publisher;
-  int? languageId;
-  //Language? language;
   int? discountPercentage;
   DateTime? discountStart;
   DateTime? discountEnd;
+  User? publisher;
+  Language? language;
+  List<BookAuthor>? bookAuthors;
+  List<BookGenre>? bookGenres;
+
+  List<Author>? get authors =>
+      bookAuthors?.map((bookAuthor) => bookAuthor.author!).toList();
+  List<Genre>? get genres =>
+      bookGenres?.map((bookGenre) => bookGenre.genre!).toList();
 
   Book({
     this.bookId,
@@ -31,15 +42,17 @@ class Book {
     this.price,
     this.numberOfPages,
     this.numberOfViews,
-    this.stateMachine,
+    this.status,
     this.rejectionReason,
     this.deletionReason,
     this.modifiedAt,
-    this.publisherId,
-    this.languageId,
     this.discountPercentage,
     this.discountStart,
     this.discountEnd,
+    this.publisher,
+    this.language,
+    this.bookAuthors,
+    this.bookGenres,
   });
 
   factory Book.fromJson(Map<String, dynamic> json) => _$BookFromJson(json);

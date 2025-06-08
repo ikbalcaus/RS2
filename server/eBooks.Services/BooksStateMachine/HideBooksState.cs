@@ -30,8 +30,8 @@ namespace eBooks.Services.BooksStateMachine
             var filePath = entity.FilePath;
             if (req.BookPdfFile != null)
                 await Helpers.UploadPdfFile(filePath, req.BookPdfFile, true);
-            if (req.PreviewPdfFile != null)
-                await Helpers.UploadPdfFile(filePath, req.PreviewPdfFile, false);
+            if (req.SummaryPdfFile != null)
+                await Helpers.UploadPdfFile(filePath, req.SummaryPdfFile, false);
             if (req.ImageFile != null)
                 await Helpers.UploadImageFile(filePath, req.ImageFile);
             await _db.SaveChangesAsync();
@@ -50,9 +50,9 @@ namespace eBooks.Services.BooksStateMachine
             return _mapper.Map<BooksRes>(entity);
         }
 
-        public override List<string> AllowedActions(Book entity)
+        public override List<string> AdminAllowedActions(Book entity)
         {
-            return new List<string>() { nameof(Update), nameof(Hide) };
+            return new List<string>() { };
         }
     }
 }

@@ -79,6 +79,8 @@ namespace eBooks.Services
             var book = await _db.Books.Include(x => x.Publisher).FirstOrDefaultAsync(x => x.BookId == bookId);
             if (book == null)
                 throw new ExceptionNotFound();
+            if (book.DeletionReason != null)
+                throw new ExceptionBadRequest("This book is deleted");
             if (await _db.Set<AccessRight>().AnyAsync(x => x.UserId == userId && x.BookId == bookId))
                 errors.AddError("Book", "You already possess this book");
             if (book.Price == 0)
@@ -98,7 +100,7 @@ namespace eBooks.Services
                 _bus.PubSub.Publish(new EmailVerification { Token = _mapper.Map<TokenRes>(user) });
                 throw new ExceptionBadRequest("Your email is not verified, please check your email and verifiy it");
             }
-            var finalPrice = Helpers.CalculateDiscountedPrice(book.Price, book.DiscountPercentage, book.DiscountStart, book.DiscountEnd);
+            var finalPrice = Helpers.CalculateDiscountedPrice((decimal)book.Price, book.DiscountPercentage, book.DiscountStart, book.DiscountEnd);
             var priceInCents = (long)(finalPrice * 100);
             var platformFee = (long)(finalPrice * 100 * 0.10m);
             var options = new SessionCreateOptions

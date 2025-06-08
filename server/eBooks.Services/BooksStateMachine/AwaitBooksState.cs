@@ -41,8 +41,8 @@ namespace eBooks.Services.BooksStateMachine
             var filePath = entity.FilePath;
             if (req.BookPdfFile != null)
                 await Helpers.UploadPdfFile(filePath, req.BookPdfFile, true);
-            if (req.PreviewPdfFile != null)
-                await Helpers.UploadPdfFile(filePath, req.PreviewPdfFile, false);
+            if (req.SummaryPdfFile != null)
+                await Helpers.UploadPdfFile(filePath, req.SummaryPdfFile, false);
             if (req.ImageFile != null)
                 await Helpers.UploadImageFile(filePath, req.ImageFile);
             await _db.SaveChangesAsync();
@@ -66,24 +66,24 @@ namespace eBooks.Services.BooksStateMachine
             return result;
         }
 
-        public override async Task<BooksRes> Reject(int id, string message)
+        public override async Task<BooksRes> Reject(int id, string reason)
         {
             var entity = await _db.Set<Book>().Include(x => x.Publisher).FirstOrDefaultAsync(x => x.BookId == id);
             if (entity == null)
                 throw new ExceptionNotFound();
             entity.StateMachine = "reject";
-            entity.RejectionReason = message;
+            entity.RejectionReason = reason;
             entity.ReviewedById = GetUserId();
             await _db.SaveChangesAsync();
-            _logger.LogInformation($"Book with title {entity.Title} rejected. Reason: {message}");
+            _logger.LogInformation($"Book with title {entity.Title} rejected. Reason: {reason}");
             var result = _mapper.Map<BooksRes>(entity);
             _bus.PubSub.Publish(new BookReviewed { Book = result });
             return result;
         }
 
-        public override List<string> AllowedActions(Book entity)
+        public override List<string> AdminAllowedActions(Book entity)
         {
-            return new List<string>() { nameof(Update), nameof(Approve), nameof(Reject) };
+            return new List<string>() { nameof(Approve), nameof(Reject) };
         }
     }
 }

@@ -10,20 +10,20 @@ namespace eBooks.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class PurchasesController : BaseReadOnlyController<BaseSearch, PurchasesRes>
+    public class PurchasesController : BaseReadOnlyController<PurchasesSearch, PurchasesRes>
     {
         public PurchasesController(IPurchasesService service)
             : base(service)
         {
         }
 
-        [Authorize(Policy = "Admin")]
-        public override async Task<PagedResult<PurchasesRes>> GetPaged([FromQuery] BaseSearch search)
+        [Authorize(Policy = "Moderator")]
+        public override async Task<PagedResult<PurchasesRes>> GetPaged([FromQuery] PurchasesSearch search)
         {
             return await base.GetPaged(search);
         }
 
-        [Authorize(Policy = "Admin")]
+        [Authorize(Policy = "Moderator")]
         public override async Task<PurchasesRes> GetById(int id)
         {
             return await base.GetById(id);

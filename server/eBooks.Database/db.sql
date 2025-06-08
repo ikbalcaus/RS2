@@ -24,8 +24,8 @@ CREATE TABLE Users (
     VerificationToken NVARCHAR(100),
     TokenExpiry DATETIME,
     DeletionReason NVARCHAR(255),
-    RoleId INT NOT NULL,
     StripeAccountId NVARCHAR(255),
+    RoleId INT NOT NULL,
     PublisherVerifiedById INT,
     FOREIGN KEY (RoleId) REFERENCES Roles(RoleId),
     FOREIGN KEY (PublisherVerifiedById) REFERENCES Users(UserId)
@@ -62,7 +62,7 @@ CREATE TABLE Books (
     FilePath NVARCHAR(255) NOT NULL,
     Price DECIMAL(10,2),
     NumberOfPages INT,
-    NumberOfViews INT,
+    NumberOfViews INT NOT NULL DEFAULT 0,
     LanguageId INT NOT NULL,
     PublisherId INT NOT NULL,
     ReviewedById INT,

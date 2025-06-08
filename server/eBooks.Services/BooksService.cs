@@ -1,5 +1,7 @@
 ﻿using System.Security.Claims;
+using Azure;
 using EasyNetQ;
+using EasyNetQ.Internals;
 using eBooks.Database;
 using eBooks.Database.Models;
 using eBooks.Interfaces;
@@ -9,10 +11,12 @@ using eBooks.Models.Requests;
 using eBooks.Models.Responses;
 using eBooks.Models.Search;
 using eBooks.Services.BooksStateMachine;
+using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace eBooks.Services
 {
@@ -32,9 +36,74 @@ namespace eBooks.Services
 
         protected async Task<bool> AccessRightExist(int bookId) => await _db.Set<AccessRight>().AnyAsync(x => x.UserId == GetUserId() && x.BookId == bookId);
 
+        public override IQueryable<Book> AddIncludes(IQueryable<Book> query, BooksSearch? search = null)
+        {
+            query = query.Include(x => x.Publisher);
+            query = query.Include(x => x.Language);
+            if (search == null || search.IsAuthorsIncluded == true)
+                query = query.Include(x => x.BookAuthors).ThenInclude(x => x.Author);
+            if (search == null || search.IsGenresIncluded == true)
+                query = query.Include(x => x.BookGenres).ThenInclude(x => x.Genre);
+            return query;
+        }
+
+        public override IQueryable<Book> AddFilters(IQueryable<Book> query, BooksSearch search)
+        {
+            if (!string.IsNullOrWhiteSpace(search.Title))
+                query = query.Where(x => x.Title.ToLower().StartsWith(search.Title.ToLower()));
+            if (!string.IsNullOrWhiteSpace(search.Publisher))
+                query = query.Where(x => x.Publisher.UserName.ToLower().StartsWith(search.Publisher.ToLower()));
+            if (!string.IsNullOrWhiteSpace(search.Language))
+                query = query.Where(x => x.Language.Name.ToLower().StartsWith(search.Language.ToLower()));
+            query = search.Status switch
+            {
+                "Approved" => query.Where(x => x.StateMachine == "approve"),
+                "Awaited" => query.Where(x => x.StateMachine == "await"),
+                "Drafted" => query.Where(x => x.StateMachine == "draft"),
+                "Hidden" => query.Where(x => x.StateMachine == "hide"),
+                "Rejected" => query.Where(x => x.StateMachine == "reject"),
+                _ => query,
+            };
+            if (search.IsDeleted == "Not deleted")
+                query = query.Where(x => x.DeletionReason == null);
+            else if (search.IsDeleted == "Deleted")
+                query = query.Where(x => x.DeletionReason != null);
+            query = search.OrderBy switch
+            {
+                "First modified" => query.OrderBy(x => x.ModifiedAt),
+                "Title (A-Z)" => query.OrderBy(x => x.Title),
+                "Title (Z-A)" => query.OrderByDescending(x => x.Title),
+                "Publisher (A-Z)" => query.OrderBy(x => x.Publisher.UserName),
+                "Publisher (Z-A)" => query.OrderByDescending(x => x.Publisher.UserName),
+                _ => query.OrderByDescending(x => x.ModifiedAt),
+            };
+            return query;
+        }
+
+        public override async Task<PagedResult<BooksRes>> GetPaged(BooksSearch search)
+        {
+            var query = _db.Set<Book>().AsQueryable();
+            query = AddIncludes(query);
+            query = AddFilters(query, search);
+            int count = await query.CountAsync();
+            if (search?.Page.HasValue == true && search?.PageSize.HasValue == true && search.Page.Value > 0)
+                query = query.Skip((search.Page.Value - 1) * search.PageSize.Value).Take(search.PageSize.Value);
+            var list = await query.ToListAsync();
+            TypeAdapterConfig<Book, BooksRes>.NewConfig().Map(dest => dest.Status, src => MapState(src.StateMachine));
+            var result = list.Adapt<List<BooksRes>>();
+            var pagedResult = new PagedResult<BooksRes>
+            {
+                ResultList = result,
+                Count = count
+            };
+            return pagedResult;
+        }
+
         public override async Task<BooksRes> GetById(int id)
         {
-            var entity = _db.Set<Book>().FirstOrDefault(x => x.BookId == id);
+            var query = _db.Set<Book>().AsQueryable();
+            query = AddIncludes(query);
+            var entity = query.FirstOrDefault(x => x.BookId == id);
             if (entity == null)
                 throw new ExceptionNotFound();
             var result = _mapper.Map<BooksRes>(entity);
@@ -45,6 +114,7 @@ namespace eBooks.Services
                 await _db.SaveChangesAsync();
             }
             result.HasAccessRight = await AccessRightExist(id);
+            result.Status = MapState(entity.StateMachine);
             return result;
         }
 
@@ -60,8 +130,8 @@ namespace eBooks.Services
             entity.FilePath = filePath;
             if (req.BookPdfFile != null)
                 await Helpers.UploadPdfFile(filePath, req.BookPdfFile, true);
-            if (req.PreviewPdfFile != null)
-                await Helpers.UploadPdfFile(filePath, req.PreviewPdfFile, false);
+            if (req.SummaryPdfFile != null)
+                await Helpers.UploadPdfFile(filePath, req.SummaryPdfFile, false);
             if (req.ImageFile != null)
                 await Helpers.UploadImageFile(filePath, req.ImageFile);
             _db.Add(entity);
@@ -154,7 +224,6 @@ namespace eBooks.Services
             if (entity == null)
                 throw new ExceptionNotFound();
             var state = _baseBooksState.CheckState(entity.StateMachine);
-            _logger.LogInformation($"Book with title {entity.Title} awaited.");
             return await state.Await(id);
         }
 
@@ -164,18 +233,16 @@ namespace eBooks.Services
             if (entity == null)
                 throw new ExceptionNotFound();
             var state = _baseBooksState.CheckState(entity.StateMachine);
-            _logger.LogInformation($"Book with title {entity.Title} approved.");
             return await state.Approve(id);
         }
 
-        public async Task<BooksRes> Reject(int id, string message)
+        public async Task<BooksRes> Reject(int id, string reason)
         {
             var entity = await _db.Set<Book>().FindAsync(id);
             if (entity == null)
                 throw new ExceptionNotFound();
             var state = _baseBooksState.CheckState(entity.StateMachine);
-            _logger.LogInformation($"Book with title {entity.Title} rejected with message \"{message}\".");
-            return await state.Reject(id, message);
+            return await state.Reject(id, reason);
         }
 
         public async Task<BooksRes> Hide(int id)
@@ -184,22 +251,43 @@ namespace eBooks.Services
             if (entity == null)
                 throw new ExceptionNotFound();
             var state = _baseBooksState.CheckState(entity.StateMachine);
-            _logger.LogInformation($"Book with title {entity.Title} is hidden/not hidden.");
             return await state.Hide(id);
         }
 
-        public async Task<List<string>> AllowedActions(int id)
+        public async Task<List<string>> AdminAllowedActions(int id)
         {
             var entity = await _db.Set<Book>().FindAsync(id);
             if (entity == null)
                 throw new ExceptionNotFound();
             var state = _baseBooksState.CheckState(entity.StateMachine);
-            return state.AllowedActions(entity);
+            return state.AdminAllowedActions(entity);
+        }
+
+        public async Task<List<string>> UserAllowedActions(int id)
+        {
+            var entity = await _db.Set<Book>().FindAsync(id);
+            if (entity == null)
+                throw new ExceptionNotFound();
+            var state = _baseBooksState.CheckState(entity.StateMachine);
+            return state.UserAllowedActions(entity);
         }
 
         public async Task<List<string>> BookStates()
         {
-            return new List<string> { "Approved", "Awaited", "Drafted", "Hidden", "Rejected" };
+            return ["Approved", "Awaited", "Drafted", "Hidden", "Rejected"];
+        }
+
+        protected string MapState(string state)
+        {
+            return state switch
+            {
+                "draft" => "Drafted",
+                "await" => "Awaited",
+                "approve" => "Approved",
+                "reject" => "Rejected",
+                "hide" => "Hidden",
+                _ => state ?? string.Empty
+            };
         }
     }
 }

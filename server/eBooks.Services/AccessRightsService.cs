@@ -22,6 +22,8 @@ namespace eBooks.Services
             var book = await _db.Set<Book>().FindAsync(bookId);
             if (book == null)
                 throw new ExceptionNotFound();
+            if (book.DeletionReason != null)
+                throw new ExceptionBadRequest("This book is deleted");
             var userId = GetUserId();
             if (await _db.Set<AccessRight>().AnyAsync(x => x.UserId == userId && x.BookId == bookId))
                 errors.AddError("Book", "You already possess this book");

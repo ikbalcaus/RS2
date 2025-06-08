@@ -8,7 +8,8 @@ import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 
 class LanguagesScreen extends StatefulWidget {
-  const LanguagesScreen({super.key});
+  final String? name;
+  const LanguagesScreen({super.key, this.name});
 
   @override
   State<LanguagesScreen> createState() => _LanguagesScreenState();
@@ -16,17 +17,19 @@ class LanguagesScreen extends StatefulWidget {
 
 class _LanguagesScreenState extends State<LanguagesScreen> {
   late LanguagesProvider _languagesProvider;
-  SearchResult<Language>? languages;
+  SearchResult<Language>? _languages;
   bool _isLoading = true;
   int _currentPage = 1;
-  Map<String, dynamic> _currentFilter = {};
   String _orderBy = "Last modified";
+  Map<String, dynamic> _currentFilter = {};
 
   final TextEditingController _nameEditingController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    _nameEditingController.text = widget.name ?? "";
+    _currentFilter = {"name": widget.name ?? ""};
     _languagesProvider = context.read<LanguagesProvider>();
     fetchLanguages();
   }
@@ -62,7 +65,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
         return;
       }
       setState(() {
-        this.languages = languages;
+        _languages = languages;
       });
     } catch (ex) {
       if (!mounted) return;
@@ -98,19 +101,16 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
           actions: [
             TextButton(
               onPressed: () async {
-                if (dialogController.text.trim().isNotEmpty) {
+                final dialogText = dialogController.text.trim();
+                if (dialogText.isNotEmpty) {
                   Navigator.of(dialogContext).pop(true);
                   await Future.delayed(const Duration(milliseconds: 250));
-                  if (dialogController.text.trim().isNotEmpty) {
-                    try {
-                      await _languagesProvider.put(id, {
-                        "name": dialogController.text,
-                      });
-                      Helpers.showSuccessMessage(context);
-                      await fetchLanguages();
-                    } catch (ex) {
-                      Helpers.showErrorMessage(context, ex);
-                    }
+                  try {
+                    await _languagesProvider.put(id, {"name": dialogText});
+                    Helpers.showSuccessMessage(context);
+                    await fetchLanguages();
+                  } catch (ex) {
+                    Helpers.showErrorMessage(context, ex);
                   }
                 }
               },
@@ -169,7 +169,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
           Expanded(
             child: TextField(
               controller: _nameEditingController,
-              decoration: const InputDecoration(labelText: "Name"),
+              decoration: const InputDecoration(labelText: "Language"),
             ),
           ),
           const SizedBox(width: Constants.defaultSpacing),
@@ -177,9 +177,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
             child: DropdownButtonFormField<String>(
               value: _orderBy,
               onChanged: (value) {
-                setState(() {
-                  _orderBy = value!;
-                });
+                _orderBy = value!;
               },
               items:
                   [
@@ -238,12 +236,12 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
       child: SingleChildScrollView(
         child: DataTable(
           columns: const [
-            DataColumn(label: Text("Name")),
+            DataColumn(label: Text("Language")),
             DataColumn(label: Text("Modified by")),
             DataColumn(label: Text("Actions")),
           ],
           rows:
-              languages?.resultList
+              _languages?.resultList
                   .map(
                     (language) => DataRow(
                       cells: [
@@ -287,7 +285,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
   }
 
   Widget _buildPagination() {
-    if (languages == null || languages!.totalPages <= 1) {
+    if (_languages == null || _languages!.totalPages <= 1) {
       return const SizedBox.shrink();
     }
     return Padding(
@@ -305,10 +303,10 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
                   }
                 : null,
           ),
-          Text("Page $_currentPage of ${languages!.totalPages}"),
+          Text("Page $_currentPage of ${_languages!.totalPages}"),
           IconButton(
             icon: const Icon(Icons.chevron_right),
-            onPressed: _currentPage < languages!.totalPages
+            onPressed: _currentPage < _languages!.totalPages
                 ? () async {
                     _isLoading = true;
                     _currentPage += 1;

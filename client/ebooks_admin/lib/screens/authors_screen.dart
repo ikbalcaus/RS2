@@ -8,7 +8,8 @@ import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 
 class AuthorsScreen extends StatefulWidget {
-  const AuthorsScreen({super.key});
+  final String? name;
+  const AuthorsScreen({super.key, this.name});
 
   @override
   State<AuthorsScreen> createState() => _AuthorsScreenState();
@@ -16,17 +17,19 @@ class AuthorsScreen extends StatefulWidget {
 
 class _AuthorsScreenState extends State<AuthorsScreen> {
   late AuthorsProvider _authorsProvider;
-  SearchResult<Author>? authors;
+  SearchResult<Author>? _authors;
   bool _isLoading = true;
   int _currentPage = 1;
-  Map<String, dynamic> _currentFilter = {};
   String _orderBy = "Last modified";
+  Map<String, dynamic> _currentFilter = {};
 
   final TextEditingController _nameEditingController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    _nameEditingController.text = widget.name ?? "";
+    _currentFilter = {"name": widget.name ?? ""};
     _authorsProvider = context.read<AuthorsProvider>();
     fetchAuthors();
   }
@@ -62,7 +65,7 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
         return;
       }
       setState(() {
-        this.authors = authors;
+        _authors = authors;
       });
     } catch (ex) {
       if (!mounted) return;
@@ -98,19 +101,16 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
           actions: [
             TextButton(
               onPressed: () async {
-                if (dialogController.text.trim().isNotEmpty) {
+                final dialogText = dialogController.text.trim();
+                if (dialogText.isNotEmpty) {
                   Navigator.of(dialogContext).pop(true);
                   await Future.delayed(const Duration(milliseconds: 250));
-                  if (dialogController.text.trim().isNotEmpty) {
-                    try {
-                      await _authorsProvider.put(id, {
-                        "name": dialogController.text,
-                      });
-                      Helpers.showSuccessMessage(context);
-                      await fetchAuthors();
-                    } catch (ex) {
-                      Helpers.showErrorMessage(context, ex);
-                    }
+                  try {
+                    await _authorsProvider.put(id, {"name": dialogText});
+                    Helpers.showSuccessMessage(context);
+                    await fetchAuthors();
+                  } catch (ex) {
+                    Helpers.showErrorMessage(context, ex);
                   }
                 }
               },
@@ -169,7 +169,7 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
           Expanded(
             child: TextField(
               controller: _nameEditingController,
-              decoration: const InputDecoration(labelText: "Name"),
+              decoration: const InputDecoration(labelText: "Author"),
             ),
           ),
           const SizedBox(width: Constants.defaultSpacing),
@@ -177,9 +177,7 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
             child: DropdownButtonFormField<String>(
               value: _orderBy,
               onChanged: (value) {
-                setState(() {
-                  _orderBy = value!;
-                });
+                _orderBy = value!;
               },
               items:
                   [
@@ -238,12 +236,12 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
       child: SingleChildScrollView(
         child: DataTable(
           columns: const [
-            DataColumn(label: Text("Name")),
+            DataColumn(label: Text("Author")),
             DataColumn(label: Text("Modified by")),
             DataColumn(label: Text("Actions")),
           ],
           rows:
-              authors?.resultList
+              _authors?.resultList
                   .map(
                     (author) => DataRow(
                       cells: [
@@ -287,7 +285,7 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
   }
 
   Widget _buildPagination() {
-    if (authors == null || authors!.totalPages <= 1) {
+    if (_authors == null || _authors!.totalPages <= 1) {
       return const SizedBox.shrink();
     }
     return Padding(
@@ -305,10 +303,10 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
                   }
                 : null,
           ),
-          Text("Page $_currentPage of ${authors!.totalPages}"),
+          Text("Page $_currentPage of ${_authors!.totalPages}"),
           IconButton(
             icon: const Icon(Icons.chevron_right),
-            onPressed: _currentPage < authors!.totalPages
+            onPressed: _currentPage < _authors!.totalPages
                 ? () async {
                     _isLoading = true;
                     _currentPage += 1;

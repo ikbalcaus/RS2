@@ -29,21 +29,32 @@ namespace eBooks.Services
         public static string GenerateSalt(int size = 32)
         {
             var saltBytes = new byte[size];
-            using (var rng = RandomNumberGenerator.Create())
+            using (var x = RandomNumberGenerator.Create())
             {
-                rng.GetBytes(saltBytes);
+                x.GetBytes(saltBytes);
             }
             return Convert.ToBase64String(saltBytes);
         }
 
         public static string GenerateHash(string password, string salt)
         {
-            using (var sha256 = SHA256.Create())
+            var combined = password + salt;
+            var hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(combined));
+            return Convert.ToBase64String(hashBytes);
+        }
+
+        public static decimal? CalculateDiscountedPrice(decimal price, int? discountPercentage, DateTime? discountStart, DateTime? discountEnd)
+        {
+            if (discountPercentage.HasValue && discountStart.HasValue && discountEnd.HasValue)
             {
-                var combined = password + salt;
-                var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(combined));
-                return Convert.ToBase64String(hashBytes);
+                var now = DateTime.UtcNow;
+                if (now >= discountStart.Value && now <= discountEnd.Value)
+                {
+                    decimal discountFactor = (100 - discountPercentage.Value) / 100m;
+                    return Math.Round(price * discountFactor, 2);
+                }
             }
+            return price;
         }
 
         public static void AddError(this Dictionary<string, List<string>> errors, string key, string errorMessage)
@@ -63,13 +74,10 @@ namespace eBooks.Services
             var extension = Path.GetExtension(file.FileName).ToLower();
             if (!allowedExtensions.Contains(extension) || !allowedTypes.Contains(file.ContentType))
                 throw new ExceptionBadRequest("Only JPG, PNG or WEBP image formats are allowed.");
-            var rootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-            var folderPath = Path.Combine(rootPath, "images");
-            if (!Directory.Exists(folderPath))
-                Directory.CreateDirectory(folderPath);
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
             if (!string.IsNullOrEmpty(filePath))
             {
-                var oldFilePath = Path.Combine(rootPath, filePath.TrimStart('/'));
+                var oldFilePath = Path.Combine(folderPath, filePath.TrimStart('/'));
                 if (File.Exists(oldFilePath))
                     File.Delete(oldFilePath);
             }
@@ -95,33 +103,17 @@ namespace eBooks.Services
         {
             if (file.ContentType != "application/pdf" || Path.GetExtension(file.FileName).ToLower() != ".pdf")
                 throw new ExceptionBadRequest("Only PDF files are allowed.");
-            var rootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-            var folderPath = Path.Combine(rootPath, isBookPdf ? Path.Combine("pdfs", "books") : Path.Combine("pdfs", "previews"));
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", isBookPdf ? Path.Combine("pdfs", "books") : Path.Combine("pdfs", "summary"));
             if (!Directory.Exists(folderPath))
                 Directory.CreateDirectory(folderPath);
             if (!string.IsNullOrEmpty(filePath))
             {
-                var oldFilePath = Path.Combine(rootPath, filePath.TrimStart('/'));
+                var oldFilePath = Path.Combine(folderPath, filePath.TrimStart('/'));
                 if (File.Exists(oldFilePath))
                     File.Delete(oldFilePath);
             }
             await using var stream = new FileStream(Path.Combine(folderPath, $"{filePath}.pdf"), FileMode.Create);
             await file.CopyToAsync(stream);
-        }
-
-        public static decimal? CalculateDiscountedPrice(decimal? price, int? discountPercentage, DateTime? discountStart, DateTime? discountEnd)
-        {
-            if (price == null) return null;
-            if (discountPercentage.HasValue && discountStart.HasValue && discountEnd.HasValue)
-            {
-                var now = DateTime.UtcNow;
-                if (now >= discountStart.Value && now <= discountEnd.Value)
-                {
-                    decimal discountFactor = (100 - discountPercentage.Value) / 100m;
-                    return Math.Round(price.Value * discountFactor, 2);
-                }
-            }
-            return price;
         }
     }
 }

@@ -5,10 +5,13 @@
         public string? Title { get; set; }
         public decimal? MinPrice { get; set; }
         public decimal? MaxPrice { get; set; }
-        public string? StateMachine { get; set; }
         public string? Author { get; set; }
-        public string? PublisherName { get; set; }
+        public string? Publisher { get; set; }
         public string? Language { get; set; }
+        public string? Status { get; set; }
+        public string? IsDeleted { get; set; }
         public string? OrderBy { get; set; }
+        public bool? IsAuthorsIncluded { get; set; }
+        public bool? IsGenresIncluded { get; set; }
     }
 }

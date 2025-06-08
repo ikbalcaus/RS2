@@ -19,7 +19,7 @@ namespace eBooks.MessageHandlers
         {
             var email = message.Book.Publisher.Email;
             string notificationMessage;
-            if (message.Book.StateMachine == "approve")
+            if (message.Book.Status == "Approved")
                 notificationMessage = "Your book is approved";
             else
                 notificationMessage = $"Your book is rejected. Reason: {message.Book.RejectionReason}";
@@ -30,7 +30,7 @@ namespace eBooks.MessageHandlers
         public async Task NotifyUser(BookReviewed message)
         {
             string notificationMessage;
-            if (message.Book.StateMachine == "approve")
+            if (message.Book.Status == "Approved")
                 notificationMessage = "Your book is approved";
             else
                 notificationMessage = $"Your book is rejected. Reason: {message.Book.RejectionReason}";

@@ -20,7 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   Map<String, List<String>> _fieldErrors = {};
 
-  void _login() async {
+  void login() async {
     setState(() {
       _isLoading = true;
       _fieldErrors.clear();
@@ -132,7 +132,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     : SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: _login,
+                          onPressed: () async {
+                            login();
+                          },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Constants.defaultBackgroundColor,
                             shape: const RoundedRectangleBorder(

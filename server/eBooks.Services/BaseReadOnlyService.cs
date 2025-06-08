@@ -23,13 +23,14 @@ namespace eBooks.Services
 
         public virtual async Task<PagedResult<TResponse>> GetPaged(TSearch search)
         {
-            var result = new List<TResponse>();
             var query = _db.Set<TEntity>().AsQueryable();
+            query = AddIncludes(query, search);
             query = AddFilters(query, search);
             int count = await query.CountAsync();
             if (search?.Page.HasValue == true && search?.PageSize.HasValue == true && search.Page.Value > 0)
                 query = query.Skip((search.Page.Value - 1) * search.PageSize.Value).Take(search.PageSize.Value);
             var list = await query.ToListAsync();
+            var result = new List<TResponse>();
             result = _mapper.Map(list, result);
             PagedResult<TResponse> pagedResult = new PagedResult<TResponse>
             {
@@ -41,10 +42,18 @@ namespace eBooks.Services
 
         public virtual async Task<TResponse> GetById(int id)
         {
-            var entity = await _db.Set<TEntity>().FindAsync(id);
+            var query = _db.Set<TEntity>().AsQueryable();
+            query = AddIncludes(query);
+            var idProperty = typeof(TEntity).GetProperties().FirstOrDefault(x => x.Name.EndsWith("Id", StringComparison.OrdinalIgnoreCase));
+            var entity = await query.FirstOrDefaultAsync(x => EF.Property<int>(x, idProperty.Name) == id);
             if (entity == null)
                 throw new ExceptionNotFound();
             return _mapper.Map<TResponse>(entity);
+        }
+
+        public virtual IQueryable<TEntity> AddIncludes(IQueryable<TEntity> query, TSearch? search = null)
+        {
+            return query;
         }
 
         public virtual IQueryable<TEntity> AddFilters(IQueryable<TEntity> query, TSearch search)

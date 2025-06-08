@@ -28,7 +28,7 @@ namespace eBooks.Services
                 throw new ExceptionNotFound();
             if (!await _db.Set<Role>().AnyAsync(x => x.RoleId == roleId))
                 throw new ExceptionNotFound();
-            if (userId != (int.TryParse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : 0))
+            if (userId == (int.TryParse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : 0))
                 throw new ExceptionBadRequest("You cannot assign role to yourself");
             entity.RoleId = roleId;
             await _db.SaveChangesAsync();

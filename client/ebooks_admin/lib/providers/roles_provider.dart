@@ -1,4 +1,3 @@
-import "dart:convert";
 import "package:ebooks_admin/models/roles/role.dart";
 import "package:ebooks_admin/providers/base_provider.dart";
 import "package:ebooks_admin/utils/constants.dart";
@@ -18,10 +17,7 @@ class RolesProvider extends BaseProvider<Role> {
     );
     var headers = createHeaders();
     var response = await http.patch(uri, headers: headers);
-    if (isValidResponse(response)) {
-      var data = jsonDecode(response.body);
-      return fromJson(data);
-    } else {
+    if (!isValidResponse(response)) {
       throw response.body;
     }
   }

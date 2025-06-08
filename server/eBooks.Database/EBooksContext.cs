@@ -57,7 +57,7 @@ public partial class EBooksContext : DbContext
     {
         modelBuilder.Entity<AccessRight>(entity =>
         {
-            entity.HasKey(e => new { e.UserId, e.BookId }).HasName("PK__AccessRi__7456C06C7782EA48");
+            entity.HasKey(e => new { e.UserId, e.BookId }).HasName("PK__AccessRi__7456C06C26C365E2");
 
             entity.Property(e => e.ModifiedAt)
                 .HasDefaultValueSql("(getdate())")
@@ -76,9 +76,9 @@ public partial class EBooksContext : DbContext
 
         modelBuilder.Entity<Author>(entity =>
         {
-            entity.HasKey(e => e.AuthorId).HasName("PK__Authors__70DAFC34EEE8D231");
+            entity.HasKey(e => e.AuthorId).HasName("PK__Authors__70DAFC34CFC9EA09");
 
-            entity.HasIndex(e => e.Name, "UQ__Authors__737584F695A7C71A").IsUnique();
+            entity.HasIndex(e => e.Name, "UQ__Authors__737584F68C39ECDA").IsUnique();
 
             entity.Property(e => e.ModifiedAt)
                 .HasDefaultValueSql("(getdate())")
@@ -92,7 +92,7 @@ public partial class EBooksContext : DbContext
 
         modelBuilder.Entity<Book>(entity =>
         {
-            entity.HasKey(e => e.BookId).HasName("PK__Books__3DE0C2072FE1C081");
+            entity.HasKey(e => e.BookId).HasName("PK__Books__3DE0C207C3285ED6");
 
             entity.Property(e => e.DeletionReason).HasMaxLength(255);
             entity.Property(e => e.DiscountEnd).HasColumnType("datetime");
@@ -125,7 +125,7 @@ public partial class EBooksContext : DbContext
 
         modelBuilder.Entity<BookAuthor>(entity =>
         {
-            entity.HasKey(e => new { e.BookId, e.AuthorId }).HasName("PK__BookAuth__6AED6DC4A658634A");
+            entity.HasKey(e => new { e.BookId, e.AuthorId }).HasName("PK__BookAuth__6AED6DC468D6097A");
 
             entity.Property(e => e.ModifiedAt)
                 .HasDefaultValueSql("(getdate())")
@@ -144,7 +144,7 @@ public partial class EBooksContext : DbContext
 
         modelBuilder.Entity<BookGenre>(entity =>
         {
-            entity.HasKey(e => new { e.BookId, e.GenreId }).HasName("PK__BookGenr__CDD892502C7F5F7A");
+            entity.HasKey(e => new { e.BookId, e.GenreId }).HasName("PK__BookGenr__CDD89250ECBA2F59");
 
             entity.Property(e => e.ModifiedAt)
                 .HasDefaultValueSql("(getdate())")
@@ -163,7 +163,7 @@ public partial class EBooksContext : DbContext
 
         modelBuilder.Entity<Favorite>(entity =>
         {
-            entity.HasKey(e => new { e.UserId, e.BookId }).HasName("PK__Favorite__7456C06CAE0FD8DA");
+            entity.HasKey(e => new { e.UserId, e.BookId }).HasName("PK__Favorite__7456C06CD607D4E5");
 
             entity.Property(e => e.ModifiedAt)
                 .HasDefaultValueSql("(getdate())")
@@ -182,9 +182,9 @@ public partial class EBooksContext : DbContext
 
         modelBuilder.Entity<Genre>(entity =>
         {
-            entity.HasKey(e => e.GenreId).HasName("PK__Genres__0385057E23B81E02");
+            entity.HasKey(e => e.GenreId).HasName("PK__Genres__0385057E0E163952");
 
-            entity.HasIndex(e => e.Name, "UQ__Genres__737584F63C4A65B2").IsUnique();
+            entity.HasIndex(e => e.Name, "UQ__Genres__737584F6908FE32F").IsUnique();
 
             entity.Property(e => e.ModifiedAt)
                 .HasDefaultValueSql("(getdate())")
@@ -198,9 +198,9 @@ public partial class EBooksContext : DbContext
 
         modelBuilder.Entity<Language>(entity =>
         {
-            entity.HasKey(e => e.LanguageId).HasName("PK__Language__B93855AB4399A0E8");
+            entity.HasKey(e => e.LanguageId).HasName("PK__Language__B93855ABD2A20856");
 
-            entity.HasIndex(e => e.Name, "UQ__Language__737584F62256A1B0").IsUnique();
+            entity.HasIndex(e => e.Name, "UQ__Language__737584F64898A59E").IsUnique();
 
             entity.Property(e => e.ModifiedAt)
                 .HasDefaultValueSql("(getdate())")
@@ -214,7 +214,7 @@ public partial class EBooksContext : DbContext
 
         modelBuilder.Entity<Notification>(entity =>
         {
-            entity.HasKey(e => e.NotificationId).HasName("PK__Notifica__20CF2E12FF76292C");
+            entity.HasKey(e => e.NotificationId).HasName("PK__Notifica__20CF2E1272443739");
 
             entity.Property(e => e.ModifiedAt)
                 .HasDefaultValueSql("(getdate())")
@@ -236,7 +236,7 @@ public partial class EBooksContext : DbContext
 
         modelBuilder.Entity<PublisherFollow>(entity =>
         {
-            entity.HasKey(e => new { e.UserId, e.PublisherId }).HasName("PK__Publishe__B34E9BB653267417");
+            entity.HasKey(e => new { e.UserId, e.PublisherId }).HasName("PK__Publishe__B34E9BB68AEB7512");
 
             entity.Property(e => e.ModifiedAt)
                 .HasDefaultValueSql("(getdate())")
@@ -255,7 +255,7 @@ public partial class EBooksContext : DbContext
 
         modelBuilder.Entity<Purchase>(entity =>
         {
-            entity.HasKey(e => e.PurchaseId).HasName("PK__Purchase__6B0A6BBE1C3A997F");
+            entity.HasKey(e => e.PurchaseId).HasName("PK__Purchase__6B0A6BBE3A68F1E4");
 
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
@@ -298,7 +298,7 @@ public partial class EBooksContext : DbContext
 
         modelBuilder.Entity<Question>(entity =>
         {
-            entity.HasKey(e => e.QuestionId).HasName("PK__Question__0DC06FAC6B347967");
+            entity.HasKey(e => e.QuestionId).HasName("PK__Question__0DC06FAC19075DFB");
 
             entity.Property(e => e.AnsweredAt).HasColumnType("datetime");
             entity.Property(e => e.ModifiedAt)
@@ -318,7 +318,7 @@ public partial class EBooksContext : DbContext
 
         modelBuilder.Entity<ReadingProgress>(entity =>
         {
-            entity.HasKey(e => new { e.UserId, e.BookId }).HasName("PK__ReadingP__7456C06C3B020FF4");
+            entity.HasKey(e => new { e.UserId, e.BookId }).HasName("PK__ReadingP__7456C06C35301D41");
 
             entity.Property(e => e.ModifiedAt)
                 .HasDefaultValueSql("(getdate())")
@@ -337,7 +337,7 @@ public partial class EBooksContext : DbContext
 
         modelBuilder.Entity<Review>(entity =>
         {
-            entity.HasKey(e => new { e.UserId, e.BookId }).HasName("PK__Reviews__7456C06C1F6FA57A");
+            entity.HasKey(e => new { e.UserId, e.BookId }).HasName("PK__Reviews__7456C06C84CEA50E");
 
             entity.Property(e => e.ModifiedAt)
                 .HasDefaultValueSql("(getdate())")
@@ -356,18 +356,18 @@ public partial class EBooksContext : DbContext
 
         modelBuilder.Entity<Role>(entity =>
         {
-            entity.HasKey(e => e.RoleId).HasName("PK__Roles__8AFACE1A0102551F");
+            entity.HasKey(e => e.RoleId).HasName("PK__Roles__8AFACE1AC2F37489");
 
             entity.Property(e => e.Name).HasMaxLength(100);
         });
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.UserId).HasName("PK__Users__1788CC4CC7494F0E");
+            entity.HasKey(e => e.UserId).HasName("PK__Users__1788CC4CD44EACC9");
 
-            entity.HasIndex(e => e.Email, "UQ__Users__A9D10534CE1819ED").IsUnique();
+            entity.HasIndex(e => e.Email, "UQ__Users__A9D10534DF86583F").IsUnique();
 
-            entity.HasIndex(e => e.UserName, "UQ__Users__C9F28456FA88F78B").IsUnique();
+            entity.HasIndex(e => e.UserName, "UQ__Users__C9F284564963C1A3").IsUnique();
 
             entity.Property(e => e.DeletionReason).HasMaxLength(255);
             entity.Property(e => e.Email).HasMaxLength(100);
@@ -395,7 +395,7 @@ public partial class EBooksContext : DbContext
 
         modelBuilder.Entity<Wishlist>(entity =>
         {
-            entity.HasKey(e => new { e.UserId, e.BookId }).HasName("PK__Wishlist__7456C06C8F7AD6A0");
+            entity.HasKey(e => new { e.UserId, e.BookId }).HasName("PK__Wishlist__7456C06C4BC9C132");
 
             entity.Property(e => e.ModifiedAt)
                 .HasDefaultValueSql("(getdate())")

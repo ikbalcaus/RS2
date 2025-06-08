@@ -5,9 +5,9 @@ using eBooks.Services;
 
 namespace eBooks.Interfaces
 {
-    public interface IQuestionsService : IBaseReadOnlyService<BaseSearch, QuestionsRes>
+    public interface IQuestionsService : IBaseReadOnlyService<QuestionsSearch, QuestionsRes>
     {
         Task<QuestionsRes> Post(QuestionsReq req);
-        Task<QuestionsRes> Answer(int id, QuestionsReq req);
+        Task<QuestionsRes> Patch(int id, QuestionsReq req);
     }
 }

@@ -24,7 +24,7 @@ namespace eBooks.Subscriber.MessageHandlers
         public async Task NotifyUser(QuestionAnswered message)
         {
             var notificationMessage = $"Your question \"{message.Question.Question1}\" is answered. Answer: \"{message.Question.Answer}\"";
-            Console.WriteLine($"Sending notification to user: {message.Question.UserId}");
+            Console.WriteLine($"Sending notification to user: {message.Question.User.UserId}");
             var notification = new Notification
             {
                 UserId = message.Question.User.UserId,

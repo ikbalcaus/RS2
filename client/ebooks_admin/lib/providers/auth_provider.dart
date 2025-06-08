@@ -15,16 +15,14 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<http.Response> login(String email, String password) async {
+  Future login(String email, String password) async {
     AuthProvider.email = email;
     AuthProvider.password = password;
-
     final response = await http.post(
       Uri.parse("${Constants.apiAddress}/users/login"),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({"email": email, "password": password}),
     );
-
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);
       role = data["role"]["name"] as String?;
@@ -38,7 +36,6 @@ class AuthProvider extends ChangeNotifier {
         isLoggedIn = true;
       }
     }
-
     return response;
   }
 

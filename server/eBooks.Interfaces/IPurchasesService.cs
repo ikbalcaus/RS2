@@ -4,7 +4,7 @@ using eBooks.Services;
 
 namespace eBooks.Interfaces
 {
-    public interface IPurchasesService : IBaseReadOnlyService<BaseSearch, PurchasesRes>
+    public interface IPurchasesService : IBaseReadOnlyService<PurchasesSearch, PurchasesRes>
     {
     }
 }

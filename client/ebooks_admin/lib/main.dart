@@ -53,7 +53,6 @@ class MyApp extends StatelessWidget {
       builder: (context, authProvider, child) {
         return MaterialApp(
           navigatorKey: navigatorKey,
-          title: "EBooks Dashboard",
           theme: ThemeData(
             appBarTheme: const AppBarTheme(
               backgroundColor: Constants.defaultBackgroundColor,

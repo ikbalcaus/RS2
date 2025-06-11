@@ -31,7 +31,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
     _nameEditingController.text = widget.name ?? "";
     _currentFilter = {"name": widget.name ?? ""};
     _languagesProvider = context.read<LanguagesProvider>();
-    fetchLanguages();
+    _fetchLanguages();
   }
 
   @override
@@ -52,7 +52,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
     );
   }
 
-  Future fetchLanguages() async {
+  Future _fetchLanguages() async {
     setState(() {
       _isLoading = true;
     });
@@ -61,27 +61,17 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
         page: _currentPage,
         filter: _currentFilter,
       );
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _languages = languages;
-      });
+      if (!mounted) return;
+      setState(() => _languages = languages);
     } catch (ex) {
       if (!mounted) return;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) {
-          return;
-        }
+        if (!mounted) return;
         Helpers.showErrorMessage(context, ex);
       });
     } finally {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _isLoading = false;
-      });
+      if (!mounted) return;
+      setState(() => _isLoading = false);
     }
   }
 
@@ -108,7 +98,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
                   try {
                     await _languagesProvider.put(id, {"name": dialogText});
                     Helpers.showSuccessMessage(context);
-                    await fetchLanguages();
+                    await _fetchLanguages();
                   } catch (ex) {
                     Helpers.showErrorMessage(context, ex);
                   }
@@ -117,9 +107,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
               child: const Text("Edit"),
             ),
             TextButton(
-              onPressed: () async {
-                Navigator.of(dialogContext).pop(false);
-              },
+              onPressed: () => Navigator.of(dialogContext).pop(false),
               child: const Text("Cancel"),
             ),
           ],
@@ -142,7 +130,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
                 try {
                   await _languagesProvider.delete(id);
                   Helpers.showSuccessMessage(context);
-                  await fetchLanguages();
+                  await _fetchLanguages();
                 } catch (ex) {
                   Helpers.showErrorMessage(context, ex);
                 }
@@ -150,9 +138,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
               child: const Text("Delete"),
             ),
             TextButton(
-              onPressed: () async {
-                Navigator.of(dialogContext).pop(false);
-              },
+              onPressed: () => Navigator.of(dialogContext).pop(false),
               child: const Text("Cancel"),
             ),
           ],
@@ -205,7 +191,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
                 "Name": _nameEditingController.text,
                 "OrderBy": _orderBy,
               };
-              await fetchLanguages();
+              await _fetchLanguages();
             },
             child: const Text("Search"),
           ),
@@ -217,7 +203,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
                   "name": _nameEditingController.text,
                 });
                 Helpers.showSuccessMessage(context);
-                await fetchLanguages();
+                await _fetchLanguages();
                 _nameEditingController.clear();
               } catch (ex) {
                 Helpers.showErrorMessage(context, ex);
@@ -299,7 +285,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
                 ? () async {
                     _isLoading = true;
                     _currentPage -= 1;
-                    await fetchLanguages();
+                    await _fetchLanguages();
                   }
                 : null,
           ),
@@ -310,7 +296,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
                 ? () async {
                     _isLoading = true;
                     _currentPage += 1;
-                    await fetchLanguages();
+                    await _fetchLanguages();
                   }
                 : null,
           ),

@@ -42,7 +42,7 @@ namespace eBooks.Services.BooksStateMachine
             if (req.SummaryPdfFile != null)
                 await Helpers.UploadPdfFile(filePath, req.SummaryPdfFile, false);
             if (req.ImageFile != null)
-                await Helpers.UploadImageFile(filePath, req.ImageFile);
+                await Helpers.UploadImageFile(filePath, req.ImageFile, true);
             await _db.SaveChangesAsync();
             _logger.LogInformation($"Book with title {entity.Title} updated.");
             return _mapper.Map<BooksRes>(entity);

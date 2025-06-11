@@ -38,8 +38,8 @@ class _BooksScreenState extends State<BooksScreen> {
     super.initState();
     _currentFilter = {"Status": widget.status ?? ""};
     _booksProvider = context.read<BooksProvider>();
-    fetchBooks();
-    fetchBookStates();
+    _fetchBooks();
+    _fetchBookStates();
   }
 
   @override
@@ -60,47 +60,31 @@ class _BooksScreenState extends State<BooksScreen> {
     );
   }
 
-  Future fetchBooks() async {
-    setState(() {
-      _isLoading = true;
-    });
+  Future _fetchBooks() async {
+    setState(() => _isLoading = true);
     try {
       final books = await _booksProvider.getPaged(
         page: _currentPage,
         filter: _currentFilter,
       );
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _books = books;
-      });
+      if (!mounted) return;
+      setState(() => _books = books);
     } catch (ex) {
       if (!mounted) return;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) {
-          return;
-        }
+        if (!mounted) return;
         Helpers.showErrorMessage(context, ex);
       });
     } finally {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _isLoading = false;
-      });
+      if (!mounted) return;
+      setState(() => _isLoading = false);
     }
   }
 
-  Future fetchBookStates() async {
+  Future _fetchBookStates() async {
     final bookStates = await _booksProvider.getBookStates();
-    if (!mounted) {
-      return;
-    }
-    setState(() {
-      _bookStates.addAll(bookStates ?? []);
-    });
+    if (!mounted) return;
+    setState(() => _bookStates.addAll(bookStates ?? []));
     _status = widget.status ?? "Any";
   }
 
@@ -208,7 +192,7 @@ class _BooksScreenState extends State<BooksScreen> {
                 "IsDeleted": _isDeleted,
                 "OrderBy": _orderBy,
               };
-              await fetchBooks();
+              await _fetchBooks();
             },
             child: const Text("Search"),
           ),
@@ -223,7 +207,6 @@ class _BooksScreenState extends State<BooksScreen> {
       child: SingleChildScrollView(
         child: DataTable(
           columns: const [
-            DataColumn(label: Text("Image")),
             DataColumn(label: Text("Title")),
             DataColumn(label: Text("Price")),
             DataColumn(label: Text("Publisher")),
@@ -236,17 +219,8 @@ class _BooksScreenState extends State<BooksScreen> {
                   .map(
                     (book) => DataRow(
                       cells: [
-                        DataCell(
-                          Image.network(
-                            "${Constants.apiAddress}/images/${book.filePath}.webp",
-                            width: 50,
-                            height: 50,
-                            errorBuilder: (context, error, stackTrace) =>
-                                const Icon(Icons.broken_image),
-                          ),
-                        ),
                         DataCell(Text(book.title ?? "")),
-                        DataCell(Text(book.price?.toString() ?? "")),
+                        DataCell(Text("${book.price?.toString()}€")),
                         DataCell(Text(book.publisher?.userName ?? "")),
                         DataCell(Text(book.language?.name ?? "")),
                         DataCell(Text(book.status ?? "")),
@@ -256,7 +230,7 @@ class _BooksScreenState extends State<BooksScreen> {
                               IconButton(
                                 icon: const Icon(Icons.arrow_forward),
                                 tooltip: "Open details",
-                                onPressed: () async {
+                                onPressed: () {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -295,7 +269,7 @@ class _BooksScreenState extends State<BooksScreen> {
                 ? () async {
                     _isLoading = true;
                     _currentPage -= 1;
-                    await fetchBooks();
+                    await _fetchBooks();
                   }
                 : null,
           ),
@@ -306,7 +280,7 @@ class _BooksScreenState extends State<BooksScreen> {
                 ? () async {
                     _isLoading = true;
                     _currentPage += 1;
-                    await fetchBooks();
+                    await _fetchBooks();
                   }
                 : null,
           ),

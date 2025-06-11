@@ -9,6 +9,7 @@ class User {
   String? lastName;
   String? userName;
   String? email;
+  String? filePath;
   String? deletionReason;
   int? publisherVerifiedById;
 
@@ -18,6 +19,7 @@ class User {
     this.lastName,
     this.userName,
     this.email,
+    this.filePath,
     this.deletionReason,
     this.publisherVerifiedById,
   });

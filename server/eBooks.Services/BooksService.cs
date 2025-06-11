@@ -51,6 +51,8 @@ namespace eBooks.Services
         {
             if (!string.IsNullOrWhiteSpace(search.Title))
                 query = query.Where(x => x.Title.ToLower().StartsWith(search.Title.ToLower()));
+            if (search.PublisherId != null)
+                query = query.Where(x => x.PublisherId == search.PublisherId);
             if (!string.IsNullOrWhiteSpace(search.Publisher))
                 query = query.Where(x => x.Publisher.UserName.ToLower().StartsWith(search.Publisher.ToLower()));
             if (!string.IsNullOrWhiteSpace(search.Language))
@@ -133,7 +135,7 @@ namespace eBooks.Services
             if (req.SummaryPdfFile != null)
                 await Helpers.UploadPdfFile(filePath, req.SummaryPdfFile, false);
             if (req.ImageFile != null)
-                await Helpers.UploadImageFile(filePath, req.ImageFile);
+                await Helpers.UploadImageFile(filePath, req.ImageFile, true);
             _db.Add(entity);
             await _db.SaveChangesAsync();
             _logger.LogInformation($"Book with title {entity.Title} created.");

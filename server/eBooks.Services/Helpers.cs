@@ -67,14 +67,16 @@ namespace eBooks.Services
             errorList.Add(errorMessage);
         }
 
-        public static async Task UploadImageFile(string filePath, IFormFile file)
+        public static async Task UploadImageFile(string filePath, IFormFile file, bool isBookImage)
         {
             var allowedTypes = new[] { "image/jpeg", "image/png", "image/webp" };
             var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
             var extension = Path.GetExtension(file.FileName).ToLower();
             if (!allowedExtensions.Contains(extension) || !allowedTypes.Contains(file.ContentType))
                 throw new ExceptionBadRequest("Only JPG, PNG or WEBP image formats are allowed.");
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", isBookImage ? "books" : "users");
+            if (!Directory.Exists(folderPath))
+                Directory.CreateDirectory(folderPath);
             if (!string.IsNullOrEmpty(filePath))
             {
                 var oldFilePath = Path.Combine(folderPath, filePath.TrimStart('/'));
@@ -103,7 +105,7 @@ namespace eBooks.Services
         {
             if (file.ContentType != "application/pdf" || Path.GetExtension(file.FileName).ToLower() != ".pdf")
                 throw new ExceptionBadRequest("Only PDF files are allowed.");
-            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", isBookPdf ? Path.Combine("pdfs", "books") : Path.Combine("pdfs", "summary"));
+            var folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "pdfs", isBookPdf ? "books" : "summary");
             if (!Directory.Exists(folderPath))
                 Directory.CreateDirectory(folderPath);
             if (!string.IsNullOrEmpty(filePath))

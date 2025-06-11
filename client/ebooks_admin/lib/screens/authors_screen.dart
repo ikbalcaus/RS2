@@ -31,7 +31,7 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
     _nameEditingController.text = widget.name ?? "";
     _currentFilter = {"name": widget.name ?? ""};
     _authorsProvider = context.read<AuthorsProvider>();
-    fetchAuthors();
+    _fetchAuthors();
   }
 
   @override
@@ -52,36 +52,24 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
     );
   }
 
-  Future fetchAuthors() async {
-    setState(() {
-      _isLoading = true;
-    });
+  Future _fetchAuthors() async {
+    setState(() => _isLoading = true);
     try {
       final authors = await _authorsProvider.getPaged(
         page: _currentPage,
         filter: _currentFilter,
       );
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _authors = authors;
-      });
+      if (!mounted) return;
+      setState(() => _authors = authors);
     } catch (ex) {
       if (!mounted) return;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) {
-          return;
-        }
+        if (!mounted) return;
         Helpers.showErrorMessage(context, ex);
       });
     } finally {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _isLoading = false;
-      });
+      if (!mounted) return;
+      setState(() => _isLoading = false);
     }
   }
 
@@ -91,7 +79,7 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
     );
     await showDialog(
       context: context,
-      builder: (dialogContext) {
+      builder: (ctx) {
         return AlertDialog(
           title: const Text("Confirm edit"),
           content: TextField(
@@ -103,12 +91,12 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
               onPressed: () async {
                 final dialogText = dialogController.text.trim();
                 if (dialogText.isNotEmpty) {
-                  Navigator.of(dialogContext).pop(true);
+                  Navigator.of(ctx).pop(true);
                   await Future.delayed(const Duration(milliseconds: 250));
                   try {
                     await _authorsProvider.put(id, {"name": dialogText});
                     Helpers.showSuccessMessage(context);
-                    await fetchAuthors();
+                    await _fetchAuthors();
                   } catch (ex) {
                     Helpers.showErrorMessage(context, ex);
                   }
@@ -117,9 +105,7 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
               child: const Text("Edit"),
             ),
             TextButton(
-              onPressed: () async {
-                Navigator.of(dialogContext).pop(false);
-              },
+              onPressed: () => Navigator.of(ctx).pop(false),
               child: const Text("Cancel"),
             ),
           ],
@@ -131,18 +117,18 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
   Future _deleteAuthorDialog(BuildContext context, int id) async {
     await showDialog(
       context: context,
-      builder: (dialogContext) {
+      builder: (ctx) {
         return AlertDialog(
           title: const Text("Confirm delete"),
           actions: [
             TextButton(
               onPressed: () async {
-                Navigator.of(dialogContext).pop(true);
+                Navigator.of(ctx).pop(true);
                 await Future.delayed(const Duration(milliseconds: 250));
                 try {
                   await _authorsProvider.delete(id);
                   Helpers.showSuccessMessage(context);
-                  await fetchAuthors();
+                  await _fetchAuthors();
                 } catch (ex) {
                   Helpers.showErrorMessage(context, ex);
                 }
@@ -150,9 +136,7 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
               child: const Text("Delete"),
             ),
             TextButton(
-              onPressed: () async {
-                Navigator.of(dialogContext).pop(false);
-              },
+              onPressed: () => Navigator.of(ctx).pop(false),
               child: const Text("Cancel"),
             ),
           ],
@@ -205,7 +189,7 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
                 "Name": _nameEditingController.text,
                 "OrderBy": _orderBy,
               };
-              await fetchAuthors();
+              await _fetchAuthors();
             },
             child: const Text("Search"),
           ),
@@ -217,7 +201,7 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
                   "name": _nameEditingController.text,
                 });
                 Helpers.showSuccessMessage(context);
-                await fetchAuthors();
+                await _fetchAuthors();
                 _nameEditingController.clear();
               } catch (ex) {
                 Helpers.showErrorMessage(context, ex);
@@ -299,7 +283,7 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
                 ? () async {
                     _isLoading = true;
                     _currentPage -= 1;
-                    await fetchAuthors();
+                    await _fetchAuthors();
                   }
                 : null,
           ),
@@ -310,7 +294,7 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
                 ? () async {
                     _isLoading = true;
                     _currentPage += 1;
-                    await fetchAuthors();
+                    await _fetchAuthors();
                   }
                 : null,
           ),

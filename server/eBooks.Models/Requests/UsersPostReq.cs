@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Http;
+
 namespace eBooks.Models.Requests
 {
     public class UsersPostReq

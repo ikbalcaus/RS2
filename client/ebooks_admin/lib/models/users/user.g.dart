@@ -12,6 +12,7 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
   lastName: json['lastName'] as String?,
   userName: json['userName'] as String?,
   email: json['email'] as String?,
+  filePath: json['filePath'] as String?,
   deletionReason: json['deletionReason'] as String?,
   publisherVerifiedById: (json['publisherVerifiedById'] as num?)?.toInt(),
 );
@@ -22,6 +23,7 @@ Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
   'lastName': instance.lastName,
   'userName': instance.userName,
   'email': instance.email,
+  'filePath': instance.filePath,
   'deletionReason': instance.deletionReason,
   'publisherVerifiedById': instance.publisherVerifiedById,
 };

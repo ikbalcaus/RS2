@@ -20,7 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
   Map<String, List<String>> _fieldErrors = {};
 
-  void login() async {
+  Future _login() async {
     setState(() {
       _isLoading = true;
       _fieldErrors.clear();
@@ -37,11 +37,11 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } else if (response.statusCode == 403) {
-      setState(() {
-        _fieldErrors = {
+      setState(
+        () => _fieldErrors = {
           "general": ["Only admin and moderator can access the dashboard"],
-        };
-      });
+        },
+      );
     } else {
       try {
         final Map<String, dynamic> data = json.decode(response.body);
@@ -52,7 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
             return MapEntry(key.toLowerCase(), messages);
           });
         });
-      } catch (e) {
+      } catch (ex) {
         setState(() {
           _fieldErrors = {
             "general": ["Unknown error occurred"],
@@ -60,9 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
         });
       }
     }
-    setState(() {
-      _isLoading = false;
-    });
+    setState(() => _isLoading = false);
   }
 
   @override
@@ -133,7 +131,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: () async {
-                            login();
+                            await _login();
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Constants.defaultBackgroundColor,

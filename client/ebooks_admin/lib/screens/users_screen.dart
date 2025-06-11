@@ -44,8 +44,8 @@ class _UsersScreenState extends State<UsersScreen> {
     _currentFilter = {"UserName": widget.userName ?? ""};
     _usersProvider = context.read<UsersProvider>();
     _rolesProvider = context.read<RolesProvider>();
-    fetchUsers();
-    fetchRoles();
+    _fetchUsers();
+    _fetchRoles();
   }
 
   @override
@@ -66,54 +66,38 @@ class _UsersScreenState extends State<UsersScreen> {
     );
   }
 
-  Future fetchUsers() async {
-    setState(() {
-      _isLoading = true;
-    });
+  Future _fetchUsers() async {
+    setState(() => _isLoading = true);
     try {
       final users = await _usersProvider.getPaged(
         page: _currentPage,
         filter: _currentFilter,
       );
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _users = users;
-      });
+      if (!mounted) return;
+      setState(() => _users = users);
     } catch (ex) {
       if (!mounted) return;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) {
-          return;
-        }
+        if (!mounted) return;
         Helpers.showErrorMessage(context, ex);
       });
     } finally {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _isLoading = false;
-      });
+      if (!mounted) return;
+      setState(() => _isLoading = false);
     }
   }
 
-  Future fetchRoles() async {
+  Future _fetchRoles() async {
     final roles = await _rolesProvider.getPaged();
-    if (!mounted) {
-      return;
-    }
-    setState(() {
-      _roles = roles;
-    });
+    if (!mounted) return;
+    setState(() => _roles = roles);
   }
 
   Future _assignRoleDialog(BuildContext context, int userId) async {
     String? selectedRoleId = _roles!.resultList.first.roleId.toString();
     await showDialog(
       context: context,
-      builder: (dialogContext) {
+      builder: (ctx) {
         return AlertDialog(
           title: const Text("Assign role"),
           content: StatefulBuilder(
@@ -139,7 +123,7 @@ class _UsersScreenState extends State<UsersScreen> {
           actions: [
             TextButton(
               onPressed: () async {
-                Navigator.of(dialogContext).pop();
+                Navigator.of(ctx).pop();
                 await Future.delayed(const Duration(milliseconds: 250));
                 try {
                   await _rolesProvider.assignRole(
@@ -154,7 +138,7 @@ class _UsersScreenState extends State<UsersScreen> {
               child: const Text("Assign"),
             ),
             TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
+              onPressed: () => Navigator.of(ctx).pop(),
               child: const Text("Cancel"),
             ),
           ],
@@ -170,7 +154,7 @@ class _UsersScreenState extends State<UsersScreen> {
   ) async {
     await showDialog(
       context: context,
-      builder: (dialogContext) {
+      builder: (ctx) {
         return AlertDialog(
           title: notVerified
               ? const Text("Confirm verify publisher")
@@ -178,12 +162,12 @@ class _UsersScreenState extends State<UsersScreen> {
           actions: [
             TextButton(
               onPressed: () async {
-                Navigator.of(dialogContext).pop(true);
+                Navigator.of(ctx).pop(true);
                 await Future.delayed(const Duration(milliseconds: 250));
                 try {
                   await _usersProvider.verifyPublisher(id);
                   Helpers.showSuccessMessage(context);
-                  await fetchUsers();
+                  await _fetchUsers();
                 } catch (ex) {
                   Helpers.showErrorMessage(context, ex);
                 }
@@ -193,9 +177,7 @@ class _UsersScreenState extends State<UsersScreen> {
                   : const Text("Unverify"),
             ),
             TextButton(
-              onPressed: () async {
-                Navigator.of(dialogContext).pop(false);
-              },
+              onPressed: () => Navigator.of(ctx).pop(false),
               child: const Text("Cancel"),
             ),
           ],
@@ -208,7 +190,7 @@ class _UsersScreenState extends State<UsersScreen> {
     final TextEditingController dialogController = TextEditingController();
     await showDialog(
       context: context,
-      builder: (dialogContext) {
+      builder: (ctx) {
         return AlertDialog(
           title: const Text("Confirm delete"),
           content: TextField(
@@ -222,12 +204,12 @@ class _UsersScreenState extends State<UsersScreen> {
               onPressed: () async {
                 final dialogText = dialogController.text.trim();
                 if (dialogText.isNotEmpty) {
-                  Navigator.of(dialogContext).pop(true);
+                  Navigator.of(ctx).pop(true);
                   await Future.delayed(const Duration(milliseconds: 250));
                   try {
                     await _usersProvider.adminDelete(id, dialogText);
                     Helpers.showSuccessMessage(context);
-                    await fetchUsers();
+                    await _fetchUsers();
                   } catch (ex) {
                     Helpers.showErrorMessage(context, ex);
                   }
@@ -236,9 +218,7 @@ class _UsersScreenState extends State<UsersScreen> {
               child: const Text("Delete"),
             ),
             TextButton(
-              onPressed: () async {
-                Navigator.of(dialogContext).pop(false);
-              },
+              onPressed: () => Navigator.of(ctx).pop(false),
               child: const Text("Cancel"),
             ),
           ],
@@ -250,18 +230,18 @@ class _UsersScreenState extends State<UsersScreen> {
   Future _undoDeleteUserDialog(BuildContext context, int id) async {
     await showDialog(
       context: context,
-      builder: (dialogContext) {
+      builder: (ctx) {
         return AlertDialog(
           title: const Text("Confirm undo delete"),
           actions: [
             TextButton(
               onPressed: () async {
-                Navigator.of(dialogContext).pop(true);
+                Navigator.of(ctx).pop(true);
                 await Future.delayed(const Duration(milliseconds: 250));
                 try {
                   await _usersProvider.adminDelete(id, null);
                   Helpers.showSuccessMessage(context);
-                  await fetchUsers();
+                  await _fetchUsers();
                 } catch (ex) {
                   Helpers.showErrorMessage(context, ex);
                 }
@@ -269,9 +249,7 @@ class _UsersScreenState extends State<UsersScreen> {
               child: const Text("Undo delete"),
             ),
             TextButton(
-              onPressed: () async {
-                Navigator.of(dialogContext).pop(false);
-              },
+              onPressed: () => Navigator.of(ctx).pop(false),
               child: const Text("Cancel"),
             ),
           ],
@@ -363,7 +341,7 @@ class _UsersScreenState extends State<UsersScreen> {
                 "Email": _emailEditingController.text,
                 "OrderBy": _orderBy,
               };
-              await fetchUsers();
+              await _fetchUsers();
             },
             child: const Text("Search"),
           ),
@@ -378,6 +356,7 @@ class _UsersScreenState extends State<UsersScreen> {
       child: SingleChildScrollView(
         child: DataTable(
           columns: [
+            const DataColumn(label: Text("Image")),
             const DataColumn(label: Text("First name")),
             const DataColumn(label: Text("Last name")),
             const DataColumn(label: Text("User name")),
@@ -391,6 +370,15 @@ class _UsersScreenState extends State<UsersScreen> {
                   .map(
                     (user) => DataRow(
                       cells: [
+                        DataCell(
+                          Image.network(
+                            "${Constants.apiAddress}/images/users/${user.filePath}.webp",
+                            width: 50,
+                            height: 50,
+                            errorBuilder: (context, error, stackTrace) =>
+                                const Icon(Icons.broken_image),
+                          ),
+                        ),
                         DataCell(Text(user.firstName ?? "")),
                         DataCell(Text(user.lastName ?? "")),
                         DataCell(Text(user.userName ?? "")),
@@ -478,7 +466,7 @@ class _UsersScreenState extends State<UsersScreen> {
                 ? () async {
                     _isLoading = true;
                     _currentPage -= 1;
-                    await fetchUsers();
+                    await _fetchUsers();
                   }
                 : null,
           ),
@@ -489,7 +477,7 @@ class _UsersScreenState extends State<UsersScreen> {
                 ? () async {
                     _isLoading = true;
                     _currentPage += 1;
-                    await fetchUsers();
+                    await _fetchUsers();
                   }
                 : null,
           ),

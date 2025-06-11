@@ -32,7 +32,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
   void initState() {
     super.initState();
     _questionsProvider = context.read<QuestionsProvider>();
-    fetchQuestions();
+    _fetchQuestions();
   }
 
   @override
@@ -53,36 +53,24 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
     );
   }
 
-  Future fetchQuestions() async {
-    setState(() {
-      _isLoading = true;
-    });
+  Future _fetchQuestions() async {
+    setState(() => _isLoading = true);
     try {
       final questions = await _questionsProvider.getPaged(
         page: _currentPage,
         filter: _currentFilter,
       );
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _questions = questions;
-      });
+      if (!mounted) return;
+      setState(() => _questions = questions);
     } catch (ex) {
       if (!mounted) return;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) {
-          return;
-        }
+        if (!mounted) return;
         Helpers.showErrorMessage(context, ex);
       });
     } finally {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _isLoading = false;
-      });
+      if (!mounted) return;
+      setState(() => _isLoading = false);
     }
   }
 
@@ -90,7 +78,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
     final TextEditingController answerController = TextEditingController();
     await showDialog(
       context: context,
-      builder: (dialogContext) {
+      builder: (ctx) {
         return AlertDialog(
           title: const Text("Answer"),
           content: TextField(
@@ -102,23 +90,21 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
               onPressed: () async {
                 final dialogText = answerController.text.trim();
                 if (dialogText.isNotEmpty) {
-                  Navigator.of(dialogContext).pop(true);
+                  Navigator.of(ctx).pop(true);
                   await Future.delayed(const Duration(milliseconds: 250));
                   try {
                     await _questionsProvider.patch(id, {"message": dialogText});
-                    Helpers.showSuccessMessage(context);
-                    await fetchQuestions();
+                    Helpers.showSuccessMessage(ctx);
+                    await _fetchQuestions();
                   } catch (ex) {
-                    Helpers.showErrorMessage(context, ex);
+                    Helpers.showErrorMessage(ctx, ex);
                   }
                 }
               },
               child: const Text("Answer"),
             ),
             TextButton(
-              onPressed: () async {
-                Navigator.of(dialogContext).pop(false);
-              },
+              onPressed: () => Navigator.of(ctx).pop(false),
               child: const Text("Cancel"),
             ),
           ],
@@ -195,7 +181,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                 "Status": _status,
                 "OrderBy": _orderBy,
               };
-              await fetchQuestions();
+              await _fetchQuestions();
             },
             child: const Text("Search"),
           ),
@@ -266,7 +252,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                 ? () async {
                     _isLoading = true;
                     _currentPage -= 1;
-                    await fetchQuestions();
+                    await _fetchQuestions();
                   }
                 : null,
           ),
@@ -277,7 +263,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                 ? () async {
                     _isLoading = true;
                     _currentPage += 1;
-                    await fetchQuestions();
+                    await _fetchQuestions();
                   }
                 : null,
           ),

@@ -19,6 +19,8 @@ public partial class User
 
     public string PasswordSalt { get; set; } = null!;
 
+    public string FilePath { get; set; } = null!;
+
     public DateTime ModifiedAt { get; set; }
 
     public bool IsEmailVerified { get; set; }
@@ -29,9 +31,9 @@ public partial class User
 
     public string? DeletionReason { get; set; }
 
-    public int RoleId { get; set; }
-
     public string? StripeAccountId { get; set; }
+
+    public int RoleId { get; set; }
 
     public int? PublisherVerifiedById { get; set; }
 

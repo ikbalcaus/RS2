@@ -31,7 +31,7 @@ class _GenresScreenState extends State<GenresScreen> {
     _nameEditingController.text = widget.name ?? "";
     _currentFilter = {"name": widget.name ?? ""};
     _genresProvider = context.read<GenresProvider>();
-    fetchGenres();
+    _fetchGenres();
   }
 
   @override
@@ -52,36 +52,24 @@ class _GenresScreenState extends State<GenresScreen> {
     );
   }
 
-  Future fetchGenres() async {
-    setState(() {
-      _isLoading = true;
-    });
+  Future _fetchGenres() async {
+    setState(() => _isLoading = true);
     try {
       final genres = await _genresProvider.getPaged(
         page: _currentPage,
         filter: _currentFilter,
       );
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _genres = genres;
-      });
+      if (!mounted) return;
+      setState(() => _genres = genres);
     } catch (ex) {
       if (!mounted) return;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) {
-          return;
-        }
+        if (!mounted) return;
         Helpers.showErrorMessage(context, ex);
       });
     } finally {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _isLoading = false;
-      });
+      if (!mounted) return;
+      setState(() => _isLoading = false);
     }
   }
 
@@ -108,7 +96,7 @@ class _GenresScreenState extends State<GenresScreen> {
                   try {
                     await _genresProvider.put(id, {"name": dialogText});
                     Helpers.showSuccessMessage(context);
-                    await fetchGenres();
+                    await _fetchGenres();
                   } catch (ex) {
                     Helpers.showErrorMessage(context, ex);
                   }
@@ -117,9 +105,7 @@ class _GenresScreenState extends State<GenresScreen> {
               child: const Text("Edit"),
             ),
             TextButton(
-              onPressed: () async {
-                Navigator.of(dialogContext).pop(false);
-              },
+              onPressed: () => Navigator.of(dialogContext).pop(false),
               child: const Text("Cancel"),
             ),
           ],
@@ -142,7 +128,7 @@ class _GenresScreenState extends State<GenresScreen> {
                 try {
                   await _genresProvider.delete(id);
                   Helpers.showSuccessMessage(context);
-                  await fetchGenres();
+                  await _fetchGenres();
                 } catch (ex) {
                   Helpers.showErrorMessage(context, ex);
                 }
@@ -150,9 +136,7 @@ class _GenresScreenState extends State<GenresScreen> {
               child: const Text("Delete"),
             ),
             TextButton(
-              onPressed: () async {
-                Navigator.of(dialogContext).pop(false);
-              },
+              onPressed: () => Navigator.of(dialogContext).pop(false),
               child: const Text("Cancel"),
             ),
           ],
@@ -205,7 +189,7 @@ class _GenresScreenState extends State<GenresScreen> {
                 "Name": _nameEditingController.text,
                 "OrderBy": _orderBy,
               };
-              await fetchGenres();
+              await _fetchGenres();
             },
             child: const Text("Search"),
           ),
@@ -217,7 +201,7 @@ class _GenresScreenState extends State<GenresScreen> {
                   "name": _nameEditingController.text,
                 });
                 Helpers.showSuccessMessage(context);
-                await fetchGenres();
+                await _fetchGenres();
                 _nameEditingController.clear();
               } catch (ex) {
                 Helpers.showErrorMessage(context, ex);
@@ -299,7 +283,7 @@ class _GenresScreenState extends State<GenresScreen> {
                 ? () async {
                     _isLoading = true;
                     _currentPage -= 1;
-                    await fetchGenres();
+                    await _fetchGenres();
                   }
                 : null,
           ),
@@ -310,7 +294,7 @@ class _GenresScreenState extends State<GenresScreen> {
                 ? () async {
                     _isLoading = true;
                     _currentPage += 1;
-                    await fetchGenres();
+                    await _fetchGenres();
                   }
                 : null,
           ),

@@ -37,51 +37,37 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
   void initState() {
     super.initState();
     _booksProvider = context.read<BooksProvider>();
-    fetchBook();
-    fetchAllowedActions();
+    _fetchBook();
+    _fetchAllowedActions();
   }
 
-  Future fetchBook() async {
-    setState(() {
-      _isLoading = true;
-    });
+  Future _fetchBook() async {
+    setState(() => _isLoading = true);
     try {
       final book = await _booksProvider.getById(widget.bookId);
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _book = book;
-      });
+      if (!mounted) return;
+      setState(() => _book = book);
     } catch (ex) {
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
       Helpers.showErrorMessage(context, ex);
     } finally {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _isLoading = false;
-      });
+      if (!mounted) return;
+      setState(() => _isLoading = false);
     }
   }
 
-  Future fetchAllowedActions() async {
+  Future _fetchAllowedActions() async {
     final allowedActions = await _booksProvider.getAllowedActions(
       widget.bookId,
     );
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
     setState(() {
       _allowedActions.clear();
       _allowedActions.addAll(allowedActions ?? []);
     });
   }
 
-  Future openUrl(String url) async {
+  Future _openUrl(String url) async {
     final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
@@ -90,7 +76,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
     }
   }
 
-  Future getDesktopPath() async {
+  Future _getDesktopPath() async {
     final home =
         Platform.environment["USERPROFILE"] ?? Platform.environment["HOME"];
     if (home == null) {
@@ -104,7 +90,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
     return desktopPath;
   }
 
-  Future downloadBookFile(int bookId) async {
+  Future _downloadBookFile(int bookId) async {
     try {
       final dio = Dio();
       String username = AuthProvider.email ?? "";
@@ -112,22 +98,18 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
       dio.options.headers["Authorization"] =
           "Basic ${base64Encode(utf8.encode("$username:$password"))}";
       final url = "${Constants.apiAddress}/books/$bookId/book-file";
-      final desktopPath = await getDesktopPath();
+      final desktopPath = await _getDesktopPath();
       final savePath = p.join(desktopPath, "${_book?.filePath}.pdf");
       final response = await dio.download(
         url,
         savePath,
         onReceiveProgress: (received, total) {
           if (total != -1) {
-            setState(() {
-              _downloadProgress = received / total;
-            });
+            setState(() => _downloadProgress = received / total);
           }
         },
       );
-      setState(() {
-        _downloadProgress = null;
-      });
+      setState(() => _downloadProgress = null);
       if (response.statusCode == 200) {
         Helpers.showSuccessMessage(
           context,
@@ -161,8 +143,8 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                     context,
                     "A book is successfully approved",
                   );
-                  await fetchBook();
-                  await fetchAllowedActions();
+                  await _fetchBook();
+                  await _fetchAllowedActions();
                 } catch (ex) {
                   Helpers.showErrorMessage(context, ex);
                 }
@@ -170,9 +152,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
               child: const Text("Approve"),
             ),
             TextButton(
-              onPressed: () async {
-                Navigator.of(dialogContext).pop(false);
-              },
+              onPressed: () => Navigator.of(dialogContext).pop(false),
               child: const Text("Cancel"),
             ),
           ],
@@ -207,8 +187,8 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                       context,
                       "Book is successfully rejected",
                     );
-                    await fetchBook();
-                    await fetchAllowedActions();
+                    await _fetchBook();
+                    await _fetchAllowedActions();
                   } catch (ex) {
                     Helpers.showErrorMessage(context, ex);
                   }
@@ -217,9 +197,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
               child: const Text("Reject"),
             ),
             TextButton(
-              onPressed: () async {
-                Navigator.of(dialogContext).pop(false);
-              },
+              onPressed: () => Navigator.of(dialogContext).pop(false),
               child: const Text("Cancel"),
             ),
           ],
@@ -254,7 +232,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                       context,
                       "User is successfully deleted",
                     );
-                    await fetchBook();
+                    await _fetchBook();
                   } catch (ex) {
                     Helpers.showErrorMessage(context, ex);
                   }
@@ -263,9 +241,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
               child: const Text("Delete"),
             ),
             TextButton(
-              onPressed: () async {
-                Navigator.of(dialogContext).pop(false);
-              },
+              onPressed: () => Navigator.of(dialogContext).pop(false),
               child: const Text("Cancel"),
             ),
           ],
@@ -291,7 +267,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                     context,
                     "User is successfully undo deleted",
                   );
-                  await fetchBook();
+                  await _fetchBook();
                 } catch (ex) {
                   Helpers.showErrorMessage(context, ex);
                 }
@@ -299,9 +275,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
               child: const Text("Undo delete"),
             ),
             TextButton(
-              onPressed: () async {
-                Navigator.of(dialogContext).pop(false);
-              },
+              onPressed: () => Navigator.of(dialogContext).pop(false),
               child: const Text("Cancel"),
             ),
           ],
@@ -329,14 +303,14 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    _book!.filePath != null
+                    _book?.filePath != null
                         ? Container(
                             constraints: const BoxConstraints(
                               maxWidth: 600,
                               maxHeight: 600,
                             ),
                             child: Image.network(
-                              "${Constants.apiAddress}/images/${_book!.filePath}.webp",
+                              "${Constants.apiAddress}/images/books/${_book?.filePath}.webp",
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) =>
                                   const Icon(Icons.broken_image, size: 400),
@@ -354,7 +328,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _book!.title ?? "",
+                            _book?.title ?? "",
                             style: const TextStyle(
                               fontSize: 40,
                               fontWeight: FontWeight.bold,
@@ -362,7 +336,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            "€${_book!.price?.toStringAsFixed(2) ?? "Price is not set"}",
+                            "${_book?.price?.toStringAsFixed(2)}€",
                             style: const TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
@@ -370,7 +344,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                           ),
                           const SizedBox(height: 20),
                           Text(
-                            _book!.description ?? "Description is not set",
+                            _book?.description ?? "Description is not set",
                             style: const TextStyle(fontSize: 16),
                           ),
                           const SizedBox(height: 30),
@@ -386,19 +360,19 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                                   style: TextStyle(color: Colors.black),
                                 ),
                                 TextSpan(
-                                  text: _book!.publisher?.userName ?? "",
+                                  text: _book?.publisher?.userName ?? "",
                                   style: TextStyle(
                                     color: Constants.defaultBackgroundColor,
                                   ),
                                   recognizer: TapGestureRecognizer()
-                                    ..onTap = () async {
+                                    ..onTap = () {
                                       Navigator.of(context).pop();
                                       Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(
                                           builder: (context) => UsersScreen(
                                             userName:
-                                                _book!.publisher?.userName,
+                                                _book?.publisher?.userName,
                                           ),
                                         ),
                                       );
@@ -417,11 +391,11 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                               ),
                               children: [
                                 TextSpan(
-                                  text: (_book!.authors?.length ?? 1) == 1
+                                  text: (_book?.authors?.length ?? 1) == 1
                                       ? "Author: "
                                       : "Authors: ",
                                 ),
-                                ...?_book!.authors?.asMap().entries.expand((
+                                ...?_book?.authors?.asMap().entries.expand((
                                   entry,
                                 ) {
                                   final index = entry.key;
@@ -435,7 +409,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                                         color: Constants.defaultBackgroundColor,
                                       ),
                                       recognizer: TapGestureRecognizer()
-                                        ..onTap = () async {
+                                        ..onTap = () {
                                           Navigator.of(context).pop();
                                           Navigator.pushReplacement(
                                             context,
@@ -468,11 +442,11 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                               ),
                               children: [
                                 TextSpan(
-                                  text: (_book!.genres?.length ?? 1) == 1
+                                  text: (_book?.genres?.length ?? 1) == 1
                                       ? "Genre: "
                                       : "Genres: ",
                                 ),
-                                ...?_book!.genres?.asMap().entries.expand((
+                                ...?_book?.genres?.asMap().entries.expand((
                                   entry,
                                 ) {
                                   final index = entry.key;
@@ -486,7 +460,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                                         color: Constants.defaultBackgroundColor,
                                       ),
                                       recognizer: TapGestureRecognizer()
-                                        ..onTap = () async {
+                                        ..onTap = () {
                                           Navigator.of(context).pop();
                                           Navigator.pushReplacement(
                                             context,
@@ -522,18 +496,18 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                                   style: TextStyle(color: Colors.black),
                                 ),
                                 TextSpan(
-                                  text: _book!.language?.name ?? "",
+                                  text: _book?.language?.name ?? "",
                                   style: TextStyle(
                                     color: Constants.defaultBackgroundColor,
                                   ),
                                   recognizer: TapGestureRecognizer()
-                                    ..onTap = () async {
+                                    ..onTap = () {
                                       Navigator.of(context).pop();
                                       Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(
                                           builder: (context) => LanguagesScreen(
-                                            name: _book!.language?.name,
+                                            name: _book?.language?.name,
                                           ),
                                         ),
                                       );
@@ -555,7 +529,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                                   style: TextStyle(color: Colors.black),
                                 ),
                                 TextSpan(
-                                  text: _book!.numberOfPages.toString(),
+                                  text: _book?.numberOfPages.toString(),
                                   style: TextStyle(color: Colors.black),
                                 ),
                               ],
@@ -574,18 +548,18 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                                   style: TextStyle(color: Colors.black),
                                 ),
                                 TextSpan(
-                                  text: _book!.status,
+                                  text: _book?.status,
                                   style: TextStyle(
                                     color: Constants.defaultBackgroundColor,
                                   ),
                                   recognizer: TapGestureRecognizer()
-                                    ..onTap = () async {
+                                    ..onTap = () {
                                       Navigator.of(context).pop();
                                       Navigator.pushReplacement(
                                         context,
                                         MaterialPageRoute(
                                           builder: (context) => BooksScreen(
-                                            status: _book!.status,
+                                            status: _book?.status,
                                           ),
                                         ),
                                       );
@@ -601,7 +575,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                                 width: 300,
                                 child: ElevatedButton(
                                   onPressed: () async {
-                                    await downloadBookFile(widget.bookId);
+                                    await _downloadBookFile(widget.bookId);
                                   },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor:
@@ -647,8 +621,8 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                                 width: 300,
                                 child: OutlinedButton(
                                   onPressed: () async {
-                                    openUrl(
-                                      "${Constants.apiAddress}/pdfs/summary/${_book!.filePath}.pdf",
+                                    await _openUrl(
+                                      "${Constants.apiAddress}/pdfs/summary/${_book?.filePath}.pdf",
                                     );
                                   },
                                   style: OutlinedButton.styleFrom(
@@ -692,7 +666,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                                   width: 140,
                                   child: ElevatedButton(
                                     onPressed: () async {
-                                      _approveBookDialog(context);
+                                      await _approveBookDialog(context);
                                     },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor:
@@ -722,7 +696,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                                   width: 140,
                                   child: ElevatedButton(
                                     onPressed: () async {
-                                      _rejectBookDialog(context);
+                                      await _rejectBookDialog(context);
                                     },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor:
@@ -753,9 +727,9 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                                   child: ElevatedButton(
                                     onPressed: () async {
                                       if (_book?.deletionReason == null) {
-                                        _deleteBookDialog(context);
+                                        await _deleteBookDialog(context);
                                       } else {
-                                        _undoDeleteBookDialog(context);
+                                        await _undoDeleteBookDialog(context);
                                       }
                                     },
                                     style: ElevatedButton.styleFrom(

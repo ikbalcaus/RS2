@@ -68,6 +68,7 @@ namespace eBooks.Services
             entity.PasswordSalt = Helpers.GenerateSalt();
             entity.PasswordHash = Helpers.GenerateHash(entity.PasswordSalt, req.Password);
             entity.RoleId = (await _db.Set<Role>().FirstOrDefaultAsync(x => x.Name == "User")).RoleId;
+            entity.FilePath = $"{Guid.NewGuid():N}";
             var accountOptions = new AccountCreateOptions
             {
                 Type = "express",
@@ -102,6 +103,8 @@ namespace eBooks.Services
                 entity.PasswordSalt = Helpers.GenerateSalt();
                 entity.PasswordHash = Helpers.GenerateHash(entity.PasswordSalt, req.Password);
             }
+            if (req.ImageFile != null)
+                await Helpers.UploadImageFile(entity.FilePath, req.ImageFile, false);
             _mapper.Map(req, entity);
             await _db.SaveChangesAsync();
             _logger.LogInformation($"User with email {entity.Email} updated.");

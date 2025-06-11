@@ -6,6 +6,7 @@
         public decimal? MinPrice { get; set; }
         public decimal? MaxPrice { get; set; }
         public string? Author { get; set; }
+        public int? PublisherId { get; set; }
         public string? Publisher { get; set; }
         public string? Language { get; set; }
         public string? Status { get; set; }

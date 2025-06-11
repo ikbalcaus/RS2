@@ -7,6 +7,8 @@
         public string LastName { get; set; }
         public string UserName { get; set; }
         public string Email { get; set; }
+        public string FilePath { get; set; }
+        public bool IsEmailVerified { get; set; }
         public int? PublisherVerifiedById { get; set; }
         public string DeletionReason { get; set; }
     }

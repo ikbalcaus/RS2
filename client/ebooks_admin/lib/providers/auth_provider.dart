@@ -7,13 +7,7 @@ class AuthProvider extends ChangeNotifier {
   static String? email;
   static String? password;
   static String? role;
-
-  bool _isLoggedIn = false;
-  bool get isLoggedIn => _isLoggedIn;
-  set isLoggedIn(bool value) {
-    _isLoggedIn = value;
-    notifyListeners();
-  }
+  bool isLoggedIn = false;
 
   Future login(String email, String password) async {
     AuthProvider.email = email;
@@ -39,7 +33,7 @@ class AuthProvider extends ChangeNotifier {
     return response;
   }
 
-  Future<void> logout() async {
+  Future logout() async {
     isLoggedIn = false;
     notifyListeners();
   }

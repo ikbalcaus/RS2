@@ -31,7 +31,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
   void initState() {
     super.initState();
     _purchasesProvider = context.read<PurchasesProvider>();
-    fetchPurchases();
+    _fetchPurchases();
   }
 
   @override
@@ -52,36 +52,24 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
     );
   }
 
-  Future fetchPurchases() async {
-    setState(() {
-      _isLoading = true;
-    });
+  Future _fetchPurchases() async {
+    setState(() => _isLoading = true);
     try {
       final purchases = await _purchasesProvider.getPaged(
         page: _currentPage,
         filter: _currentFilter,
       );
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _purchases = purchases;
-      });
+      if (!mounted) return;
+      setState(() => _purchases = purchases);
     } catch (ex) {
       if (!mounted) return;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) {
-          return;
-        }
+        if (!mounted) return;
         Helpers.showErrorMessage(context, ex);
       });
     } finally {
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _isLoading = false;
-      });
+      if (!mounted) return;
+      setState(() => _isLoading = false);
     }
   }
 
@@ -149,7 +137,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
                 "Book": _bookEditingController.text,
                 "OrderBy": _orderBy,
               };
-              await fetchPurchases();
+              await _fetchPurchases();
             },
             child: const Text("Search"),
           ),
@@ -209,7 +197,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
                 ? () async {
                     _isLoading = true;
                     _currentPage -= 1;
-                    await fetchPurchases();
+                    await _fetchPurchases();
                   }
                 : null,
           ),
@@ -220,7 +208,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
                 ? () async {
                     _isLoading = true;
                     _currentPage += 1;
-                    await fetchPurchases();
+                    await _fetchPurchases();
                   }
                 : null,
           ),

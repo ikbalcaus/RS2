@@ -40,7 +40,7 @@ class MasterScreen extends StatelessWidget {
                       ),
                     )
                   : null),
-        title: const Text("EBooks Dashboard"),
+        title: const Text("E-Books Dashboard"),
         actions: isLoggedIn
             ? [
                 IconButton(
@@ -189,7 +189,7 @@ class MasterScreen extends StatelessWidget {
           TextButton(
             onPressed: () {
               authProvider.logout();
-              Navigator.of(ctx).pop();
+              Navigator.of(ctx).pop(true);
               navigatorKey.currentState?.pushAndRemoveUntil(
                 MaterialPageRoute(builder: (_) => const LoginScreen()),
                 (route) => false,
@@ -198,7 +198,7 @@ class MasterScreen extends StatelessWidget {
             child: const Text("Logout"),
           ),
           TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
+            onPressed: () => Navigator.of(ctx).pop(false),
             child: const Text("Cancel"),
           ),
         ],

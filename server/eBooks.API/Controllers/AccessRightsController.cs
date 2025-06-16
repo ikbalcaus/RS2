@@ -1,5 +1,6 @@
 ﻿using eBooks.Interfaces;
 using eBooks.Models.Responses;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace eBooks.API.Controllers
@@ -8,9 +9,19 @@ namespace eBooks.API.Controllers
     [Route("[controller]")]
     public class AccessRightsController : BaseUserContextController<object, AccessRightsRes>
     {
+        protected new IAccessRightsService _service;
+
         public AccessRightsController(IAccessRightsService service)
             : base(service)
         {
+            _service = service;
+        }
+
+        [Authorize(Policy = "User")]
+        [HttpPatch("{bookId}/favorite")]
+        public async Task<AccessRightsRes> ToggleFavorite(int bookId)
+        {
+            return await _service.ToggleFavorite(bookId);
         }
     }
 }

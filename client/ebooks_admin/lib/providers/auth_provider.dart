@@ -1,5 +1,5 @@
 import "dart:convert";
-import "package:ebooks_admin/utils/constants.dart";
+import "package:ebooks_admin/utils/globals.dart";
 import "package:flutter/material.dart";
 import "package:http/http.dart" as http;
 
@@ -13,7 +13,7 @@ class AuthProvider extends ChangeNotifier {
     AuthProvider.email = email;
     AuthProvider.password = password;
     final response = await http.post(
-      Uri.parse("${Constants.apiAddress}/users/login"),
+      Uri.parse("${Globals.apiAddress}/users/login"),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({"email": email, "password": password}),
     );
@@ -34,6 +34,8 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future logout() async {
+    AuthProvider.email = null;
+    AuthProvider.password = null;
     isLoggedIn = false;
     notifyListeners();
   }

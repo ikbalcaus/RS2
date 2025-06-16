@@ -25,13 +25,13 @@ namespace eBooks.API.Controllers
             _accessControlHandler = accessControlHandler;
         }
 
-        [Authorize(Policy = "Moderator")]
+        [AllowAnonymous]
         public override async Task<PagedResult<UsersRes>> GetPaged([FromQuery] UsersSearch search)
         {
             return await base.GetPaged(search);
         }
 
-        [Authorize(Policy = "User")]
+        [AllowAnonymous]
         public override async Task<UsersRes> GetById(int id)
         {
             return await base.GetById(id);
@@ -69,6 +69,14 @@ namespace eBooks.API.Controllers
         public async Task<LoginRes> Login(LoginReq req)
         {
             return await _service.Login(req);
+        }
+
+        [Authorize(Policy = "User")]
+        [HttpPatch("{id}/verify-email")]
+        public async Task<UsersRes> VerifyEmail(int id)
+        {
+            await _accessControlHandler.CheckIsOwnerByUserId(id);
+            return await _service.VerifyEmail(id);
         }
 
         [Authorize(Policy = "User")]

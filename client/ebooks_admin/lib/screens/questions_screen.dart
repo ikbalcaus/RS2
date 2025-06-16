@@ -2,7 +2,7 @@ import "package:ebooks_admin/models/questions/question.dart";
 import "package:ebooks_admin/models/search_result.dart";
 import "package:ebooks_admin/providers/questions_provider.dart";
 import "package:ebooks_admin/screens/master_screen.dart";
-import "package:ebooks_admin/utils/constants.dart";
+import "package:ebooks_admin/utils/globals.dart";
 import "package:ebooks_admin/utils/helpers.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
@@ -22,7 +22,6 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
   String _status = "All questions";
   String _orderBy = "Last added";
   Map<String, dynamic> _currentFilter = {};
-
   final TextEditingController _questionEditingController =
       TextEditingController();
   final TextEditingController _askedByEditingController =
@@ -33,6 +32,13 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
     super.initState();
     _questionsProvider = context.read<QuestionsProvider>();
     _fetchQuestions();
+  }
+
+  @override
+  void dispose() {
+    _questionEditingController.dispose();
+    _askedByEditingController.dispose();
+    super.dispose();
   }
 
   @override
@@ -74,11 +80,11 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
     }
   }
 
-  Future _answerQuestionDialog(BuildContext context, int id) async {
+  Future _answerQuestionDialog(int id) async {
     final TextEditingController answerController = TextEditingController();
     await showDialog(
       context: context,
-      builder: (ctx) {
+      builder: (context) {
         return AlertDialog(
           title: const Text("Answer"),
           content: TextField(
@@ -90,21 +96,21 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
               onPressed: () async {
                 final dialogText = answerController.text.trim();
                 if (dialogText.isNotEmpty) {
-                  Navigator.of(ctx).pop(true);
+                  Navigator.pop(context);
                   await Future.delayed(const Duration(milliseconds: 250));
                   try {
                     await _questionsProvider.patch(id, {"message": dialogText});
-                    Helpers.showSuccessMessage(ctx);
+                    Helpers.showSuccessMessage(context);
                     await _fetchQuestions();
                   } catch (ex) {
-                    Helpers.showErrorMessage(ctx, ex);
+                    Helpers.showErrorMessage(context, ex);
                   }
                 }
               },
               child: const Text("Answer"),
             ),
             TextButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
+              onPressed: () => Navigator.pop(context),
               child: const Text("Cancel"),
             ),
           ],
@@ -115,7 +121,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
 
   Widget _buildSearch() {
     return Padding(
-      padding: const EdgeInsets.all(Constants.defaultSpacing),
+      padding: const EdgeInsets.all(Globals.spacing),
       child: Row(
         children: [
           Expanded(
@@ -124,14 +130,14 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
               decoration: const InputDecoration(labelText: "Question"),
             ),
           ),
-          const SizedBox(width: Constants.defaultSpacing),
+          const SizedBox(width: Globals.spacing),
           Expanded(
             child: TextField(
               controller: _askedByEditingController,
               decoration: const InputDecoration(labelText: "Asked by"),
             ),
           ),
-          const SizedBox(width: Constants.defaultSpacing),
+          const SizedBox(width: Globals.spacing),
           Expanded(
             child: DropdownButtonFormField<String>(
               value: _status,
@@ -152,7 +158,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
               decoration: const InputDecoration(labelText: "Status"),
             ),
           ),
-          const SizedBox(width: Constants.defaultSpacing),
+          const SizedBox(width: Globals.spacing),
           Expanded(
             child: DropdownButtonFormField<String>(
               value: _orderBy,
@@ -171,7 +177,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
               decoration: const InputDecoration(labelText: "Sort by"),
             ),
           ),
-          const SizedBox(width: Constants.defaultSpacing),
+          const SizedBox(width: Globals.spacing),
           ElevatedButton(
             onPressed: () async {
               _currentPage = 1;
@@ -219,7 +225,6 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                                 tooltip: "Answer question",
                                 onPressed: () async {
                                   await _answerQuestionDialog(
-                                    context,
                                     question.questionId!,
                                   );
                                 },
@@ -242,7 +247,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
       return const SizedBox.shrink();
     }
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: Constants.defaultSpacing),
+      padding: const EdgeInsets.symmetric(vertical: Globals.spacing),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

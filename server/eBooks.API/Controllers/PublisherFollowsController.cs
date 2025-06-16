@@ -18,10 +18,17 @@ namespace eBooks.API.Controllers
         }
 
         [Authorize(Policy = "User")]
-        [HttpGet("{userId}")]
-        public async Task<PagedResult<PublisherFollowsRes>> GetByUserId(int userId)
+        [HttpGet]
+        public async Task<PagedResult<PublisherFollowsRes>> GetPaged()
         {
-            return await _service.GetByUserId(userId);
+            return await _service.GetPaged();
+        }
+
+        [Authorize(Policy = "User")]
+        [HttpGet("{publisherId}")]
+        public async Task<PublisherFollowsRes> GetByPublisherId(int publisherId)
+        {
+            return await _service.GetByPublisherId(publisherId);
         }
 
         [Authorize(Policy = "User")]

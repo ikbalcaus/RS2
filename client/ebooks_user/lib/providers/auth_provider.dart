@@ -24,6 +24,8 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future logout() async {
+    AuthProvider.email = null;
+    AuthProvider.password = null;
     isLoggedIn = false;
     notifyListeners();
   }

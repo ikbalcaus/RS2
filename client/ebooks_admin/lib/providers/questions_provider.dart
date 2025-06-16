@@ -1,7 +1,7 @@
 import "dart:convert";
 import "package:ebooks_admin/models/questions/question.dart";
 import "package:ebooks_admin/providers/base_provider.dart";
-import "package:ebooks_admin/utils/constants.dart";
+import "package:ebooks_admin/utils/globals.dart";
 import "package:http/http.dart" as http;
 
 class QuestionsProvider extends BaseProvider<Question> {
@@ -13,7 +13,7 @@ class QuestionsProvider extends BaseProvider<Question> {
   }
 
   Future patch(int id, dynamic request) async {
-    var uri = Uri.parse("${Constants.apiAddress}/questions/$id");
+    var uri = Uri.parse("${Globals.apiAddress}/questions/$id");
     var headers = createHeaders();
     var jsonRequest = jsonEncode(request);
     var response = await http.patch(uri, headers: headers, body: jsonRequest);

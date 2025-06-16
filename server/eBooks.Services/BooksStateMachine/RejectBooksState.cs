@@ -55,7 +55,7 @@ namespace eBooks.Services.BooksStateMachine
                 throw new ExceptionNotFound();
             entity.StateMachine = "approve";
             entity.RejectionReason = null;
-            entity.ReviewedById = int.TryParse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var userId) ? userId : 0;
+            entity.ReviewedById = int.TryParse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var temp) ? temp : 0;
             await _db.SaveChangesAsync();
             _logger.LogInformation($"Book with title {entity.Title} approved.");
             var result = _mapper.Map<BooksRes>(entity);

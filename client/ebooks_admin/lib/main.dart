@@ -10,7 +10,7 @@ import "package:ebooks_admin/providers/roles_provider.dart";
 import "package:ebooks_admin/providers/users_provider.dart";
 import "package:ebooks_admin/screens/books_screen.dart";
 import "package:ebooks_admin/screens/login_screen.dart";
-import "package:ebooks_admin/utils/constants.dart";
+import "package:ebooks_admin/utils/globals.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 import "package:window_manager/window_manager.dart";
@@ -55,18 +55,19 @@ class MyApp extends StatelessWidget {
           navigatorKey: navigatorKey,
           theme: ThemeData(
             appBarTheme: const AppBarTheme(
-              backgroundColor: Constants.defaultBackgroundColor,
-              foregroundColor: Constants.defaultColor,
+              backgroundColor: Globals.backgroundColor,
+              foregroundColor: Globals.color,
               titleTextStyle: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 20,
-                color: Constants.defaultColor,
+                color: Globals.color,
               ),
             ),
           ),
           home: authProvider.isLoggedIn
               ? const BooksScreen()
               : const LoginScreen(),
+          debugShowCheckedModeBanner: false,
         );
       },
     );

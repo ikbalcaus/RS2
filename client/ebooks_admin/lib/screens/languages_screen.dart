@@ -2,7 +2,7 @@ import "package:ebooks_admin/models/languages/language.dart";
 import "package:ebooks_admin/models/search_result.dart";
 import "package:ebooks_admin/providers/languages_provider.dart";
 import "package:ebooks_admin/screens/master_screen.dart";
-import "package:ebooks_admin/utils/constants.dart";
+import "package:ebooks_admin/utils/globals.dart";
 import "package:ebooks_admin/utils/helpers.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
@@ -22,7 +22,6 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
   int _currentPage = 1;
   String _orderBy = "Last modified";
   Map<String, dynamic> _currentFilter = {};
-
   final TextEditingController _nameEditingController = TextEditingController();
 
   @override
@@ -32,6 +31,12 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
     _currentFilter = {"name": widget.name ?? ""};
     _languagesProvider = context.read<LanguagesProvider>();
     _fetchLanguages();
+  }
+
+  @override
+  void dispose() {
+    _nameEditingController.dispose();
+    super.dispose();
   }
 
   @override
@@ -75,13 +80,13 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
     }
   }
 
-  Future _editLanguageDialog(BuildContext context, int id, String name) async {
+  Future _editLanguageDialog(int id, String name) async {
     final TextEditingController dialogController = TextEditingController(
       text: name,
     );
     await showDialog(
       context: context,
-      builder: (dialogContext) {
+      builder: (context) {
         return AlertDialog(
           title: const Text("Confirm edit"),
           content: TextField(
@@ -93,7 +98,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
               onPressed: () async {
                 final dialogText = dialogController.text.trim();
                 if (dialogText.isNotEmpty) {
-                  Navigator.of(dialogContext).pop(true);
+                  Navigator.pop(context);
                   await Future.delayed(const Duration(milliseconds: 250));
                   try {
                     await _languagesProvider.put(id, {"name": dialogText});
@@ -107,7 +112,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
               child: const Text("Edit"),
             ),
             TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
+              onPressed: () => Navigator.pop(context),
               child: const Text("Cancel"),
             ),
           ],
@@ -116,16 +121,16 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
     );
   }
 
-  Future _deleteLanguageDialog(BuildContext context, int id) async {
+  Future _deleteLanguageDialog(int id) async {
     await showDialog(
       context: context,
-      builder: (dialogContext) {
+      builder: (context) {
         return AlertDialog(
           title: const Text("Confirm delete"),
           actions: [
             TextButton(
               onPressed: () async {
-                Navigator.of(dialogContext).pop(true);
+                Navigator.pop(context);
                 await Future.delayed(const Duration(milliseconds: 250));
                 try {
                   await _languagesProvider.delete(id);
@@ -138,7 +143,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
               child: const Text("Delete"),
             ),
             TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
+              onPressed: () => Navigator.pop(context),
               child: const Text("Cancel"),
             ),
           ],
@@ -149,7 +154,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
 
   Widget _buildSearch() {
     return Padding(
-      padding: const EdgeInsets.all(Constants.defaultSpacing),
+      padding: const EdgeInsets.all(Globals.spacing),
       child: Row(
         children: [
           Expanded(
@@ -158,7 +163,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
               decoration: const InputDecoration(labelText: "Language"),
             ),
           ),
-          const SizedBox(width: Constants.defaultSpacing),
+          const SizedBox(width: Globals.spacing),
           Expanded(
             child: DropdownButtonFormField<String>(
               value: _orderBy,
@@ -183,7 +188,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
               decoration: const InputDecoration(labelText: "Sort by"),
             ),
           ),
-          const SizedBox(width: Constants.defaultSpacing),
+          const SizedBox(width: Globals.spacing),
           ElevatedButton(
             onPressed: () async {
               _currentPage = 1;
@@ -195,7 +200,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
             },
             child: const Text("Search"),
           ),
-          const SizedBox(width: Constants.defaultSpacing),
+          const SizedBox(width: Globals.spacing),
           ElevatedButton(
             onPressed: () async {
               try {
@@ -241,7 +246,6 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
                                 tooltip: "Edit language",
                                 onPressed: () async {
                                   await _editLanguageDialog(
-                                    context,
                                     language.languageId!,
                                     language.name ?? "",
                                   );
@@ -252,7 +256,6 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
                                 tooltip: "Delete language",
                                 onPressed: () async {
                                   await _deleteLanguageDialog(
-                                    context,
                                     language.languageId!,
                                   );
                                 },
@@ -275,7 +278,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
       return const SizedBox.shrink();
     }
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: Constants.defaultSpacing),
+      padding: const EdgeInsets.symmetric(vertical: Globals.spacing),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

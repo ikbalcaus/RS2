@@ -45,8 +45,6 @@ public partial class User
 
     public virtual ICollection<Book> BookReviewedBies { get; set; } = new List<Book>();
 
-    public virtual ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
-
     public virtual ICollection<Genre> Genres { get; set; } = new List<Genre>();
 
     public virtual ICollection<User> InversePublisherVerifiedBy { get; set; } = new List<User>();

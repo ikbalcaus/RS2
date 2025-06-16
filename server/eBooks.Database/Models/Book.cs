@@ -45,8 +45,6 @@ public partial class Book
 
     public virtual ICollection<BookGenre> BookGenres { get; set; } = new List<BookGenre>();
 
-    public virtual ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
-
     public virtual Language Language { get; set; } = null!;
 
     public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();

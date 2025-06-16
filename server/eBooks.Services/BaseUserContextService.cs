@@ -32,16 +32,14 @@ namespace eBooks.Services
         protected int GetUserId() => int.TryParse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : 0;
         protected async Task<bool> AccessRightExist(int bookId) => await _db.Set<AccessRight>().AnyAsync(x => x.UserId == GetUserId() && x.BookId == bookId);
 
-        public virtual async Task<PagedResult<TResponse>> GetPaged()
+        public virtual async Task<PagedResult<TResponse>> GetPaged(BaseSearch search)
         {
             var userId = GetUserId();
-            var search = new BaseSearch();
             List<TResponse> result = new List<TResponse>();
-            var query = _db.Set<TEntity>().Where(x => x.UserId == userId).AsQueryable();
+            var query = _db.Set<TEntity>().Where(x => x.UserId == userId).Include(x => x.Book).AsQueryable();
             int count = await query.CountAsync();
             if (search?.Page.HasValue == true && search?.PageSize.HasValue == true && search.Page.Value > 0)
                 query = query.Skip((search.Page.Value - 1) * search.PageSize.Value).Take(search.PageSize.Value);
-            query = await AddIncludes(query);
             var list = await query.OrderByDescending(x => x.ModifiedAt).ToListAsync();
             result = _mapper.Map(list, result);
             PagedResult<TResponse> pagedResult = new PagedResult<TResponse>
@@ -55,9 +53,7 @@ namespace eBooks.Services
         public virtual async Task<TResponse> GetByBookId(int bookId)
         {
             var userId = GetUserId();
-            var query = _db.Set<TEntity>().Where(x => x.UserId == userId && x.BookId == bookId).AsQueryable();
-            query = await AddIncludes(query);
-            var entity = await query.FirstOrDefaultAsync();
+            var entity = await _db.Set<TEntity>().Include(x => x.Book).FirstOrDefaultAsync(x => x.UserId == userId && x.BookId == bookId);
             if (entity == null)
                 throw new ExceptionNotFound();
             return _mapper.Map<TResponse>(entity);
@@ -108,11 +104,6 @@ namespace eBooks.Services
             set.Remove(entity);
             await _db.SaveChangesAsync();
             return null;
-        }
-
-        public virtual async Task<IQueryable<TEntity>> AddIncludes(IQueryable<TEntity> query)
-        {
-            return query;
         }
     }
 }

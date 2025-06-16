@@ -39,9 +39,11 @@ namespace eBooks.Services
             StripeConfiguration.ApiKey = _config["Stripe:SecretKey"];
         }
 
-        public async Task<StripeRes> GetStripeAccountLink(int userId)
+        protected int GetUserId() => int.TryParse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : 0;
+
+        public async Task<StripeRes> GetStripeAccountLink()
         {
-            var user = await _db.Set<User>().FindAsync(userId);
+            var user = await _db.Set<User>().FindAsync(GetUserId());
             if (user == null)
                 throw new ExceptionNotFound();
             var accountService = new AccountService();
@@ -74,7 +76,7 @@ namespace eBooks.Services
         public async Task<StripeRes> CreateCheckoutSession(int bookId)
         {
             var errors = new Dictionary<string, List<string>>();
-            var userId = int.TryParse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var temp) ? temp : 0;
+            var userId = GetUserId();
             var user = await _db.Set<User>().FindAsync(userId);
             var book = await _db.Books.Include(x => x.Publisher).FirstOrDefaultAsync(x => x.BookId == bookId);
             if (book == null)
@@ -89,17 +91,10 @@ namespace eBooks.Services
                 errors.AddError("Book", "You cannot add your own book");
             if (book.StateMachine != "approve")
                 errors.AddError("Book", "This book is not active right now");
+            if (!user.IsEmailVerified)
+                errors.AddError("Email", "Your email is not verified");
             if (errors.Count > 0)
                 throw new ExceptionBadRequest(errors);
-            if (!user.IsEmailVerified)
-            {
-                var verificationToken = Guid.NewGuid().ToString();
-                user.VerificationToken = verificationToken;
-                user.TokenExpiry = DateTime.UtcNow.AddHours(24);
-                await _db.SaveChangesAsync();
-                _bus.PubSub.Publish(new EmailVerification { Token = _mapper.Map<TokenRes>(user) });
-                throw new ExceptionBadRequest("Your email is not verified, please check your email and verifiy it");
-            }
             var finalPrice = Helpers.CalculateDiscountedPrice((decimal)book.Price, book.DiscountPercentage, book.DiscountStart, book.DiscountEnd);
             var priceInCents = (long)(finalPrice * 100);
             var platformFee = (long)(finalPrice * 100 * 0.10m);
@@ -143,8 +138,17 @@ namespace eBooks.Services
                     }
                 }
             };
-            var service = new SessionService();
-            var session = await service.CreateAsync(options);
+            SessionService service;
+            Session session;
+            try
+            {
+                service = new SessionService();
+                session = await service.CreateAsync(options);
+            }
+            catch
+            {
+                throw new ExceptionBadRequest("You don't have connected stripe account");
+            }
             return new StripeRes
             {
                 Url = session.Url
@@ -196,11 +200,8 @@ namespace eBooks.Services
                         UserId = userId,
                         BookId = bookId
                     };
-                    var wishlistItem = await _db.Set<Wishlist>().FindAsync(userId, bookId);
                     _db.Set<Purchase>().Add(purchase);
                     _db.Set<AccessRight>().Add(accessRight);
-                    if (wishlistItem != null)
-                        _db.Set<Wishlist>().Remove(wishlistItem);
                     await _db.SaveChangesAsync();
                     _logger.LogInformation($"Payment successfull userId:{userId} bookId:{bookId} totalPrice:{totalPrice}");
                     _bus.PubSub.Publish(new PaymentCompleted { Purchase = _mapper.Map<PurchasesRes>(purchase) });

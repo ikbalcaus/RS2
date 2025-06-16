@@ -1,5 +1,6 @@
 ﻿using eBooks.Interfaces;
 using eBooks.Models.Responses;
+using eBooks.Models.Search;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,9 +19,9 @@ namespace eBooks.API.Controllers
         }
 
         [HttpGet]
-        public async Task<PagedResult<TResponse>> GetPaged()
+        public async Task<PagedResult<TResponse>> GetPaged([FromQuery] BaseSearch search)
         {
-            return await _service.GetPaged();
+            return await _service.GetPaged(search);
         }
 
         [HttpGet("{bookId}")]

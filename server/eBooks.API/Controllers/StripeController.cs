@@ -21,15 +21,14 @@ namespace eBooks.API.Controllers
         }
 
         [Authorize(Policy = "User")]
-        [HttpGet("{userId}/stripe-account-link")]
-        public async Task<StripeRes> GetStripeAccountLink(int userId)
+        [HttpGet("stripe-account-link")]
+        public async Task<StripeRes> GetStripeAccountLink()
         {
-            await _accessControlHandler.CheckIsOwnerByUserId(userId);
-            return await _service.GetStripeAccountLink(userId);
+            return await _service.GetStripeAccountLink();
         }
 
         [Authorize(Policy = "User")]
-        [HttpPost("{bookId}/checkout-session")]
+        [HttpGet("{bookId}/checkout-session")]
         public async Task<StripeRes> CreateCheckoutSession(int bookId)
         {
             return await _service.CreateCheckoutSession(bookId);

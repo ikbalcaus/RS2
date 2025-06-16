@@ -2,7 +2,7 @@ import "package:ebooks_admin/models/genres/genre.dart";
 import "package:ebooks_admin/models/search_result.dart";
 import "package:ebooks_admin/providers/genres_provider.dart";
 import "package:ebooks_admin/screens/master_screen.dart";
-import "package:ebooks_admin/utils/constants.dart";
+import "package:ebooks_admin/utils/globals.dart";
 import "package:ebooks_admin/utils/helpers.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
@@ -22,7 +22,6 @@ class _GenresScreenState extends State<GenresScreen> {
   int _currentPage = 1;
   String _orderBy = "Last modified";
   Map<String, dynamic> _currentFilter = {};
-
   final TextEditingController _nameEditingController = TextEditingController();
 
   @override
@@ -32,6 +31,12 @@ class _GenresScreenState extends State<GenresScreen> {
     _currentFilter = {"name": widget.name ?? ""};
     _genresProvider = context.read<GenresProvider>();
     _fetchGenres();
+  }
+
+  @override
+  void dispose() {
+    _nameEditingController.dispose();
+    super.dispose();
   }
 
   @override
@@ -73,13 +78,13 @@ class _GenresScreenState extends State<GenresScreen> {
     }
   }
 
-  Future _editGenreDialog(BuildContext context, int id, String name) async {
+  Future _editGenreDialog(int id, String name) async {
     final TextEditingController dialogController = TextEditingController(
       text: name,
     );
     await showDialog(
       context: context,
-      builder: (dialogContext) {
+      builder: (context) {
         return AlertDialog(
           title: const Text("Confirm edit"),
           content: TextField(
@@ -91,7 +96,7 @@ class _GenresScreenState extends State<GenresScreen> {
               onPressed: () async {
                 final dialogText = dialogController.text.trim();
                 if (dialogText.isNotEmpty) {
-                  Navigator.of(dialogContext).pop(true);
+                  Navigator.pop(context);
                   await Future.delayed(const Duration(milliseconds: 250));
                   try {
                     await _genresProvider.put(id, {"name": dialogText});
@@ -105,7 +110,7 @@ class _GenresScreenState extends State<GenresScreen> {
               child: const Text("Edit"),
             ),
             TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
+              onPressed: () => Navigator.pop(context),
               child: const Text("Cancel"),
             ),
           ],
@@ -114,16 +119,16 @@ class _GenresScreenState extends State<GenresScreen> {
     );
   }
 
-  Future _deleteGenreDialog(BuildContext context, int id) async {
+  Future _deleteGenreDialog(int id) async {
     await showDialog(
       context: context,
-      builder: (dialogContext) {
+      builder: (context) {
         return AlertDialog(
           title: const Text("Confirm delete"),
           actions: [
             TextButton(
               onPressed: () async {
-                Navigator.of(dialogContext).pop(true);
+                Navigator.pop(context);
                 await Future.delayed(const Duration(milliseconds: 250));
                 try {
                   await _genresProvider.delete(id);
@@ -136,7 +141,7 @@ class _GenresScreenState extends State<GenresScreen> {
               child: const Text("Delete"),
             ),
             TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
+              onPressed: () => Navigator.pop(context),
               child: const Text("Cancel"),
             ),
           ],
@@ -147,7 +152,7 @@ class _GenresScreenState extends State<GenresScreen> {
 
   Widget _buildSearch() {
     return Padding(
-      padding: const EdgeInsets.all(Constants.defaultSpacing),
+      padding: const EdgeInsets.all(Globals.spacing),
       child: Row(
         children: [
           Expanded(
@@ -156,7 +161,7 @@ class _GenresScreenState extends State<GenresScreen> {
               decoration: const InputDecoration(labelText: "Genre"),
             ),
           ),
-          const SizedBox(width: Constants.defaultSpacing),
+          const SizedBox(width: Globals.spacing),
           Expanded(
             child: DropdownButtonFormField<String>(
               value: _orderBy,
@@ -181,7 +186,7 @@ class _GenresScreenState extends State<GenresScreen> {
               decoration: const InputDecoration(labelText: "Sort by"),
             ),
           ),
-          const SizedBox(width: Constants.defaultSpacing),
+          const SizedBox(width: Globals.spacing),
           ElevatedButton(
             onPressed: () async {
               _currentPage = 1;
@@ -193,7 +198,7 @@ class _GenresScreenState extends State<GenresScreen> {
             },
             child: const Text("Search"),
           ),
-          const SizedBox(width: Constants.defaultSpacing),
+          const SizedBox(width: Globals.spacing),
           ElevatedButton(
             onPressed: () async {
               try {
@@ -239,7 +244,6 @@ class _GenresScreenState extends State<GenresScreen> {
                                 tooltip: "Edit genre",
                                 onPressed: () async {
                                   await _editGenreDialog(
-                                    context,
                                     genre.genreId!,
                                     genre.name ?? "",
                                   );
@@ -249,10 +253,7 @@ class _GenresScreenState extends State<GenresScreen> {
                                 icon: const Icon(Icons.delete),
                                 tooltip: "Delete genre",
                                 onPressed: () async {
-                                  await _deleteGenreDialog(
-                                    context,
-                                    genre.genreId!,
-                                  );
+                                  await _deleteGenreDialog(genre.genreId!);
                                 },
                               ),
                             ],
@@ -273,7 +274,7 @@ class _GenresScreenState extends State<GenresScreen> {
       return const SizedBox.shrink();
     }
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: Constants.defaultSpacing),
+      padding: const EdgeInsets.symmetric(vertical: Globals.spacing),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

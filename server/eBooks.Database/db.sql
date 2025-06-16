@@ -97,15 +97,6 @@ CREATE TABLE BookAuthors (
     FOREIGN KEY (AuthorId) REFERENCES Authors(AuthorId)
 );
 
-CREATE TABLE Favorites (
-    UserId INT,
-    BookId INT,
-    ModifiedAt DATETIME NOT NULL DEFAULT GETDATE(),
-    PRIMARY KEY (UserId, BookId),
-    FOREIGN KEY (UserId) REFERENCES Users(UserId),
-    FOREIGN KEY (BookId) REFERENCES Books(BookId)
-);
-
 CREATE TABLE Wishlists (
     UserId INT,
     BookId INT,
@@ -119,7 +110,8 @@ CREATE TABLE AccessRights (
     UserId INT NOT NULL,
     BookId INT NOT NULL,
     ModifiedAt DATETIME NOT NULL DEFAULT GETDATE(),
-    Hidden BIT NOT NULL DEFAULT 0,
+    IsFavorite BIT NOT NULL DEFAULT 0,
+    IsHidden BIT NOT NULL DEFAULT 0,
     PRIMARY KEY (UserId, BookId),
     FOREIGN KEY (UserId) REFERENCES Users(UserId),
     FOREIGN KEY (BookId) REFERENCES Books(BookId),

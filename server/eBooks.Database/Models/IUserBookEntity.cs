@@ -4,6 +4,7 @@
     {
         int UserId { get; set; }
         int BookId { get; set; }
+        Book Book { get; set; }
         DateTime ModifiedAt { get; set; }
     }
 }

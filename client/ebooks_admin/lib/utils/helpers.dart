@@ -1,10 +1,10 @@
 import "dart:convert";
-import "package:ebooks_admin/utils/constants.dart";
+import "package:ebooks_admin/utils/globals.dart";
 import "package:flutter/material.dart";
 
 class Helpers {
   static void showSuccessMessage(BuildContext context, [String? message]) {
-    message ??= Constants.successMessage;
+    message ??= Globals.successMessage;
     if (context.mounted) {
       ScaffoldMessenger.of(
         context,
@@ -13,7 +13,7 @@ class Helpers {
   }
 
   static void showErrorMessage(BuildContext context, Object ex) {
-    String errorMessage = Constants.errorMessage;
+    String errorMessage = Globals.errorMessage;
     if (context.mounted) {
       if (ex.toString().trim().isNotEmpty) {
         try {

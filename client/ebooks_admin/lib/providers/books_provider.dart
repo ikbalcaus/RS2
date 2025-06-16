@@ -1,7 +1,7 @@
 import "dart:convert";
 import "package:ebooks_admin/models/books/book.dart";
 import "package:ebooks_admin/providers/base_provider.dart";
-import "package:ebooks_admin/utils/constants.dart";
+import "package:ebooks_admin/utils/globals.dart";
 import "package:http/http.dart" as http;
 
 class BooksProvider extends BaseProvider<Book> {
@@ -13,7 +13,7 @@ class BooksProvider extends BaseProvider<Book> {
   }
 
   Future adminDelete(int id, String? reason) async {
-    var uri = Uri.parse("${Constants.apiAddress}/books/$id/admin-delete");
+    var uri = Uri.parse("${Globals.apiAddress}/books/$id/admin-delete");
     if (reason != null && reason.isNotEmpty) {
       uri = uri.replace(queryParameters: {"reason": reason});
     }
@@ -25,7 +25,7 @@ class BooksProvider extends BaseProvider<Book> {
   }
 
   Future getBookStates() async {
-    var uri = Uri.parse("${Constants.apiAddress}/books/book-states");
+    var uri = Uri.parse("${Globals.apiAddress}/books/book-states");
     var headers = createHeaders();
     var response = await http.get(uri, headers: headers);
     if (isValidResponse(response)) {
@@ -38,7 +38,7 @@ class BooksProvider extends BaseProvider<Book> {
 
   Future getAllowedActions(int id) async {
     var uri = Uri.parse(
-      "${Constants.apiAddress}/books/$id/admin-allowed-actions",
+      "${Globals.apiAddress}/books/$id/admin-allowed-actions",
     );
     var headers = createHeaders();
     var response = await http.get(uri, headers: headers);
@@ -51,7 +51,7 @@ class BooksProvider extends BaseProvider<Book> {
   }
 
   Future approveBook(int id) async {
-    var uri = Uri.parse("${Constants.apiAddress}/books/$id/approve");
+    var uri = Uri.parse("${Globals.apiAddress}/books/$id/approve");
     var headers = createHeaders();
     var response = await http.patch(uri, headers: headers);
     if (!isValidResponse(response)) {
@@ -60,7 +60,7 @@ class BooksProvider extends BaseProvider<Book> {
   }
 
   Future rejectBook(int id, String reason) async {
-    var uri = Uri.parse("${Constants.apiAddress}/books/$id/reject");
+    var uri = Uri.parse("${Globals.apiAddress}/books/$id/reject");
     if (reason.isNotEmpty) {
       uri = uri.replace(queryParameters: {"reason": reason});
     }

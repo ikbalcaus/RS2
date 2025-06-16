@@ -26,11 +26,11 @@ namespace eBooks.Services
         public override IQueryable<Purchase> AddFilters(IQueryable<Purchase> query, PurchasesSearch search)
         {
             if (!string.IsNullOrWhiteSpace(search.User))
-                query = query.Where(x => x.User.UserName.ToLower().StartsWith(search.User.ToLower()));
+                query = query.Where(x => x.User.UserName.ToLower().Contains(search.User.ToLower()));
             if (!string.IsNullOrWhiteSpace(search.Publisher))
-                query = query.Where(x => x.Publisher.UserName.ToLower().StartsWith(search.Publisher.ToLower()));
+                query = query.Where(x => x.Publisher.UserName.ToLower().Contains(search.Publisher.ToLower()));
             if (!string.IsNullOrWhiteSpace(search.Book))
-                query = query.Where(x => x.Book.Title.ToLower().StartsWith(search.Book.ToLower()));
+                query = query.Where(x => x.Book.Title.ToLower().Contains(search.Book.ToLower()));
             query = search.OrderBy switch
             {
                 "First created" => query.OrderBy(x => x.CreatedAt),

@@ -1,7 +1,7 @@
 import "dart:convert";
 import "package:ebooks_admin/models/search_result.dart";
 import "package:ebooks_admin/providers/auth_provider.dart";
-import "package:ebooks_admin/utils/constants.dart";
+import "package:ebooks_admin/utils/globals.dart";
 import "package:flutter/material.dart";
 import "package:http/http.dart" as http;
 
@@ -17,7 +17,7 @@ abstract class BaseProvider<T> with ChangeNotifier {
     int pageSize = 10,
     Map<String, dynamic>? filter,
   }) async {
-    var url = "${Constants.apiAddress}/$_endpoint";
+    var url = "${Globals.apiAddress}/$_endpoint";
     final queryParams = <String, String>{};
     queryParams["Page"] = page.toString();
     queryParams["PageSize"] = pageSize.toString();
@@ -46,7 +46,7 @@ abstract class BaseProvider<T> with ChangeNotifier {
   }
 
   Future getById(int id) async {
-    var uri = Uri.parse("${Constants.apiAddress}/$_endpoint/$id");
+    var uri = Uri.parse("${Globals.apiAddress}/$_endpoint/$id");
     var headers = createHeaders();
     var response = await http.get(uri, headers: headers);
     if (isValidResponse(response)) {
@@ -58,7 +58,7 @@ abstract class BaseProvider<T> with ChangeNotifier {
   }
 
   Future post(dynamic request) async {
-    var uri = Uri.parse("${Constants.apiAddress}/$_endpoint");
+    var uri = Uri.parse("${Globals.apiAddress}/$_endpoint");
     var headers = createHeaders();
     var jsonRequest = jsonEncode(request);
     var response = await http.post(uri, headers: headers, body: jsonRequest);
@@ -71,7 +71,7 @@ abstract class BaseProvider<T> with ChangeNotifier {
   }
 
   Future put(int id, dynamic request) async {
-    var uri = Uri.parse("${Constants.apiAddress}/$_endpoint/$id");
+    var uri = Uri.parse("${Globals.apiAddress}/$_endpoint/$id");
     var headers = createHeaders();
     var jsonRequest = jsonEncode(request);
     var response = await http.put(uri, headers: headers, body: jsonRequest);
@@ -84,7 +84,7 @@ abstract class BaseProvider<T> with ChangeNotifier {
   }
 
   Future delete(int id) async {
-    var uri = Uri.parse("${Constants.apiAddress}/$_endpoint/$id");
+    var uri = Uri.parse("${Globals.apiAddress}/$_endpoint/$id");
     var headers = createHeaders();
     var response = await http.delete(uri, headers: headers);
     if (!isValidResponse(response)) {

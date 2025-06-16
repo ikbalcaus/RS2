@@ -19,7 +19,7 @@ namespace eBooks.Services
         public override IQueryable<Author> AddFilters(IQueryable<Author> query, AuthorsSearch search)
         {
             if (!string.IsNullOrWhiteSpace(search.Name))
-                query = query.Where(x => x.Name.ToLower().StartsWith(search.Name.ToLower()));
+                query = query.Where(x => x.Name.ToLower().Contains(search.Name.ToLower()));
             query = search.OrderBy switch
             {
                 "First modified" => query.OrderBy(x => x.ModifiedAt),

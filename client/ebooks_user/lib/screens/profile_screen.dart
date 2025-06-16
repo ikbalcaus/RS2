@@ -1,15 +1,23 @@
+import "dart:ui";
 import "package:ebooks_user/models/books/book.dart";
 import "package:ebooks_user/models/search_result.dart";
 import "package:ebooks_user/models/users/user.dart";
 import "package:ebooks_user/providers/auth_provider.dart";
 import "package:ebooks_user/providers/books_provider.dart";
+import "package:ebooks_user/providers/stripe_provider.dart";
+import "package:ebooks_user/providers/theme_provider.dart";
 import "package:ebooks_user/providers/users_provider.dart";
+import "package:ebooks_user/screens/book_details_screen.dart";
+import "package:ebooks_user/screens/faq_screen.dart";
 import "package:ebooks_user/screens/login_screen.dart";
 import "package:ebooks_user/screens/master_screen.dart";
+import "package:ebooks_user/screens/followed_publishers_screen.dart";
+import "package:ebooks_user/screens/wishlist_screen.dart";
 import "package:ebooks_user/utils/globals.dart";
 import "package:ebooks_user/utils/helpers.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
+import "package:url_launcher/url_launcher.dart";
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -21,9 +29,12 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   late UsersProvider _usersProvider;
   late BooksProvider _booksProvider;
+  late StripeProvider _stripeProvider;
   User? _user;
   SearchResult<Book>? _books;
   bool _isLoading = true;
+  int _currentPage = 1;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -31,9 +42,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (AuthProvider.isLoggedIn) {
       _usersProvider = context.read<UsersProvider>();
       _booksProvider = context.read<BooksProvider>();
+      _stripeProvider = context.read<StripeProvider>();
       _fetchUser();
       _fetchBooks();
+      _scrollController.addListener(() {
+        if (_scrollController.position.pixels >=
+                _scrollController.position.maxScrollExtent - 200 &&
+            !_isLoading &&
+            (_books?.resultList.length ?? 0) < (_books?.count ?? 0)) {
+          _currentPage++;
+          _fetchBooks(append: true);
+        }
+      });
     }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!AuthProvider.isLoggedIn) {
+      return const MasterScreen(child: LoginScreen());
+    }
+    if (_isLoading) {
+      return MasterScreen(
+        child: const Center(child: CircularProgressIndicator()),
+      );
+    }
+    return MasterScreen(child: _buildResultView());
   }
 
   Future _fetchUser() async {
@@ -51,43 +91,152 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Future _fetchBooks() async {
-    setState(() => _isLoading = true);
+  Future _fetchBooks({bool append = false}) async {
     try {
       final books = await _booksProvider.getPaged(
+        page: _currentPage,
         filter: {"PublisherId": AuthProvider.userId},
       );
       if (!mounted) return;
-      setState(() => _books = books);
+      setState(() {
+        if (append && _books != null) {
+          _books?.resultList.addAll(books.resultList);
+          _books?.count = books.count;
+        } else {
+          _books = books;
+        }
+      });
     } catch (ex) {
       if (!mounted) return;
-
       Helpers.showErrorMessage(context, ex);
     } finally {
       if (!mounted) return;
-
-      setState(() => _isLoading = false);
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (!AuthProvider.isLoggedIn) {
-      return const MasterScreen(child: LoginScreen());
-    }
-    if (_isLoading) {
-      return MasterScreen(
-        child: const Center(child: CircularProgressIndicator()),
-      );
-    }
-    return MasterScreen(child: _buildResultView());
+  Future _verifyEmailDialog() async {
+    await showDialog(
+      context: context,
+      builder: (context) {
+        String token = "";
+        return AlertDialog(
+          title: const Text("Verify email"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                decoration: const InputDecoration(labelText: "Enter token..."),
+                onChanged: (value) => token = value,
+              ),
+              const SizedBox(height: 6),
+              TextButton(
+                onPressed: () async {
+                  try {
+                    await _usersProvider.verifyEmail(_user!.userId!, null);
+                    Helpers.showSuccessMessage(
+                      context,
+                      "Verification email has been sent",
+                    );
+                  } catch (ex) {
+                    Helpers.showErrorMessage(context, ex);
+                  }
+                  Navigator.pop(context);
+                },
+                child: const Text("Send Verification Email"),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                if (token.trim().isNotEmpty) {
+                  Navigator.pop(context);
+                  await Future.delayed(const Duration(milliseconds: 250));
+                  try {
+                    await _usersProvider.verifyEmail(_user!.userId!, token);
+                    Helpers.showSuccessMessage(context);
+                    await _fetchUser();
+                  } catch (ex) {
+                    Helpers.showErrorMessage(context, ex);
+                  }
+                }
+              },
+              child: const Text("Verify"),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
-  Future _showLogoutDialog(BuildContext context) async {
+  Future _openStripeAccount() async {
+    try {
+      var accountLink = await _stripeProvider.getStripeAccountLink();
+      final uri = Uri.parse(accountLink.url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        Helpers.showErrorMessage(
+          context,
+          "Cannot opet an URL: ${uri.toString()}",
+        );
+      }
+    } catch (ex) {
+      Helpers.showErrorMessage(context, ex);
+    }
+  }
+
+  void _showSelectModeDialog() {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Choose Theme"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            RadioListTile(
+              title: const Text("Light"),
+              value: ThemeMode.light,
+              groupValue: themeProvider.themeMode,
+              onChanged: (value) {
+                themeProvider.setThemeMode(value!);
+                Navigator.of(context).pop();
+              },
+            ),
+            RadioListTile(
+              title: const Text("Dark"),
+              value: ThemeMode.dark,
+              groupValue: themeProvider.themeMode,
+              onChanged: (value) {
+                themeProvider.setThemeMode(value!);
+                Navigator.of(context).pop();
+              },
+            ),
+            RadioListTile(
+              title: const Text("System"),
+              value: ThemeMode.system,
+              groupValue: themeProvider.themeMode,
+              onChanged: (value) {
+                themeProvider.setThemeMode(value!);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future _showLogoutDialog() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     await showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (context) => AlertDialog(
         title: const Text("Logout"),
         content: const Text("Are you sure you want to logout?"),
         actions: [
@@ -95,7 +244,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             onPressed: () {
               authProvider.logout();
               AuthProvider.userId = 0;
-              Navigator.of(ctx).pop(true);
+              Navigator.pop(context);
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => const ProfileScreen()),
@@ -104,7 +253,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: const Text("Logout"),
           ),
           TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
+            onPressed: () => Navigator.pop(context),
             child: const Text("Cancel"),
           ),
         ],
@@ -121,12 +270,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Row(
             children: [
               CircleAvatar(
-                backgroundImage: NetworkImage(
-                  "${Globals.apiAddress}/images/users/${_user?.filePath}.webp",
-                ),
                 radius: 40,
+                backgroundColor: Colors.grey[200],
+                child: ClipOval(
+                  child: Image.network(
+                    "${Globals.apiAddress}/images/users/${_user?.filePath}.webp",
+                    width: 80,
+                    height: 80,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Icon(
+                        Icons.person,
+                        size: 40,
+                        color: Colors.grey[800],
+                      );
+                    },
+                  ),
+                ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -160,94 +322,166 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          const Text(
-            "My Books",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            height: 194,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: _books?.count ?? 0,
-              itemBuilder: (context, index) {
-                final book = _books!.resultList[index];
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: Column(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(6),
-                        child: Image.network(
-                          "${Globals.apiAddress}/images/books/${book.filePath}.webp",
-                          height: 150,
-                          width: 100,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              const Icon(Icons.broken_image, size: 100),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      SizedBox(
-                        width: 100,
-                        child: Text(
-                          book.title ?? "",
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                      ),
-                    ],
+          const SizedBox(height: 24),
+          if (_books?.count != 0)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "My Books",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 210,
+                  child: ScrollConfiguration(
+                    behavior: ScrollConfiguration.of(context).copyWith(
+                      dragDevices: {
+                        PointerDeviceKind.touch,
+                        PointerDeviceKind.mouse,
+                      },
+                    ),
+                    child: ListView.builder(
+                      controller: _scrollController,
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _books?.resultList.length,
+                      itemBuilder: (context, index) {
+                        final book = _books?.resultList[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      BookDetailsScreen(bookId: book!.bookId!),
+                                ),
+                              );
+                            },
+                            child: Column(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(2),
+                                  child: Image.network(
+                                    "${Globals.apiAddress}/images/books/${book?.filePath}.webp",
+                                    height: 160,
+                                    width: 100,
+                                    fit: BoxFit.cover,
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            SizedBox(
+                                              width: 100,
+                                              height: 160,
+                                              child: FittedBox(
+                                                fit: BoxFit.contain,
+                                                child: const Icon(
+                                                  Icons.book_sharp,
+                                                  color: Colors.black87,
+                                                ),
+                                              ),
+                                            ),
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                SizedBox(
+                                  width: 100,
+                                  child: Text(
+                                    book?.title ?? "",
+                                    textAlign: TextAlign.center,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                );
-              },
+                ),
+              ],
             ),
-          ),
           Column(
             children: [
+              const Divider(),
               ListTile(
                 leading: const Icon(Icons.account_circle),
-                title: const Text("Edit profile"),
+                title: const Text("Edit Profile"),
                 onTap: () {},
               ),
               if (_user?.isEmailVerified == false)
                 ListTile(
                   leading: const Icon(Icons.email),
                   title: const Text("Verify Email"),
-                  onTap: () {},
+                  onTap: () async {
+                    await _verifyEmailDialog();
+                  },
                 ),
+              ListTile(
+                leading: const Icon(Icons.book),
+                title: const Text("Add New Book"),
+                onTap: () {},
+              ),
               ListTile(
                 leading: const Icon(Icons.favorite),
                 title: const Text("Wishlist"),
-                onTap: () {},
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const WishlistScreen(),
+                    ),
+                  );
+                },
               ),
               ListTile(
                 leading: const Icon(Icons.bookmark),
-                title: const Text("Following Publishers"),
-                onTap: () {},
+                title: const Text("Followed Publishers"),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const FollowedPublishersScreen(),
+                    ),
+                  );
+                },
               ),
+              const Divider(),
               ListTile(
                 leading: const Icon(Icons.account_balance_wallet),
                 title: const Text("Stripe Account"),
-                onTap: () {},
+                trailing: Icon(Icons.chevron_right_rounded),
+                onTap: () async {
+                  await _openStripeAccount();
+                },
               ),
               ListTile(
-                leading: const Icon(Icons.question_answer),
-                title: const Text("Ask Question"),
-                onTap: () {},
+                leading: const Icon(Icons.color_lens),
+                title: const Text("Change Theme"),
+                onTap: () => _showSelectModeDialog(),
               ),
               ListTile(
-                leading: const Icon(Icons.shopping_cart),
-                title: const Text("Purchases"),
-                onTap: () {},
+                leading: const Icon(Icons.question_mark),
+                title: const Text("Help and Support"),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const FaqScreen()),
+                  );
+                },
               ),
+              const Divider(),
               ListTile(
                 leading: const Icon(Icons.logout),
                 title: const Text("Logout"),
                 onTap: () async {
-                  await _showLogoutDialog(context);
+                  await _showLogoutDialog();
                 },
               ),
             ],

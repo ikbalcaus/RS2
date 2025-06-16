@@ -2,7 +2,7 @@ import "package:ebooks_admin/models/authors/author.dart";
 import "package:ebooks_admin/models/search_result.dart";
 import "package:ebooks_admin/providers/authors_provider.dart";
 import "package:ebooks_admin/screens/master_screen.dart";
-import "package:ebooks_admin/utils/constants.dart";
+import "package:ebooks_admin/utils/globals.dart";
 import "package:ebooks_admin/utils/helpers.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
@@ -22,7 +22,6 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
   int _currentPage = 1;
   String _orderBy = "Last modified";
   Map<String, dynamic> _currentFilter = {};
-
   final TextEditingController _nameEditingController = TextEditingController();
 
   @override
@@ -32,6 +31,12 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
     _currentFilter = {"name": widget.name ?? ""};
     _authorsProvider = context.read<AuthorsProvider>();
     _fetchAuthors();
+  }
+
+  @override
+  void dispose() {
+    _nameEditingController.dispose();
+    super.dispose();
   }
 
   @override
@@ -73,13 +78,13 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
     }
   }
 
-  Future _editAuthorDialog(BuildContext context, int id, String name) async {
+  Future _editAuthorDialog(int id, String name) async {
     final TextEditingController dialogController = TextEditingController(
       text: name,
     );
     await showDialog(
       context: context,
-      builder: (ctx) {
+      builder: (context) {
         return AlertDialog(
           title: const Text("Confirm edit"),
           content: TextField(
@@ -91,7 +96,7 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
               onPressed: () async {
                 final dialogText = dialogController.text.trim();
                 if (dialogText.isNotEmpty) {
-                  Navigator.of(ctx).pop(true);
+                  Navigator.pop(context);
                   await Future.delayed(const Duration(milliseconds: 250));
                   try {
                     await _authorsProvider.put(id, {"name": dialogText});
@@ -105,7 +110,7 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
               child: const Text("Edit"),
             ),
             TextButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
+              onPressed: () => Navigator.pop(context),
               child: const Text("Cancel"),
             ),
           ],
@@ -114,16 +119,16 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
     );
   }
 
-  Future _deleteAuthorDialog(BuildContext context, int id) async {
+  Future _deleteAuthorDialog(int id) async {
     await showDialog(
       context: context,
-      builder: (ctx) {
+      builder: (context) {
         return AlertDialog(
           title: const Text("Confirm delete"),
           actions: [
             TextButton(
               onPressed: () async {
-                Navigator.of(ctx).pop(true);
+                Navigator.pop(context);
                 await Future.delayed(const Duration(milliseconds: 250));
                 try {
                   await _authorsProvider.delete(id);
@@ -136,7 +141,7 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
               child: const Text("Delete"),
             ),
             TextButton(
-              onPressed: () => Navigator.of(ctx).pop(false),
+              onPressed: () => Navigator.pop(context),
               child: const Text("Cancel"),
             ),
           ],
@@ -147,7 +152,7 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
 
   Widget _buildSearch() {
     return Padding(
-      padding: const EdgeInsets.all(Constants.defaultSpacing),
+      padding: const EdgeInsets.all(Globals.spacing),
       child: Row(
         children: [
           Expanded(
@@ -156,7 +161,7 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
               decoration: const InputDecoration(labelText: "Author"),
             ),
           ),
-          const SizedBox(width: Constants.defaultSpacing),
+          const SizedBox(width: Globals.spacing),
           Expanded(
             child: DropdownButtonFormField<String>(
               value: _orderBy,
@@ -181,7 +186,7 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
               decoration: const InputDecoration(labelText: "Sort by"),
             ),
           ),
-          const SizedBox(width: Constants.defaultSpacing),
+          const SizedBox(width: Globals.spacing),
           ElevatedButton(
             onPressed: () async {
               _currentPage = 1;
@@ -193,7 +198,7 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
             },
             child: const Text("Search"),
           ),
-          const SizedBox(width: Constants.defaultSpacing),
+          const SizedBox(width: Globals.spacing),
           ElevatedButton(
             onPressed: () async {
               try {
@@ -239,7 +244,6 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
                                 tooltip: "Edit author",
                                 onPressed: () async {
                                   await _editAuthorDialog(
-                                    context,
                                     author.authorId!,
                                     author.name ?? "",
                                   );
@@ -249,10 +253,7 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
                                 icon: const Icon(Icons.delete),
                                 tooltip: "Delete author",
                                 onPressed: () async {
-                                  await _deleteAuthorDialog(
-                                    context,
-                                    author.authorId!,
-                                  );
+                                  await _deleteAuthorDialog(author.authorId!);
                                 },
                               ),
                             ],
@@ -273,7 +274,7 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
       return const SizedBox.shrink();
     }
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: Constants.defaultSpacing),
+      padding: const EdgeInsets.symmetric(vertical: Globals.spacing),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

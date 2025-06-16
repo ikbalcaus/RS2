@@ -11,20 +11,10 @@ class UsersProvider extends BaseProvider<User> {
     return User.fromJson(data);
   }
 
-  Future adminDelete(int id, String? reason) async {
-    var uri = Uri.parse("${Globals.apiAddress}/users/$id/admin-delete");
-    if (reason != null && reason.isNotEmpty) {
-      uri = uri.replace(queryParameters: {"reason": reason});
-    }
-    var headers = createHeaders();
-    var response = await http.delete(uri, headers: headers);
-    if (!isValidResponse(response)) {
-      throw response.body;
-    }
-  }
-
-  Future verifyPublisher(int id) async {
-    var uri = Uri.parse("${Globals.apiAddress}/users/$id/verify-publisher");
+  Future verifyEmail(int id, String? token) async {
+    var uri = Uri.parse(
+      "${Globals.apiAddress}/users/$id/verify-email/${token != null ? token : ""}",
+    );
     var headers = createHeaders();
     var response = await http.patch(uri, headers: headers);
     if (!isValidResponse(response)) {

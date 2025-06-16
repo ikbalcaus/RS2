@@ -1,5 +1,5 @@
 import "dart:convert";
-import "package:ebooks_admin/utils/constants.dart";
+import "package:ebooks_admin/utils/globals.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 import "package:ebooks_admin/providers/auth_provider.dart";
@@ -14,11 +14,11 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  bool _isLoading = false;
+  Map<String, List<String>> _fieldErrors = {};
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  bool _isLoading = false;
-  Map<String, List<String>> _fieldErrors = {};
 
   Future _login() async {
     setState(() {
@@ -134,7 +134,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             await _login();
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Constants.defaultBackgroundColor,
+                            backgroundColor: Globals.backgroundColor,
                             shape: const RoundedRectangleBorder(
                               borderRadius: BorderRadius.zero,
                             ),
@@ -144,7 +144,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             "Login",
                             style: TextStyle(
                               fontSize: 16,
-                              color: Constants.defaultColor,
+                              color: Globals.color,
                             ),
                           ),
                         ),

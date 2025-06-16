@@ -32,13 +32,13 @@ namespace eBooks.Services
         public override IQueryable<User> AddFilters(IQueryable<User> query, UsersSearch search)
         {
             if (!string.IsNullOrWhiteSpace(search.FirstName))
-                query = query.Where(x => x.FirstName.ToLower().StartsWith(search.FirstName.ToLower()));
+                query = query.Where(x => x.FirstName.ToLower().Contains(search.FirstName.ToLower()));
             if (!string.IsNullOrWhiteSpace(search.LastName))
-                query = query.Where(x => x.LastName.ToLower().StartsWith(search.LastName.ToLower()));
+                query = query.Where(x => x.LastName.ToLower().Contains(search.LastName.ToLower()));
             if (!string.IsNullOrWhiteSpace(search.UserName))
-                query = query.Where(x => x.UserName.ToLower().StartsWith(search.UserName.ToLower()));
+                query = query.Where(x => x.UserName.ToLower().Contains(search.UserName.ToLower()));
             if (!string.IsNullOrWhiteSpace(search.Email))
-                query = query.Where(x => x.Email.ToLower().StartsWith(search.Email.ToLower()));
+                query = query.Where(x => x.Email.ToLower().Contains(search.Email.ToLower()));
             if (search.IsDeleted == "Not deleted")
                 query = query.Where(x => x.DeletionReason == null);
             else if (search.IsDeleted == "Deleted")
@@ -81,9 +81,8 @@ namespace eBooks.Services
             };
             var stripeService = new AccountService();
             var stripeAccount = await stripeService.CreateAsync(accountOptions);
-            var verificationToken = Guid.NewGuid().ToString();
             entity.StripeAccountId = stripeAccount.Id;
-            entity.VerificationToken = verificationToken;
+            entity.VerificationToken = $"{Guid.NewGuid():N}".Substring(0, 6);
             entity.TokenExpiry = DateTime.UtcNow.AddHours(24);
             _db.Add(entity);
             await _db.SaveChangesAsync();
@@ -169,6 +168,19 @@ namespace eBooks.Services
                 throw new ExceptionBadRequest(errors);
             _logger.LogInformation($"User with email {req.Email} logged in.");
             return _mapper.Map<LoginRes>(entity);
+        }
+
+        public async Task<UsersRes> VerifyEmail(int id)
+        {
+            var entity = await _db.Set<User>().FindAsync(id);
+            if (entity == null)
+                throw new ExceptionNotFound();
+            entity.VerificationToken = $"{Guid.NewGuid():N}".Substring(0, 6);
+            entity.TokenExpiry = DateTime.UtcNow.AddHours(24);
+            _db.Add(entity);
+            await _db.SaveChangesAsync();
+            _bus.PubSub.Publish(new EmailVerification { Token = _mapper.Map<TokenRes>(entity) });
+            return _mapper.Map<UsersRes>(entity);
         }
 
         public async Task<UsersRes> VerifyEmail(int id, string token)

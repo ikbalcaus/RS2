@@ -61,6 +61,10 @@ namespace eBooks.Services.BooksStateMachine
                 errors.AddError("Pdf", "You must upload book pdf");
             if (!Directory.EnumerateFiles(Path.Combine(rootPath, "pdfs", "summary"), baseFileName + ".*").Any())
                 errors.AddError("Pdf", "You must upload summary pdf");
+            if (await _db.Set<BookAuthor>().AnyAsync(x => x.BookId == id))
+                errors.AddError("Authors", "You must select at least one author");
+            if (await _db.Set<BookGenre>().AnyAsync(x => x.BookId == id))
+                errors.AddError("Genres", "You must select at least one genre");
             if (errors.Count > 0)
                 throw new ExceptionBadRequest(errors);
             if (entity.Price > 0)

@@ -16,7 +16,6 @@ using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace eBooks.Services
 {
@@ -50,13 +49,17 @@ namespace eBooks.Services
         public override IQueryable<Book> AddFilters(IQueryable<Book> query, BooksSearch search)
         {
             if (!string.IsNullOrWhiteSpace(search.Title))
-                query = query.Where(x => x.Title.ToLower().StartsWith(search.Title.ToLower()));
+                query = query.Where(x => x.Title.ToLower().Contains(search.Title.ToLower()));
             if (search.PublisherId != null)
                 query = query.Where(x => x.PublisherId == search.PublisherId);
             if (!string.IsNullOrWhiteSpace(search.Publisher))
-                query = query.Where(x => x.Publisher.UserName.ToLower().StartsWith(search.Publisher.ToLower()));
+                query = query.Where(x => x.Publisher.UserName.ToLower().Contains(search.Publisher.ToLower()));
+            if (!string.IsNullOrWhiteSpace(search.Author))
+                query = query.Where(x => x.BookAuthors.Any(x => x.Author.Name.ToLower().Contains(search.Author.ToLower())));
+            if (!string.IsNullOrWhiteSpace(search.Genre))
+                query = query.Where(x => x.BookGenres.Any(x => x.Genre.Name.ToLower().Contains(search.Genre.ToLower())));
             if (!string.IsNullOrWhiteSpace(search.Language))
-                query = query.Where(x => x.Language.Name.ToLower().StartsWith(search.Language.ToLower()));
+                query = query.Where(x => x.Language.Name.ToLower().Contains(search.Language.ToLower()));
             query = search.Status switch
             {
                 "Approved" => query.Where(x => x.StateMachine == "approve"),
@@ -70,13 +73,13 @@ namespace eBooks.Services
                 query = query.Where(x => x.DeletionReason == null);
             else if (search.IsDeleted == "Deleted")
                 query = query.Where(x => x.DeletionReason != null);
+            if (search.FollowingPublishersOnly == true)
+                query = query.Where(x => _db.Set<PublisherFollow>().Any(y => y.PublisherId == x.PublisherId && y.UserId == GetUserId()));
             query = search.OrderBy switch
             {
                 "First modified" => query.OrderBy(x => x.ModifiedAt),
-                "Title (A-Z)" => query.OrderBy(x => x.Title),
-                "Title (Z-A)" => query.OrderByDescending(x => x.Title),
-                "Publisher (A-Z)" => query.OrderBy(x => x.Publisher.UserName),
-                "Publisher (Z-A)" => query.OrderByDescending(x => x.Publisher.UserName),
+                "Title" => query.OrderBy(x => x.Title),
+                "Publisher" => query.OrderBy(x => x.Publisher.UserName),
                 _ => query.OrderByDescending(x => x.ModifiedAt),
             };
             return query;
@@ -110,7 +113,7 @@ namespace eBooks.Services
                 throw new ExceptionNotFound();
             var result = _mapper.Map<BooksRes>(entity);
             var userId = GetUserId();
-            if (userId != entity.PublisherId)
+            if (userId != 0 && userId != entity.PublisherId)
             {
                 entity.NumberOfViews += 1;
                 await _db.SaveChangesAsync();

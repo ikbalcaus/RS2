@@ -32,15 +32,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Widget content;
     if (!AuthProvider.isLoggedIn) {
-      return const MasterScreen(child: Center(child: NotLoggedInView()));
+      content = Center(child: NotLoggedInView());
+    } else if (_isLoading) {
+      content = const Center(child: CircularProgressIndicator());
+    } else if (_notifications?.count == 0) {
+      content = const Center(child: Text("You don't have any notification"));
+    } else {
+      content = _buildResultView();
     }
-    if (_isLoading) {
-      return MasterScreen(
-        child: const Center(child: CircularProgressIndicator()),
-      );
-    }
-    return MasterScreen(child: _buildResultView());
+    return MasterScreen(child: content);
   }
 
   Future _fetchNotifications() async {
@@ -63,10 +65,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
-  Future _showDeleteDialog(BuildContext context, int id) async {
+  Future _showDeleteDialog(int id) async {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (context) => AlertDialog(
         title: const Text("Delete"),
         content: const Text(
           "Are you sure you want to delete this notification?",
@@ -74,14 +76,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         actions: [
           TextButton(
             onPressed: () async {
-              Navigator.of(ctx).pop(true);
+              Navigator.pop(context);
               await _notificationsProvider.delete(id);
               await _fetchNotifications();
             },
             child: const Text("Delete"),
           ),
           TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
+            onPressed: () => Navigator.pop(context),
             child: const Text("Cancel"),
           ),
         ],
@@ -90,33 +92,40 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Widget _buildResultView() {
-    final items = _notifications?.resultList ?? [];
+    final notifications = _notifications?.resultList ?? [];
     return ListView.builder(
-      itemCount: items.length,
+      itemCount: notifications.length,
       itemBuilder: (context, index) {
-        final notification = items[index];
-        final isLast = index == items.length - 1;
         return Column(
           children: [
             ListTile(
-              title: Text(notification.message ?? ""),
+              title: Text(
+                notifications[index].message ?? "",
+                style: TextStyle(
+                  fontWeight: !notifications[index].isRead!
+                      ? FontWeight.w700
+                      : null,
+                ),
+              ),
               trailing:
-                  notification.bookId != null ||
-                      notification.publisherId != null
+                  notifications[index].bookId != null ||
+                      notifications[index].publisherId != null
                   ? Icon(Icons.chevron_right_rounded)
                   : null,
               onTap: () async {
-                await _notificationsProvider.markAsRead(
-                  notification.notificationId!,
-                );
+                if (!notifications[index].isRead!) {
+                  await _notificationsProvider.markAsRead(
+                    notifications[index].notificationId!,
+                  );
+                  await _fetchNotifications();
+                }
                 //navigate to the othet screen
               },
               onLongPress: () async {
-                await _showDeleteDialog(context, notification.notificationId!);
+                await _showDeleteDialog(notifications[index].notificationId!);
               },
             ),
             const Divider(height: 1),
-            if (isLast) const Divider(height: 0.1),
           ],
         );
       },

@@ -33,7 +33,7 @@ namespace eBooks.Services
             if (!string.IsNullOrWhiteSpace(search.Question))
                 query = query.Where(x => x.Question1.ToLower().Contains(search.Question.ToLower()));
             if (!string.IsNullOrWhiteSpace(search.AskedBy))
-                query = query.Where(x => x.User.UserName.ToLower().StartsWith(search.AskedBy.ToLower()));
+                query = query.Where(x => x.User.UserName.ToLower().Contains(search.AskedBy.ToLower()));
             if (search.Status == "Only answered")
                 query = query.Where(x => x.AnsweredById != null);
             if (search.Status == "Only not answered")

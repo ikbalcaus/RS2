@@ -13,11 +13,18 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  bool _isLoading = false;
+  Map<String, List<String>> _fieldErrors = {};
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  bool _isLoading = false;
-  Map<String, List<String>> _fieldErrors = {};
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   Future _login() async {
     setState(() {
@@ -136,7 +143,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         child: const Text(
                           "Login",
-                          style: TextStyle(fontSize: 16, color: Globals.color),
+                          style: TextStyle(fontSize: 16, color: Colors.white),
                         ),
                       ),
                     ),

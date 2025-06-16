@@ -11,7 +11,9 @@ public partial class AccessRight
 
     public DateTime ModifiedAt { get; set; }
 
-    public bool Hidden { get; set; }
+    public bool IsFavorite { get; set; }
+
+    public bool IsHidden { get; set; }
 
     public virtual Book Book { get; set; } = null!;
 

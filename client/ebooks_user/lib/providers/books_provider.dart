@@ -12,18 +12,6 @@ class BooksProvider extends BaseProvider<Book> {
     return Book.fromJson(data);
   }
 
-  Future adminDelete(int id, String? reason) async {
-    var uri = Uri.parse("${Globals.apiAddress}/books/$id/admin-delete");
-    if (reason != null && reason.isNotEmpty) {
-      uri = uri.replace(queryParameters: {"reason": reason});
-    }
-    var headers = createHeaders();
-    var response = await http.delete(uri, headers: headers);
-    if (!isValidResponse(response)) {
-      throw response.body;
-    }
-  }
-
   Future getBookStates() async {
     var uri = Uri.parse("${Globals.apiAddress}/books/book-states");
     var headers = createHeaders();
@@ -37,9 +25,7 @@ class BooksProvider extends BaseProvider<Book> {
   }
 
   Future getAllowedActions(int id) async {
-    var uri = Uri.parse(
-      "${Globals.apiAddress}/books/$id/admin-allowed-actions",
-    );
+    var uri = Uri.parse("${Globals.apiAddress}/books/$id/user-allowed-actions");
     var headers = createHeaders();
     var response = await http.get(uri, headers: headers);
     if (isValidResponse(response)) {

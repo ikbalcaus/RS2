@@ -1,18 +1,26 @@
+import "package:ebooks_user/providers/theme_provider.dart";
 import "package:ebooks_user/screens/books_screen.dart";
 import "package:ebooks_user/screens/library_screen.dart";
 import "package:ebooks_user/screens/notifications_screen.dart";
 import "package:ebooks_user/screens/profile_screen.dart";
 import "package:ebooks_user/utils/globals.dart";
 import "package:flutter/material.dart";
+import "package:provider/provider.dart";
 
 class MasterScreen extends StatefulWidget {
   final Widget child;
   final bool showBackButton;
+  final TextEditingController? searchController;
+  final VoidCallback? onSearch;
+  final VoidCallback? onFilterPressed;
 
   const MasterScreen({
     super.key,
     required this.child,
     this.showBackButton = false,
+    this.searchController,
+    this.onSearch,
+    this.onFilterPressed,
   });
 
   @override
@@ -20,26 +28,90 @@ class MasterScreen extends StatefulWidget {
 }
 
 class _MasterScreenState extends State<MasterScreen> {
+  bool _showSearch = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
+        scrolledUnderElevation: 0,
         leading: widget.showBackButton
-            ? BackButton(onPressed: () => Navigator.of(context).pop())
+            ? BackButton(onPressed: () => Navigator.pop(context))
             : null,
         title: Row(
           children: [
             Image.asset("assets/images/logo.png", height: 40),
+            const SizedBox(width: 8),
             const Text(
               "E-Books",
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
           ],
         ),
-        actions: [IconButton(icon: const Icon(Icons.search), onPressed: () {})],
+        actions: [
+          if (widget.searchController != null)
+            Padding(
+              padding: const EdgeInsets.only(right: 10),
+              child: IconButton(
+                icon: Icon(_showSearch ? Icons.close : Icons.search),
+                onPressed: () {
+                  setState(() => _showSearch = !_showSearch);
+                },
+              ),
+            ),
+        ],
       ),
-      body: widget.child,
+      body: Column(
+        children: [
+          if (widget.searchController != null && _showSearch)
+            Container(
+              color: Globals.backgroundColor,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: widget.searchController,
+                      cursorColor: Colors.white70,
+                      decoration: InputDecoration(
+                        hintText: "Search...",
+                        hintStyle: const TextStyle(color: Colors.white70),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                        ),
+                        enabledBorder: const UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.white),
+                        ),
+                        focusedBorder: const UnderlineInputBorder(
+                          borderSide: BorderSide(
+                            color: Colors.white,
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                      style: const TextStyle(color: Colors.white),
+                      onSubmitted: (_) => widget.onSearch?.call(),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: () => widget.onSearch?.call(),
+                    icon: const Icon(Icons.search, color: Colors.white),
+                  ),
+                  IconButton(
+                    onPressed: () => widget.onFilterPressed?.call(),
+                    icon: const Icon(
+                      Icons.filter_alt_outlined,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          Expanded(child: widget.child),
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: Globals.pageIndex,
@@ -47,35 +119,49 @@ class _MasterScreenState extends State<MasterScreen> {
           Globals.pageIndex = index;
           switch (index) {
             case 0:
-              Navigator.pushReplacement(
+              Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (_) => const BooksScreen()),
+                (_) => false,
               );
               break;
             case 1:
-              Navigator.pushReplacement(
+              Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (_) => const LibraryScreen()),
+                (_) => false,
               );
               break;
             case 2:
-              Navigator.pushReplacement(
+              Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+                (_) => false,
               );
               break;
             case 3:
-              Navigator.pushReplacement(
+              Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                (_) => false,
               );
               break;
           }
         },
         selectedItemColor: Globals.backgroundColor,
-        unselectedItemColor: Colors.black,
+        unselectedItemColor: (() {
+          final themeMode = Provider.of<ThemeProvider>(context).themeMode;
+          if (themeMode == ThemeMode.light) {
+            return Color.lerp(Colors.black54, Colors.black87, 0.9);
+          } else if (themeMode == ThemeMode.dark) {
+            return Colors.white70;
+          } else {
+            final brightness = MediaQuery.of(context).platformBrightness;
+            return brightness == Brightness.dark ? Colors.white : Colors.black;
+          }
+        })(),
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.book_sharp), label: "Books"),
+          BottomNavigationBarItem(icon: Icon(Icons.book), label: "Books"),
           BottomNavigationBarItem(
             icon: Icon(Icons.library_books),
             label: "Library",

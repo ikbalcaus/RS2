@@ -45,7 +45,6 @@ builder.Services.AddTransient<IAuthorsService, AuthorsService>();
 builder.Services.AddTransient<IBookAuthorsService, BookAuthorsService>();
 builder.Services.AddTransient<IBookGenresService, BookGenresService>();
 builder.Services.AddTransient<IBooksService, BooksService>();
-builder.Services.AddTransient<IFavoritesService, FavoritesService>();
 builder.Services.AddTransient<IGenresService, GenresService>();
 builder.Services.AddTransient<ILanguagesService, LanguagesService>();
 builder.Services.AddTransient<INotificationsService, NotificationsService>();

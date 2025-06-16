@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using Azure;
 using eBooks.Database;
 using eBooks.Database.Models;
 using eBooks.Interfaces;
@@ -25,15 +26,24 @@ namespace eBooks.Services
 
         protected int GetUserId() => int.TryParse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : 0;
 
-        public async Task<PagedResult<PublisherFollowsRes>> GetByUserId(int userId)
+        public async Task<PagedResult<PublisherFollowsRes>> GetPaged()
         {
-            var entities = await _db.Set<PublisherFollow>().Where(x => x.UserId == userId).ToListAsync();
+            var entities = await _db.Set<PublisherFollow>().Where(x => x.UserId == GetUserId()).Include(x => x.Publisher).ToListAsync();
             var result = _mapper.Map<List<PublisherFollowsRes>>(entities);
             return new PagedResult<PublisherFollowsRes>
             {
                 Count = result.Count,
                 ResultList = result
             };
+        }
+
+        public async Task<PublisherFollowsRes> GetByPublisherId(int publisherId)
+        {
+            var userId = GetUserId();
+            var entity = await _db.Set<PublisherFollow>().FindAsync(userId, publisherId);
+            if (entity == null)
+                throw new ExceptionNotFound();
+            return _mapper.Map<PublisherFollowsRes>(entity);
         }
 
         public async Task<PublisherFollowsRes> Post(int publisherId)

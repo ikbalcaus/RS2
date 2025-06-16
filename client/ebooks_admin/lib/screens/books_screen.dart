@@ -3,7 +3,7 @@ import "package:ebooks_admin/models/search_result.dart";
 import "package:ebooks_admin/providers/books_provider.dart";
 import "package:ebooks_admin/screens/book_details_screen.dart";
 import "package:ebooks_admin/screens/master_screen.dart";
-import "package:ebooks_admin/utils/constants.dart";
+import "package:ebooks_admin/utils/globals.dart";
 import "package:ebooks_admin/utils/helpers.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
@@ -26,7 +26,6 @@ class _BooksScreenState extends State<BooksScreen> {
   String _orderBy = "Last modified";
   final List<String> _bookStates = ["Any"];
   Map<String, dynamic> _currentFilter = {};
-
   final TextEditingController _titleEditingController = TextEditingController();
   final TextEditingController _publisherEditingController =
       TextEditingController();
@@ -40,6 +39,14 @@ class _BooksScreenState extends State<BooksScreen> {
     _booksProvider = context.read<BooksProvider>();
     _fetchBooks();
     _fetchBookStates();
+  }
+
+  @override
+  void dispose() {
+    _titleEditingController.dispose();
+    _publisherEditingController.dispose();
+    _languageEditingController.dispose();
+    super.dispose();
   }
 
   @override
@@ -82,15 +89,22 @@ class _BooksScreenState extends State<BooksScreen> {
   }
 
   Future _fetchBookStates() async {
-    final bookStates = await _booksProvider.getBookStates();
-    if (!mounted) return;
-    setState(() => _bookStates.addAll(bookStates ?? []));
-    _status = widget.status ?? "Any";
+    try {
+      final bookStates = await _booksProvider.getBookStates();
+      if (!mounted) return;
+      setState(() => _bookStates.addAll(bookStates ?? []));
+      _status = widget.status ?? "Any";
+    } catch (ex) {
+      if (!mounted) return;
+      Helpers.showErrorMessage(context, ex);
+    } finally {
+      if (!mounted) return;
+    }
   }
 
   Widget _buildSearch() {
     return Padding(
-      padding: const EdgeInsets.all(Constants.defaultSpacing),
+      padding: const EdgeInsets.all(Globals.spacing),
       child: Row(
         children: [
           Expanded(
@@ -99,21 +113,21 @@ class _BooksScreenState extends State<BooksScreen> {
               decoration: const InputDecoration(labelText: "Title"),
             ),
           ),
-          const SizedBox(width: Constants.defaultSpacing),
+          const SizedBox(width: Globals.spacing),
           Expanded(
             child: TextField(
               controller: _publisherEditingController,
               decoration: const InputDecoration(labelText: "Publisher"),
             ),
           ),
-          const SizedBox(width: Constants.defaultSpacing),
+          const SizedBox(width: Globals.spacing),
           Expanded(
             child: TextField(
               controller: _languageEditingController,
               decoration: const InputDecoration(labelText: "Language"),
             ),
           ),
-          const SizedBox(width: Constants.defaultSpacing),
+          const SizedBox(width: Globals.spacing),
           Expanded(
             child: DropdownButtonFormField<String>(
               value: _status,
@@ -132,7 +146,7 @@ class _BooksScreenState extends State<BooksScreen> {
               decoration: const InputDecoration(labelText: "Status"),
             ),
           ),
-          const SizedBox(width: Constants.defaultSpacing),
+          const SizedBox(width: Globals.spacing),
           Expanded(
             child: DropdownButtonFormField<String>(
               value: _isDeleted,
@@ -153,22 +167,15 @@ class _BooksScreenState extends State<BooksScreen> {
               decoration: const InputDecoration(labelText: "Is deleted"),
             ),
           ),
-          const SizedBox(width: Constants.defaultSpacing),
+          const SizedBox(width: Globals.spacing),
           Expanded(
             child: DropdownButtonFormField<String>(
               value: _orderBy,
               onChanged: (value) {
                 _orderBy = value!;
               },
-              items:
-                  [
-                    "Last modified",
-                    "First modified",
-                    "Title (A-Z)",
-                    "Title (Z-A)",
-                    "Publisher (A-Z)",
-                    "Publisher (Z-A)",
-                  ].map((String value) {
+              items: ["Last modified", "First modified", "Title", "Publisher"]
+                  .map((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
                       child: Text(
@@ -176,11 +183,12 @@ class _BooksScreenState extends State<BooksScreen> {
                         style: const TextStyle(fontWeight: FontWeight.normal),
                       ),
                     );
-                  }).toList(),
+                  })
+                  .toList(),
               decoration: const InputDecoration(labelText: "Sort by"),
             ),
           ),
-          const SizedBox(width: Constants.defaultSpacing),
+          const SizedBox(width: Globals.spacing),
           ElevatedButton(
             onPressed: () async {
               _currentPage = 1;
@@ -259,7 +267,7 @@ class _BooksScreenState extends State<BooksScreen> {
       return const SizedBox.shrink();
     }
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: Constants.defaultSpacing),
+      padding: const EdgeInsets.symmetric(vertical: Globals.spacing),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

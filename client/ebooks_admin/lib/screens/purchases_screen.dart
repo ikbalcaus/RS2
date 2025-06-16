@@ -2,7 +2,7 @@ import "package:ebooks_admin/models/purchases/purchase.dart";
 import "package:ebooks_admin/models/search_result.dart";
 import "package:ebooks_admin/providers/purchases_provider.dart";
 import "package:ebooks_admin/screens/master_screen.dart";
-import "package:ebooks_admin/utils/constants.dart";
+import "package:ebooks_admin/utils/globals.dart";
 import "package:ebooks_admin/utils/helpers.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
@@ -21,7 +21,6 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
   int _currentPage = 1;
   String _orderBy = "Last created";
   Map<String, dynamic> _currentFilter = {};
-
   final TextEditingController _userEditingController = TextEditingController();
   final TextEditingController _publisherEditingController =
       TextEditingController();
@@ -32,6 +31,14 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
     super.initState();
     _purchasesProvider = context.read<PurchasesProvider>();
     _fetchPurchases();
+  }
+
+  @override
+  void dispose() {
+    _userEditingController.dispose();
+    _publisherEditingController.dispose();
+    _bookEditingController.dispose();
+    super.dispose();
   }
 
   @override
@@ -75,7 +82,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
 
   Widget _buildSearch() {
     return Padding(
-      padding: const EdgeInsets.all(Constants.defaultSpacing),
+      padding: const EdgeInsets.all(Globals.spacing),
       child: Row(
         children: [
           Expanded(
@@ -84,21 +91,21 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
               decoration: const InputDecoration(labelText: "User"),
             ),
           ),
-          const SizedBox(width: Constants.defaultSpacing),
+          const SizedBox(width: Globals.spacing),
           Expanded(
             child: TextField(
               controller: _publisherEditingController,
               decoration: const InputDecoration(labelText: "Publisher"),
             ),
           ),
-          const SizedBox(width: Constants.defaultSpacing),
+          const SizedBox(width: Globals.spacing),
           Expanded(
             child: TextField(
               controller: _bookEditingController,
               decoration: const InputDecoration(labelText: "Book"),
             ),
           ),
-          const SizedBox(width: Constants.defaultSpacing),
+          const SizedBox(width: Globals.spacing),
           Expanded(
             child: DropdownButtonFormField<String>(
               value: _orderBy,
@@ -127,7 +134,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
               decoration: const InputDecoration(labelText: "Sort by"),
             ),
           ),
-          const SizedBox(width: Constants.defaultSpacing),
+          const SizedBox(width: Globals.spacing),
           ElevatedButton(
             onPressed: () async {
               _currentPage = 1;
@@ -187,7 +194,7 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
       return const SizedBox.shrink();
     }
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: Constants.defaultSpacing),
+      padding: const EdgeInsets.symmetric(vertical: Globals.spacing),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

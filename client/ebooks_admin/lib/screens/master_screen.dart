@@ -7,7 +7,7 @@ import "package:ebooks_admin/screens/login_screen.dart";
 import "package:ebooks_admin/screens/purchases_screen.dart";
 import "package:ebooks_admin/screens/questions_screen.dart";
 import "package:ebooks_admin/screens/users_screen.dart";
-import "package:ebooks_admin/utils/constants.dart";
+import "package:ebooks_admin/utils/globals.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 import "package:ebooks_admin/providers/auth_provider.dart";
@@ -25,14 +25,13 @@ class MasterScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
-    final isLoggedIn = authProvider.isLoggedIn;
 
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
         leading: showBackButton
-            ? BackButton(onPressed: () => Navigator.of(context).pop())
-            : (isLoggedIn
+            ? BackButton(onPressed: () => Navigator.pop(context))
+            : (authProvider.isLoggedIn
                   ? Builder(
                       builder: (context) => IconButton(
                         icon: const Icon(Icons.menu),
@@ -41,10 +40,10 @@ class MasterScreen extends StatelessWidget {
                     )
                   : null),
         title: const Text("E-Books Dashboard"),
-        actions: isLoggedIn
+        actions: authProvider.isLoggedIn
             ? [
                 IconButton(
-                  icon: const Icon(Icons.logout, color: Constants.defaultColor),
+                  icon: const Icon(Icons.logout, color: Globals.color),
                   onPressed: () {
                     _showLogoutDialog(context, authProvider);
                   },
@@ -54,7 +53,9 @@ class MasterScreen extends StatelessWidget {
       ),
       drawer: showBackButton
           ? null
-          : (isLoggedIn ? _buildDrawer(context, authProvider) : null),
+          : (authProvider.isLoggedIn
+                ? _buildDrawer(context, authProvider)
+                : null),
       body: child,
     );
   }
@@ -64,12 +65,12 @@ class MasterScreen extends StatelessWidget {
       child: Column(
         children: [
           const DrawerHeader(
-            decoration: BoxDecoration(color: Constants.defaultBackgroundColor),
+            decoration: BoxDecoration(color: Globals.backgroundColor),
             child: Align(
               alignment: Alignment.bottomLeft,
               child: Text(
                 "Menu",
-                style: TextStyle(color: Constants.defaultColor, fontSize: 24),
+                style: TextStyle(color: Globals.color, fontSize: 24),
               ),
             ),
           ),
@@ -152,7 +153,7 @@ class MasterScreen extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.payment),
+            leading: const Icon(Icons.shopping_cart),
             title: const Text("Purchases"),
             onTap: () {
               Navigator.pop(context);
@@ -179,17 +180,20 @@ class MasterScreen extends StatelessWidget {
     );
   }
 
-  void _showLogoutDialog(BuildContext context, AuthProvider authProvider) {
-    showDialog(
+  Future _showLogoutDialog(
+    BuildContext context,
+    AuthProvider authProvider,
+  ) async {
+    await showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (context) => AlertDialog(
         title: const Text("Logout"),
         content: const Text("Are you sure you want to logout?"),
         actions: [
           TextButton(
             onPressed: () {
               authProvider.logout();
-              Navigator.of(ctx).pop(true);
+              Navigator.pop(context);
               navigatorKey.currentState?.pushAndRemoveUntil(
                 MaterialPageRoute(builder: (_) => const LoginScreen()),
                 (route) => false,
@@ -198,7 +202,7 @@ class MasterScreen extends StatelessWidget {
             child: const Text("Logout"),
           ),
           TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
+            onPressed: () => Navigator.pop(context),
             child: const Text("Cancel"),
           ),
         ],

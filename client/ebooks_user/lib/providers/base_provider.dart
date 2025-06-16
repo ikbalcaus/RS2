@@ -57,10 +57,12 @@ abstract class BaseProvider<T> with ChangeNotifier {
     }
   }
 
-  Future post(dynamic request) async {
-    var uri = Uri.parse("${Globals.apiAddress}/$_endpoint");
+  Future post(dynamic request, int? id) async {
+    var uri = Uri.parse(
+      "${Globals.apiAddress}/$_endpoint/${id != null ? id : ""}",
+    );
     var headers = createHeaders();
-    var jsonRequest = jsonEncode(request);
+    var jsonRequest = request != null ? jsonEncode(request) : jsonEncode({});
     var response = await http.post(uri, headers: headers, body: jsonRequest);
     if (isValidResponse(response)) {
       var data = jsonDecode(response.body);

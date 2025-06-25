@@ -19,7 +19,7 @@ public partial class Book
 
     public int NumberOfViews { get; set; }
 
-    public int LanguageId { get; set; }
+    public int? LanguageId { get; set; }
 
     public int PublisherId { get; set; }
 
@@ -45,7 +45,7 @@ public partial class Book
 
     public virtual ICollection<BookGenre> BookGenres { get; set; } = new List<BookGenre>();
 
-    public virtual Language Language { get; set; } = null!;
+    public virtual Language? Language { get; set; }
 
     public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 
@@ -54,6 +54,8 @@ public partial class Book
     public virtual ICollection<Purchase> Purchases { get; set; } = new List<Purchase>();
 
     public virtual ICollection<ReadingProgress> ReadingProgresses { get; set; } = new List<ReadingProgress>();
+
+    public virtual ICollection<Report> Reports { get; set; } = new List<Report>();
 
     public virtual User? ReviewedBy { get; set; }
 

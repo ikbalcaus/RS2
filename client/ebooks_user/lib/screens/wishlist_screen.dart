@@ -50,7 +50,7 @@ class _BooksScreenState extends State<WishlistScreen> {
     if (_isLoading) {
       content = const Center(child: CircularProgressIndicator());
     } else if (_wishlist?.count == 0) {
-      content = const Center(child: Text("Wishlist is empty"));
+      content = const Center(child: Text("Your wishlist is empty"));
     } else {
       content = _buildResultView();
     }

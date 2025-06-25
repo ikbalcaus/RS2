@@ -15,7 +15,13 @@ public partial class Review
 
     public string? Comment { get; set; }
 
+    public int? ReportedById { get; set; }
+
+    public string? ReportReason { get; set; }
+
     public virtual Book Book { get; set; } = null!;
+
+    public virtual User? ReportedBy { get; set; }
 
     public virtual User User { get; set; } = null!;
 }

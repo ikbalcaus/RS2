@@ -22,6 +22,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
   String _status = "All questions";
   String _orderBy = "Last added";
   Map<String, dynamic> _currentFilter = {};
+
   final TextEditingController _questionEditingController =
       TextEditingController();
   final TextEditingController _askedByEditingController =
@@ -32,13 +33,6 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
     super.initState();
     _questionsProvider = context.read<QuestionsProvider>();
     _fetchQuestions();
-  }
-
-  @override
-  void dispose() {
-    _questionEditingController.dispose();
-    _askedByEditingController.dispose();
-    super.dispose();
   }
 
   @override
@@ -80,11 +74,11 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
     }
   }
 
-  Future _answerQuestionDialog(int id) async {
+  Future _answerQuestionDialog(BuildContext context, int id) async {
     final TextEditingController answerController = TextEditingController();
     await showDialog(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
         return AlertDialog(
           title: const Text("Answer"),
           content: TextField(
@@ -225,6 +219,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                                 tooltip: "Answer question",
                                 onPressed: () async {
                                   await _answerQuestionDialog(
+                                    context,
                                     question.questionId!,
                                   );
                                 },

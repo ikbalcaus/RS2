@@ -97,7 +97,7 @@ abstract class BaseProvider<T> with ChangeNotifier {
   }
 
   bool isValidResponse(http.Response response) {
-    if (response.statusCode < 299) {
+    if (response.statusCode < 300) {
       return true;
     }
     return false;

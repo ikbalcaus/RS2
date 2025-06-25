@@ -95,10 +95,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
       controller: _scrollController,
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
       gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: 180,
+        maxCrossAxisExtent: 200,
         mainAxisSpacing: 6,
         crossAxisSpacing: 6,
-        childAspectRatio: 180 / 290,
+        childAspectRatio: 200 / 300,
       ),
       itemCount: accessRight.length + (_isLoading ? 1 : 0),
       itemBuilder: (context, index) {
@@ -120,7 +120,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                     height: double.infinity,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.book),
+                        const Icon(Icons.broken_image, size: 100),
                   ),
                   Positioned(
                     top: 4,

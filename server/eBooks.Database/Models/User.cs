@@ -71,7 +71,11 @@ public partial class User
 
     public virtual ICollection<ReadingProgress> ReadingProgresses { get; set; } = new List<ReadingProgress>();
 
-    public virtual ICollection<Review> Reviews { get; set; } = new List<Review>();
+    public virtual ICollection<Report> Reports { get; set; } = new List<Report>();
+
+    public virtual ICollection<Review> ReviewReportedBies { get; set; } = new List<Review>();
+
+    public virtual ICollection<Review> ReviewUsers { get; set; } = new List<Review>();
 
     public virtual Role Role { get; set; } = null!;
 

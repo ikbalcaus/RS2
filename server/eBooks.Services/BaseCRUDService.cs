@@ -27,7 +27,7 @@ namespace eBooks.Services
             var entity = _mapper.Map<TEntity>(req);
             BeforeSaveChanges(entity);
             _db.Add(entity);
-            _db.SaveChangesAsync();
+            await _db.SaveChangesAsync();
             return _mapper.Map<TResponse>(entity);
         }
 

@@ -25,7 +25,7 @@ class _FollowedPublishersState extends State<FollowedPublishersScreen> {
   SearchResult<PublisherFollow>? _publishers;
   bool _isLoading = true;
   int _currentPageBooks = 1;
-  int _currentPagePublishers = 1;
+  final int _currentPagePublishers = 1;
   Map<String, dynamic> _currentFilter = {};
   final ScrollController _scrollControllerHorizontal = ScrollController();
   final ScrollController _scrollControllerVertical = ScrollController();
@@ -153,16 +153,14 @@ class _FollowedPublishersState extends State<FollowedPublishersScreen> {
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   child: InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => PublisherScreen(
-                            publisherId: _publishers!.resultList[index].userId!,
-                          ),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PublisherScreen(
+                          publisherId: _publishers!.resultList[index].userId!,
                         ),
-                      );
-                    },
+                      ),
+                    ),
                     child: Column(
                       children: [
                         CircleAvatar(

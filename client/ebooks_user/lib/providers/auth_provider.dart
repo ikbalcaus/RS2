@@ -7,7 +7,7 @@ class AuthProvider extends ChangeNotifier {
   static String? email;
   static String? password;
   static bool isLoggedIn = false;
-  static int userId = 0;
+  static int? userId;
 
   Future login(String email, String password) async {
     AuthProvider.email = email;

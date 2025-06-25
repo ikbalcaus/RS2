@@ -13,7 +13,7 @@ class PdfScreen extends StatefulWidget {
 }
 
 class _PdfScreenState extends State<PdfScreen> {
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   @override
   void initState() {

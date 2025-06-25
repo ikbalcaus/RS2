@@ -14,13 +14,11 @@ namespace eBooks.Services.BooksStateMachine
 {
     public class ApproveBooksState : BaseBooksState
     {
-        protected IHttpContextAccessor _httpContextAccessor;
         protected IBus _bus;
 
         public ApproveBooksState(EBooksContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IBus bus, IServiceProvider serviceProvider, ILogger<BooksService> logger)
-            : base(db, mapper, serviceProvider, logger)
+            : base(db, mapper, httpContextAccessor, serviceProvider, logger)
         {
-            _httpContextAccessor = httpContextAccessor;
             _bus = bus;
         }
 
@@ -50,9 +48,14 @@ namespace eBooks.Services.BooksStateMachine
             return result;
         }
 
-        public override List<string> AdminAllowedActions(Book entity)
+        public override List<string> AdminAllowedActions()
         {
             return new List<string>() { nameof(Reject) };
+        }
+
+        public override List<string> UserAllowedActions()
+        {
+            return new List<string>() { nameof(Hide) };
         }
     }
 }

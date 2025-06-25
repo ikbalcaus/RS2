@@ -18,7 +18,7 @@ class NotificationsScreen extends StatefulWidget {
 class _NotificationsScreenState extends State<NotificationsScreen> {
   late NotificationsProvider _notificationsProvider;
   SearchResult<AppNotification>? _notifications;
-  int _currentPage = 1;
+  final int _currentPage = 1;
   bool _isLoading = true;
 
   @override
@@ -38,7 +38,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     } else if (_isLoading) {
       content = const Center(child: CircularProgressIndicator());
     } else if (_notifications?.count == 0) {
-      content = const Center(child: Text("You don't have any notification"));
+      content = const Center(child: Text("There are no notifications"));
     } else {
       content = _buildResultView();
     }
@@ -65,10 +65,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
-  Future _showDeleteDialog(int id) async {
-    showDialog(
+  Future _showDeleteDialog(BuildContext context, int id) async {
+    await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         title: const Text("Delete"),
         content: const Text(
           "Are you sure you want to delete this notification?",
@@ -76,14 +76,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         actions: [
           TextButton(
             onPressed: () async {
-              Navigator.pop(context);
+              Navigator.of(ctx).pop(true);
               await _notificationsProvider.delete(id);
               await _fetchNotifications();
             },
             child: const Text("Delete"),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.of(ctx).pop(false),
             child: const Text("Cancel"),
           ),
         ],
@@ -92,40 +92,34 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Widget _buildResultView() {
-    final notifications = _notifications?.resultList ?? [];
+    final items = _notifications?.resultList ?? [];
     return ListView.builder(
-      itemCount: notifications.length,
+      itemCount: items.length,
       itemBuilder: (context, index) {
+        final notification = items[index];
+        final isLast = index == items.length - 1;
         return Column(
           children: [
             ListTile(
-              title: Text(
-                notifications[index].message ?? "",
-                style: TextStyle(
-                  fontWeight: !notifications[index].isRead!
-                      ? FontWeight.w700
-                      : null,
-                ),
-              ),
+              title: Text(notification.message ?? ""),
               trailing:
-                  notifications[index].bookId != null ||
-                      notifications[index].publisherId != null
+                  notification.bookId != null ||
+                      notification.publisherId != null
                   ? Icon(Icons.chevron_right_rounded)
                   : null,
               onTap: () async {
-                if (!notifications[index].isRead!) {
-                  await _notificationsProvider.markAsRead(
-                    notifications[index].notificationId!,
-                  );
-                  await _fetchNotifications();
-                }
+                await _notificationsProvider.markAsRead(
+                  notification.notificationId!,
+                );
                 //navigate to the othet screen
               },
-              onLongPress: () async {
-                await _showDeleteDialog(notifications[index].notificationId!);
-              },
+              onLongPress: () async => await _showDeleteDialog(
+                context,
+                notification.notificationId!,
+              ),
             ),
             const Divider(height: 1),
+            if (isLast) const Divider(height: 0.1),
           ],
         );
       },

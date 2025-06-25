@@ -5,6 +5,7 @@ import "package:ebooks_user/providers/auth_provider.dart";
 import "package:ebooks_user/providers/books_provider.dart";
 import "package:ebooks_user/providers/publisher_follows_provider.dart";
 import "package:ebooks_user/providers/users_provider.dart";
+import "package:ebooks_user/providers/wishlist_provider.dart";
 import "package:ebooks_user/screens/master_screen.dart";
 import "package:ebooks_user/utils/globals.dart";
 import "package:ebooks_user/utils/helpers.dart";
@@ -24,6 +25,7 @@ class _PublisherScreenState extends State<PublisherScreen> {
   late UsersProvider _usersProvider;
   late BooksProvider _booksProvider;
   late PublisherFollowsProvider _publisherFollowsProvider;
+  late WishlistProvider _wishlistProvider;
   User? _user;
   SearchResult<Book>? _books;
   bool _isLoading = true;
@@ -37,6 +39,7 @@ class _PublisherScreenState extends State<PublisherScreen> {
     _usersProvider = context.read<UsersProvider>();
     _booksProvider = context.read<BooksProvider>();
     _publisherFollowsProvider = context.read<PublisherFollowsProvider>();
+    _wishlistProvider = context.read<WishlistProvider>();
     _fetchUser();
     _fetchBooks();
     _checkisFollowing();
@@ -203,9 +206,7 @@ class _PublisherScreenState extends State<PublisherScreen> {
               ),
               if (AuthProvider.isLoggedIn)
                 ElevatedButton(
-                  onPressed: () async {
-                    await _toggleFollow();
-                  },
+                  onPressed: () async => await _toggleFollow(),
                   child: !_isFollowing
                       ? const Text("Follow")
                       : const Text("Unfollow"),
@@ -225,7 +226,30 @@ class _PublisherScreenState extends State<PublisherScreen> {
                   child: Center(child: CircularProgressIndicator()),
                 );
               }
-              return BookCardView(book: books[index]);
+              return BookCardView(
+                book: books[index],
+                popupActions: {
+                  "Add to Wishlist": () async {
+                    try {
+                      await _wishlistProvider.post(null, books[index].bookId);
+                      Helpers.showSuccessMessage(
+                        context,
+                        "Book is added to your wishlist",
+                      );
+                    } catch (ex) {
+                      AuthProvider.isLoggedIn
+                          ? Helpers.showErrorMessage(
+                              context,
+                              "Book is already in your wishlist",
+                            )
+                          : Helpers.showErrorMessage(
+                              context,
+                              "You must be logged in",
+                            );
+                    }
+                  },
+                },
+              );
             },
           ),
         ),

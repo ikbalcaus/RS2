@@ -25,13 +25,14 @@ class MasterScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
+    final isLoggedIn = authProvider.isLoggedIn;
 
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
         leading: showBackButton
             ? BackButton(onPressed: () => Navigator.pop(context))
-            : (authProvider.isLoggedIn
+            : (isLoggedIn
                   ? Builder(
                       builder: (context) => IconButton(
                         icon: const Icon(Icons.menu),
@@ -39,13 +40,13 @@ class MasterScreen extends StatelessWidget {
                       ),
                     )
                   : null),
-        title: const Text("E-Books Dashboard"),
-        actions: authProvider.isLoggedIn
+        title: const Text("EBooks Dashboard"),
+        actions: isLoggedIn
             ? [
                 IconButton(
                   icon: const Icon(Icons.logout, color: Globals.color),
-                  onPressed: () {
-                    _showLogoutDialog(context, authProvider);
+                  onPressed: () async {
+                    await _showLogoutDialog(context, authProvider);
                   },
                 ),
               ]
@@ -53,9 +54,7 @@ class MasterScreen extends StatelessWidget {
       ),
       drawer: showBackButton
           ? null
-          : (authProvider.isLoggedIn
-                ? _buildDrawer(context, authProvider)
-                : null),
+          : (isLoggedIn ? _buildDrawer(context, authProvider) : null),
       body: child,
     );
   }
@@ -153,7 +152,7 @@ class MasterScreen extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.shopping_cart),
+            leading: const Icon(Icons.payment),
             title: const Text("Purchases"),
             onTap: () {
               Navigator.pop(context);
@@ -170,9 +169,9 @@ class MasterScreen extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.logout),
             title: const Text("Logout"),
-            onTap: () {
+            onTap: () async {
               Navigator.pop(context);
-              _showLogoutDialog(context, authProvider);
+              await _showLogoutDialog(context, authProvider);
             },
           ),
         ],

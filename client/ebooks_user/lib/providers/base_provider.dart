@@ -58,9 +58,7 @@ abstract class BaseProvider<T> with ChangeNotifier {
   }
 
   Future post(dynamic request, int? id) async {
-    var uri = Uri.parse(
-      "${Globals.apiAddress}/$_endpoint/${id != null ? id : ""}",
-    );
+    var uri = Uri.parse("${Globals.apiAddress}/$_endpoint/${id ?? ""}");
     var headers = createHeaders();
     var jsonRequest = request != null ? jsonEncode(request) : jsonEncode({});
     var response = await http.post(uri, headers: headers, body: jsonRequest);
@@ -99,21 +97,21 @@ abstract class BaseProvider<T> with ChangeNotifier {
   }
 
   bool isValidResponse(http.Response response) {
-    if (response.statusCode < 299) {
+    if (response.statusCode < 300) {
       return true;
     }
     return false;
   }
 
-  Map<String, String> createHeaders() {
+  Map<String, String> createHeaders({bool multipart = false}) {
     String username = AuthProvider.email ?? "";
     String password = AuthProvider.password ?? "";
     String basicAuth =
         "Basic ${base64Encode(utf8.encode("$username:$password"))}";
-    final headers = {
-      "Content-Type": "application/json",
-      "Authorization": basicAuth,
-    };
+    final headers = {"Authorization": basicAuth};
+    if (!multipart) {
+      headers["Content-Type"] = "application/json";
+    }
     return headers;
   }
 

@@ -3,10 +3,14 @@ import "package:ebooks_user/models/books/book.dart";
 import "package:ebooks_user/providers/access_rights_provider.dart";
 import "package:ebooks_user/providers/auth_provider.dart";
 import "package:ebooks_user/providers/books_provider.dart";
+import "package:ebooks_user/providers/publisher_follows_provider.dart";
 import "package:ebooks_user/providers/stripe_provider.dart";
+import "package:ebooks_user/providers/wishlist_provider.dart";
 import "package:ebooks_user/screens/books_screen.dart";
+import "package:ebooks_user/screens/edit_book_screen.dart";
 import "package:ebooks_user/screens/master_screen.dart";
 import "package:ebooks_user/screens/pdf_screen.dart";
+import "package:ebooks_user/screens/profile_screen.dart";
 import "package:ebooks_user/screens/publisher_screen.dart";
 import "package:ebooks_user/utils/globals.dart";
 import "package:ebooks_user/utils/helpers.dart";
@@ -26,21 +30,25 @@ class BookDetailsScreen extends StatefulWidget {
 class _BookDetailsScreenState extends State<BookDetailsScreen> {
   late BooksProvider _booksProvider;
   late AccessRightsProvider _accessRightsProvider;
+  late WishlistProvider _wishlistProvider;
+  late PublisherFollowsProvider _publisherFollowsProvider;
   late StripeProvider _stripeProvider;
   Book? _book;
-  final List<String> _allowedActions = [];
   AccessRight? _accessRight;
+  final List<String> _allowedActions = [];
   bool _isLoading = true;
+  final Map<String, Future<void> Function()> _popupActions = {};
 
   @override
   void initState() {
     super.initState();
     _booksProvider = context.read<BooksProvider>();
     _accessRightsProvider = context.read<AccessRightsProvider>();
+    _wishlistProvider = context.read<WishlistProvider>();
+    _publisherFollowsProvider = context.read<PublisherFollowsProvider>();
     _stripeProvider = context.read<StripeProvider>();
     _fetchBook();
     _fetchAccessRight();
-    _fetchAllowedActions();
   }
 
   @override
@@ -50,7 +58,11 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
         child: const Center(child: CircularProgressIndicator()),
       );
     }
-    return MasterScreen(showBackButton: true, child: _buildResultView());
+    return MasterScreen(
+      showBackButton: true,
+      popupActions: _popupActions,
+      child: _buildResultView(),
+    );
   }
 
   Future _fetchBook() async {
@@ -65,6 +77,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
     } finally {
       if (!mounted) return;
       setState(() => _isLoading = false);
+      await _getAllowedActions();
     }
   }
 
@@ -82,22 +95,73 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
     }
   }
 
-  Future _fetchAllowedActions() async {
-    //   try {
-    //     final allowedActions = await _booksProvider.getAllowedActions(
-    //       widget.bookId,
-    //     );
-    //     if (!mounted) return;
-    //     setState(() {
-    //       _allowedActions.clear();
-    //       _allowedActions.addAll(allowedActions ?? []);
-    //     });
-    //   } catch (ex) {
-    //     if (!mounted) return;
-    //     Helpers.showErrorMessage(context, ex);
-    //   } finally {
-    //     if (!mounted) return;
-    //   }
+  Future _getAllowedActions() async {
+    try {
+      List<String> allowedActions = [];
+      if (_book?.publisher?.userId == AuthProvider.userId) {
+        allowedActions = await _booksProvider.getAllowedActions(widget.bookId);
+      }
+      if (!mounted) return;
+      setState(() {
+        _allowedActions
+          ..clear()
+          ..addAll(allowedActions);
+        _popupActions.clear();
+        _popupActions["Add to Wishlist"] = () async {
+          try {
+            await _wishlistProvider.post(null, _book?.bookId);
+            Helpers.showSuccessMessage(context, "Book is added to wishlist");
+          } catch (ex) {
+            AuthProvider.isLoggedIn
+                ? Helpers.showErrorMessage(
+                    context,
+                    "Book is already in your wishlist",
+                  )
+                : Helpers.showErrorMessage(context, "You must be logged in");
+          }
+        };
+        _popupActions["Follow Publisher"] = () async {
+          try {
+            await _publisherFollowsProvider.post(
+              null,
+              _book?.publisher?.userId,
+            );
+            Helpers.showSuccessMessage(
+              context,
+              "You are now following ${_book?.publisher?.userName}",
+            );
+          } catch (ex) {
+            AuthProvider.isLoggedIn
+                ? Helpers.showErrorMessage(
+                    context,
+                    "You already follow ${_book?.publisher?.userName}",
+                  )
+                : Helpers.showErrorMessage(context, "You must be logged in");
+          }
+        };
+        if (_allowedActions.contains("Update")) {
+          _popupActions["Edit Book"] = () async => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => EditBookScreen(bookId: _book!.bookId!),
+            ),
+          );
+        }
+        if (_allowedActions.contains("Await")) {
+          _popupActions["Publish Book"] = () async =>
+              await _showAwaitBookDialog();
+        }
+        if (_allowedActions.contains("Hide")) {
+          _popupActions[_book?.status == "Approved"
+              ? "Hide Book"
+              : "Unhide Book"] = () async =>
+              await _showHideBookDialog();
+        }
+      });
+    } catch (ex) {
+      if (!mounted) return;
+      Helpers.showErrorMessage(context, ex);
+    }
   }
 
   Future _openStripePaymentPage() async {
@@ -119,358 +183,402 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
     }
   }
 
+  Future _showAwaitBookDialog() async {
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Publish book"),
+        content: const Text("Are you sure you want to await this book?"),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              try {
+                await _booksProvider.awaitBook(_book!.bookId!);
+                Helpers.showSuccessMessage(
+                  context,
+                  "Book is now pending review by moderators",
+                );
+                _fetchBook();
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => ProfileScreen()),
+                  (_) => false,
+                );
+              } catch (ex) {
+                Helpers.showErrorMessage(context, ex);
+              }
+            },
+            child: const Text("Publish"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future _showHideBookDialog() async {
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: _book?.status == "Approved"
+            ? const Text("Hide book")
+            : const Text("Unhide book"),
+        content: const Text("Are you sure you want to hide this book?"),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              try {
+                await _booksProvider.hideBook(_book!.bookId!);
+                Helpers.showSuccessMessage(
+                  context,
+                  _book?.status == "Approved"
+                      ? "Book is now hidden to other users"
+                      : "Book is now available to other users",
+                );
+                _fetchBook();
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => ProfileScreen()),
+                  (_) => false,
+                );
+              } catch (ex) {
+                Helpers.showErrorMessage(context, ex);
+              }
+            },
+            child: _book?.status == "Approved"
+                ? const Text("Hide")
+                : const Text("Unhide"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildResultView() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _book?.filePath != null
-              ? Container(
-                  constraints: const BoxConstraints(
-                    maxWidth: 400,
-                    maxHeight: 400,
-                  ),
-                  child: Image.network(
-                    "${Globals.apiAddress}/images/books/${_book?.filePath}.webp",
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.broken_image, size: 400),
-                  ),
-                )
-              : const SizedBox(
-                  width: 400,
-                  height: 400,
-                  child: Icon(Icons.image_not_supported, size: 400),
-                ),
-          const SizedBox(height: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                _book?.title ?? "",
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w500,
-                  height: 1.35,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+          Center(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image.network(
+                "${Globals.apiAddress}/images/books/${_book?.filePath}.webp?t=${DateTime.now().millisecondsSinceEpoch}",
+                width: 300,
+                height: 450,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) =>
+                    const Icon(Icons.broken_image, size: 300),
               ),
-              const SizedBox(height: 12),
-              Padding(
-                padding: const EdgeInsets.only(left: 4),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            _book?.title ?? "",
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 18),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
                   children: [
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => PublisherScreen(
-                              publisherId: _book!.publisher!.userId!,
-                            ),
-                          ),
-                        );
-                      },
-                      child: Row(
-                        children: [
-                          ClipOval(
-                            child: Image.network(
-                              "${Globals.apiAddress}/images/users/${_book?.publisher?.filePath}.webp",
-                              height: 18,
-                              width: 18,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(Icons.account_circle, size: 18),
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            _book?.publisher?.userName ?? "",
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(width: 4),
-                          if (_book?.publisher?.publisherVerifiedById != null)
-                            const Padding(
-                              padding: EdgeInsets.only(top: 2),
-                              child: Icon(
-                                Icons.verified,
-                                color: Colors.green,
-                                size: 13,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    RichText(
-                      text: TextSpan(
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyMedium?.color,
-                        ),
-                        children: [
-                          TextSpan(
-                            text: (_book?.authors?.length ?? 1) == 1
-                                ? "Author: "
-                                : "Authors: ",
-                          ),
-                          ...?_book?.authors?.asMap().entries.expand((entry) {
-                            final index = entry.key;
-                            final author = entry.value;
-                            final isLast = index == _book!.authors!.length - 1;
-                            return [
-                              TextSpan(
-                                text: author.name ?? "",
-                                style: TextStyle(
-                                  color: Globals.backgroundColor,
-                                ),
-                                recognizer: TapGestureRecognizer()
-                                  ..onTap = () {
-                                    Navigator.pop(context);
-                                    Navigator.pushAndRemoveUntil(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            BooksScreen(author: author.name),
-                                      ),
-                                      (_) => false,
-                                    );
-                                  },
-                              ),
-                              if (!isLast)
-                                TextSpan(
-                                  text: ", ",
-                                  style: TextStyle(
-                                    color: Theme.of(
-                                      context,
-                                    ).textTheme.bodyMedium?.color,
-                                  ),
-                                ),
-                            ];
-                          }),
-                        ],
-                      ),
-                    ),
-                    RichText(
-                      text: TextSpan(
-                        style: TextStyle(
-                          color: Theme.of(context).textTheme.bodyMedium?.color,
-                        ),
-                        children: [
-                          TextSpan(
-                            text: (_book?.genres?.length ?? 1) == 1
-                                ? "Genre: "
-                                : "Genres: ",
-                          ),
-                          ...?_book?.genres?.asMap().entries.expand((entry) {
-                            final index = entry.key;
-                            final genre = entry.value;
-                            final isLast = index == _book!.genres!.length - 1;
-                            return [
-                              TextSpan(
-                                text: genre.name ?? "",
-                                style: TextStyle(
-                                  color: Globals.backgroundColor,
-                                ),
-                                recognizer: TapGestureRecognizer()
-                                  ..onTap = () {
-                                    Navigator.pop(context);
-                                    Navigator.pushAndRemoveUntil(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            BooksScreen(genre: genre.name),
-                                      ),
-                                      (_) => false,
-                                    );
-                                  },
-                              ),
-                              if (!isLast)
-                                TextSpan(
-                                  text: ", ",
-                                  style: TextStyle(
-                                    color: Theme.of(
-                                      context,
-                                    ).textTheme.bodyMedium?.color,
-                                  ),
-                                ),
-                            ];
-                          }),
-                        ],
-                      ),
-                    ),
-                    RichText(
-                      text: TextSpan(
-                        children: [
-                          TextSpan(
-                            text: "Language: ",
-                            style: TextStyle(
-                              color: Theme.of(
-                                context,
-                              ).textTheme.bodyMedium?.color,
-                            ),
-                          ),
-                          TextSpan(
-                            text: _book?.language?.name ?? "",
-                            style: TextStyle(color: Globals.backgroundColor),
-                            recognizer: TapGestureRecognizer()
-                              ..onTap = () {
-                                Navigator.pop(context);
-                                Navigator.pushAndRemoveUntil(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => BooksScreen(
-                                      language: _book?.language?.name,
-                                    ),
-                                  ),
-                                  (_) => false,
-                                );
-                              },
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    RichText(
-                      text: TextSpan(
-                        children: [
-                          TextSpan(
-                            text: "Number of pages: ",
-                            style: TextStyle(
-                              color: Theme.of(
-                                context,
-                              ).textTheme.bodyMedium?.color,
-                            ),
-                          ),
-                          TextSpan(
-                            text: _book?.numberOfPages.toString(),
-                            style: TextStyle(
-                              color: Theme.of(
-                                context,
-                              ).textTheme.bodyMedium?.color,
-                            ),
-                          ),
-                        ],
+                    const Text("Views", style: TextStyle(fontSize: 14)),
+                    const SizedBox(height: 4),
+                    Text(
+                      (_book?.numberOfViews?.toString() ?? ""),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 18),
-              Column(
-                children: [
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        if (!AuthProvider.isLoggedIn) {
-                          Helpers.showErrorMessage(
-                            context,
-                            "Please log in to continue",
-                          );
-                          return;
-                        }
-                        if (_accessRight == null) {
-                          if (_book?.price == 0) {
-                            try {
-                              await _accessRightsProvider.post(
-                                null,
-                                _book?.bookId,
-                              );
-                              Helpers.showSuccessMessage(
-                                context,
-                                "Book is added to your library",
-                              );
-                              await _fetchAccessRight();
-                            } catch (ex) {
-                              Helpers.showErrorMessage(context, ex);
-                            }
-                          } else {
-                            await _openStripePaymentPage();
-                          }
-                        } else {
-                          try {
-                            await _accessRightsProvider.delete(_book!.bookId!);
-                            Helpers.showSuccessMessage(
-                              context,
-                              _accessRight?.isHidden == false
-                                  ? "Book is hidden from your library"
-                                  : "Book is added to your library",
-                            );
-                            await _fetchAccessRight();
-                          } catch (ex) {
-                            Helpers.showErrorMessage(context, ex);
-                          }
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Globals.backgroundColor,
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10)),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: Text(
-                        _accessRight == null
-                            ? (_book?.price == 0
-                                  ? "Add to Library"
-                                  : "Buy ${_book?.price?.toStringAsFixed(2)}€")
-                            : (_accessRight?.isHidden == false
-                                  ? "Hide from Library"
-                                  : "Add to Library"),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.white,
-                        ),
+                Column(
+                  children: const [
+                    Text("Rating", style: TextStyle(fontSize: 14)),
+                    SizedBox(height: 4),
+                    Text(
+                      "4.5",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () {
-                        Navigator.push(
+                  ],
+                ),
+                Column(
+                  children: [
+                    const Text("Language", style: TextStyle(fontSize: 14)),
+                    const SizedBox(height: 4),
+                    Text(
+                      _book?.language?.name ?? "",
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+                Column(
+                  children: [
+                    const Text("Pages", style: TextStyle(fontSize: 14)),
+                    const SizedBox(height: 4),
+                    Text(
+                      (_book?.numberOfPages?.toString() ?? ""),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          RichText(
+            text: TextSpan(
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodyMedium?.color,
+                fontSize: 14,
+              ),
+              children: [
+                TextSpan(
+                  text: (_book?.authors?.length ?? 1) == 1
+                      ? "Author: "
+                      : "Authors: ",
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                ...?_book?.authors?.asMap().entries.expand((entry) {
+                  final index = entry.key;
+                  final author = entry.value;
+                  final isLast = index == _book!.authors!.length - 1;
+                  return [
+                    TextSpan(
+                      text: author.name ?? "",
+                      style: TextStyle(
+                        color: Globals.backgroundColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () => Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(
                             builder: (context) =>
-                                PdfScreen(filePath: _book?.filePath),
+                                BooksScreen(author: author.name),
                           ),
+                          (_) => false,
+                        ),
+                    ),
+                    if (!isLast) const TextSpan(text: ", "),
+                  ];
+                }),
+              ],
+            ),
+          ),
+          const SizedBox(height: 4),
+          RichText(
+            text: TextSpan(
+              style: TextStyle(
+                color: Theme.of(context).textTheme.bodyMedium?.color,
+                fontSize: 14,
+              ),
+              children: [
+                TextSpan(
+                  text: (_book?.genres?.length ?? 1) == 1
+                      ? "Genre: "
+                      : "Genres: ",
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                ...?_book?.genres?.asMap().entries.expand((entry) {
+                  final index = entry.key;
+                  final genre = entry.value;
+                  final isLast = index == _book!.genres!.length - 1;
+                  return [
+                    TextSpan(
+                      text: genre.name ?? "",
+                      style: TextStyle(
+                        color: Globals.backgroundColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      recognizer: TapGestureRecognizer()
+                        ..onTap = () => Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                BooksScreen(genre: genre.name),
+                          ),
+                          (_) => false,
+                        ),
+                    ),
+                    if (!isLast) const TextSpan(text: ", "),
+                  ];
+                }),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () async {
+                    if (!AuthProvider.isLoggedIn) {
+                      Helpers.showErrorMessage(
+                        context,
+                        "Please log in to continue",
+                      );
+                      return;
+                    }
+                    if (_book?.publisher?.userId == AuthProvider.userId) {
+                    } else if (_accessRight == null) {
+                      if (_book?.price == 0) {
+                        try {
+                          await _accessRightsProvider.post(null, _book?.bookId);
+                          Helpers.showSuccessMessage(
+                            context,
+                            "Book is added to your library",
+                          );
+                          await _fetchAccessRight();
+                        } catch (ex) {
+                          Helpers.showErrorMessage(context, ex);
+                        }
+                      } else {
+                        await _openStripePaymentPage();
+                      }
+                    } else {
+                      try {
+                        await _accessRightsProvider.delete(_book!.bookId!);
+                        Helpers.showSuccessMessage(
+                          context,
+                          _accessRight?.isHidden == false
+                              ? "Book is hidden from your library"
+                              : "Book is added to your library",
                         );
-                      },
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(
-                          color: Globals.backgroundColor,
-                          width: 2,
-                        ),
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(10)),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: const Text(
-                        "Summary of the Book",
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Globals.backgroundColor,
-                        ),
-                      ),
+                        await _fetchAccessRight();
+                      } catch (ex) {
+                        Helpers.showErrorMessage(context, ex);
+                      }
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Globals.backgroundColor,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(4)),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                  ),
+                  child: Text(
+                    _book?.publisher?.userId == AuthProvider.userId
+                        ? "Book ${_book?.price?.toStringAsFixed(2)}€"
+                        : _accessRight == null
+                        ? (_book?.price == 0
+                              ? "Add to Library"
+                              : "Buy ${_book?.price?.toStringAsFixed(2)}€")
+                        : (_accessRight?.isHidden == false
+                              ? "Hide from Library"
+                              : "Add to Library"),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
                     ),
                   ),
-                ],
+                ),
               ),
-              const SizedBox(height: 24),
-              Padding(
-                padding: const EdgeInsets.only(left: 4),
-                child: Text(_book?.description ?? ""),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          PdfScreen(filePath: _book?.filePath),
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(4)),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                  ),
+                  child: const Text(
+                    "Book Summary",
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
               ),
             ],
+          ),
+          const SizedBox(height: 20),
+          InkWell(
+            onTap: () {
+              if (_book?.publisher?.userId != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        PublisherScreen(publisherId: _book!.publisher!.userId!),
+                  ),
+                );
+              }
+            },
+            child: Row(
+              children: [
+                ClipOval(
+                  child: Image.network(
+                    "${Globals.apiAddress}/images/users/${_book?.publisher?.filePath}.webp?t=${DateTime.now().millisecondsSinceEpoch}",
+                    height: 40,
+                    width: 40,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        const Icon(Icons.account_circle, size: 40),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _book?.publisher?.userName ?? "",
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (_book?.publisher?.publisherVerifiedById != null)
+                      Row(
+                        children: const [
+                          Icon(Icons.verified, color: Colors.green, size: 16),
+                          SizedBox(width: 4),
+                          Text(
+                            "Verified Publisher",
+                            style: TextStyle(fontSize: 12, color: Colors.green),
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            _book?.description ?? "",
+            style: const TextStyle(fontSize: 14, height: 1.4),
           ),
         ],
       ),

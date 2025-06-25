@@ -4,5 +4,6 @@
     {
         public int BookId { get; set; }
         public GenresRes Genre { get; set; }
+        public DateTime ModifiedAt { get; set; }
     }
 }

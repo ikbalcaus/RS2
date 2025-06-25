@@ -14,30 +14,28 @@ class BookCardView extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => BookDetailsScreen(bookId: book.bookId!),
-            ),
-          );
-        },
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BookDetailsScreen(bookId: book.bookId!),
+          ),
+        ),
         child: Material(
           elevation: 1,
-          borderRadius: BorderRadius.all(Radius.circular(2)),
+          borderRadius: BorderRadius.all(Radius.circular(4)),
           child: SizedBox(
             height: 210,
             child: Row(
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(4),
                   child: Image.network(
                     "${Globals.apiAddress}/images/books/${book.filePath}.webp",
-                    width: 130,
+                    width: 140,
                     height: double.infinity,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.broken_image, size: 80),
+                        const Icon(Icons.broken_image, size: 140),
                   ),
                 ),
                 Expanded(
@@ -46,7 +44,7 @@ class BookCardView extends StatelessWidget {
                       top: 7,
                       right: 7,
                       bottom: 9,
-                      left: 9,
+                      left: 10,
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -61,7 +59,7 @@ class BookCardView extends StatelessWidget {
                                   Text(
                                     book.title ?? "",
                                     style: const TextStyle(
-                                      fontSize: 20,
+                                      fontSize: 19.5,
                                       fontWeight: FontWeight.w500,
                                     ),
                                     overflow: TextOverflow.ellipsis,
@@ -100,16 +98,14 @@ class BookCardView extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
                         GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => PublisherScreen(
-                                  publisherId: book.publisher!.userId!,
-                                ),
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PublisherScreen(
+                                publisherId: book.publisher!.userId!,
                               ),
-                            );
-                          },
+                            ),
+                          ),
                           child: Row(
                             children: [
                               ClipOval(

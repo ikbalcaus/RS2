@@ -6,7 +6,6 @@
         public string Title { get; set; }
         public string Description { get; set; }
         public string FilePath { get; set; }
-        public bool HasAccessRight { get; set; }
         public decimal Price { get; set; }
         public int NumberOfPages { get; set; }
         public int NumberOfViews { get; set; }

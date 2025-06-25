@@ -95,16 +95,14 @@ class _FaqScreenState extends State<FaqScreen> {
                 child: TextField(
                   controller: _questionController,
                   decoration: const InputDecoration(
-                    labelText: "Your question",
+                    labelText: "Still have a question? Ask here...",
                     contentPadding: EdgeInsets.symmetric(horizontal: 6),
                   ),
                 ),
               ),
               const SizedBox(width: 10),
               IconButton(
-                onPressed: () async {
-                  await _submitQuestion();
-                },
+                onPressed: () async => await _submitQuestion(),
                 icon: const Icon(Icons.send),
                 tooltip: "Send",
                 color: Globals.backgroundColor,

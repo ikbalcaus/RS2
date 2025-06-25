@@ -60,6 +60,10 @@ namespace eBooks.Services
                 query = query.Where(x => x.BookGenres.Any(x => x.Genre.Name.ToLower().Contains(search.Genre.ToLower())));
             if (!string.IsNullOrWhiteSpace(search.Language))
                 query = query.Where(x => x.Language.Name.ToLower().Contains(search.Language.ToLower()));
+            if (search.MinPrice != null)
+                query = query.Where(x => x.Price >= search.MinPrice);
+            if (search.MaxPrice != null)
+                query = query.Where(x => x.Price <= search.MaxPrice);
             query = search.Status switch
             {
                 "Approved" => query.Where(x => x.StateMachine == "approve"),
@@ -77,7 +81,10 @@ namespace eBooks.Services
                 query = query.Where(x => _db.Set<PublisherFollow>().Any(y => y.PublisherId == x.PublisherId && y.UserId == GetUserId()));
             query = search.OrderBy switch
             {
-                "First modified" => query.OrderBy(x => x.ModifiedAt),
+                "Last added" => query.OrderByDescending(x => x.ModifiedAt),
+                "Most views" => query.OrderByDescending(x => x.NumberOfViews),
+                "Lowest price" => query.OrderBy(x => x.Price),
+                "Highest price" => query.OrderByDescending(x => x.Price),
                 "Title" => query.OrderBy(x => x.Title),
                 "Publisher" => query.OrderBy(x => x.Publisher.UserName),
                 _ => query.OrderByDescending(x => x.ModifiedAt),
@@ -94,8 +101,14 @@ namespace eBooks.Services
             if (search?.Page.HasValue == true && search?.PageSize.HasValue == true && search.Page.Value > 0)
                 query = query.Skip((search.Page.Value - 1) * search.PageSize.Value).Take(search.PageSize.Value);
             var list = await query.ToListAsync();
-            TypeAdapterConfig<Book, BooksRes>.NewConfig().Map(dest => dest.Status, src => MapState(src.StateMachine));
+            TypeAdapterConfig<Book, BooksRes>.NewConfig().Map(x => x.Status, src => MapState(src.StateMachine));
             var result = list.Adapt<List<BooksRes>>();
+            result = result.Select(book =>
+            {
+                book.BookAuthors = book.BookAuthors.OrderByDescending(x => x.ModifiedAt).ToList();
+                book.BookGenres = book.BookGenres.OrderByDescending(x => x.ModifiedAt).ToList();
+                return book;
+            }).ToList();
             var pagedResult = new PagedResult<BooksRes>
             {
                 ResultList = result,
@@ -118,21 +131,110 @@ namespace eBooks.Services
                 entity.NumberOfViews += 1;
                 await _db.SaveChangesAsync();
             }
-            result.HasAccessRight = await AccessRightExist(id);
+            result.BookAuthors = result.BookAuthors.OrderByDescending(x => x.ModifiedAt).ToList();
+            result.BookGenres = result.BookGenres.OrderByDescending(x => x.ModifiedAt).ToList();
             result.Status = MapState(entity.StateMachine);
             return result;
         }
 
         public override async Task<BooksRes> Post(BooksPostReq req)
         {
+            var errors = new Dictionary<string, List<string>>();
             if (req.Price < 0)
-                throw new ExceptionBadRequest("Price must be zero or greater");
-            if (!await _db.Set<Language>().AnyAsync(x => x.LanguageId == req.LanguageId))
-                throw new ExceptionNotFound();
-            var entity = _mapper.Map<Book>(req);
+                errors.AddError("Price", "Price must be zero or greater");
+            if (req.NumberOfPages < 1)
+                errors.AddError("Pages", "Number of pages must be greater than zero");
             var filePath = $"{Guid.NewGuid():N}";
-            entity.PublisherId = GetUserId();
+            TypeAdapterConfig<BooksPostReq, Book>.NewConfig().Ignore(x => x.Language);
+            var entity = _mapper.Map<Book>(req);
             entity.FilePath = filePath;
+            entity.PublisherId = GetUserId();
+            entity.StateMachine = "draft";
+            if (!string.IsNullOrWhiteSpace(req.Language))
+            {
+                var language = await _db.Languages.FirstOrDefaultAsync(x => x.Name.ToLower() == req.Language.ToLower());
+                if (language == null)
+                {
+                    language = new Language
+                    {
+                        Name = req.Language,
+                        ModifiedAt = DateTime.UtcNow,
+                        ModifiedById = GetUserId()
+                    };
+                    _db.Languages.Add(language);
+                    await _db.SaveChangesAsync();
+                }
+                entity.Language = language;
+            }
+            var now = DateTime.UtcNow;
+            List<string> authorsList = [];
+            if (!string.IsNullOrWhiteSpace(req.Authors))
+            {
+                try
+                {
+                    authorsList = System.Text.Json.JsonSerializer.Deserialize<List<string>>(req.Authors) ?? [];
+                }
+                catch
+                {
+                    errors.AddError("Authors", "Invalid format");
+                }
+            }
+            for (int i = 0; i < authorsList.Count; i++)
+            {
+                var authorName = authorsList[i];
+                var author = await _db.Authors.FirstOrDefaultAsync(x => x.Name.ToLower() == authorName.ToLower());
+                if (author == null)
+                {
+                    author = new Author
+                    {
+                        Name = authorName,
+                        ModifiedAt = now.AddSeconds(-i),
+                        ModifiedById = GetUserId()
+                    };
+                    _db.Authors.Add(author);
+                    await _db.SaveChangesAsync();
+                }
+                entity.BookAuthors.Add(new BookAuthor
+                {
+                    AuthorId = author.AuthorId,
+                    ModifiedAt = now.AddSeconds(-i)
+                });
+            }
+            List<string> genresList = [];
+            if (!string.IsNullOrWhiteSpace(req.Genres))
+            {
+                try
+                {
+                    genresList = System.Text.Json.JsonSerializer.Deserialize<List<string>>(req.Genres) ?? [];
+                }
+                catch
+                {
+                    errors.AddError("Genres", "Invalid format");
+                }
+            }
+            for (int i = 0; i < genresList.Count; i++)
+            {
+                var genreName = genresList[i];
+                var genre = await _db.Genres.FirstOrDefaultAsync(x => x.Name.ToLower() == genreName.ToLower());
+                if (genre == null)
+                {
+                    genre = new Genre
+                    {
+                        Name = genreName,
+                        ModifiedAt = now.AddSeconds(-i),
+                        ModifiedById = GetUserId()
+                    };
+                    _db.Genres.Add(genre);
+                    await _db.SaveChangesAsync();
+                }
+                entity.BookGenres.Add(new BookGenre
+                {
+                    GenreId = genre.GenreId,
+                    ModifiedAt = now.AddSeconds(-i)
+                });
+            }
+            if (errors.Count > 0)
+                throw new ExceptionBadRequest(errors);
             if (req.BookPdfFile != null)
                 await Helpers.UploadPdfFile(filePath, req.BookPdfFile, true);
             if (req.SummaryPdfFile != null)
@@ -144,6 +246,7 @@ namespace eBooks.Services
             _logger.LogInformation($"Book with title {entity.Title} created.");
             return _mapper.Map<BooksRes>(entity);
         }
+
 
         public override async Task<BooksRes> Put(int id, BooksPutReq req)
         {
@@ -265,7 +368,7 @@ namespace eBooks.Services
             if (entity == null)
                 throw new ExceptionNotFound();
             var state = _baseBooksState.CheckState(entity.StateMachine);
-            return state.AdminAllowedActions(entity);
+            return state.AdminAllowedActions();
         }
 
         public async Task<List<string>> UserAllowedActions(int id)
@@ -274,7 +377,7 @@ namespace eBooks.Services
             if (entity == null)
                 throw new ExceptionNotFound();
             var state = _baseBooksState.CheckState(entity.StateMachine);
-            return state.UserAllowedActions(entity);
+            return state.UserAllowedActions();
         }
 
         public async Task<List<string>> BookStates()

@@ -54,12 +54,18 @@ namespace eBooks.Services
         {
             var errors = new Dictionary<string, List<string>>();
             req.Email = req.Email.Trim().ToLower();
+            if (string.IsNullOrEmpty(req.FirstName))
+                errors.AddError("FirstName", "This field is required");
+            if (string.IsNullOrEmpty(req.LastName))
+                errors.AddError("LastName", "This field is required");
+            if (string.IsNullOrEmpty(req.UserName))
+                errors.AddError("UserName", "This field is required");
             if (!Helpers.IsEmailValid(req.Email))
                 errors.AddError("Email", "Email must be in following format: example@example.com");
             if (await _db.Users.AnyAsync(x => x.Email == req.Email))
                 errors.AddError("Email", "Email already exists");
             if (await _db.Users.AnyAsync(x => x.UserName.Trim().ToLower() == req.UserName.Trim().ToLower()))
-                errors.AddError("Username", "Username already exists");
+                errors.AddError("UserName", "Username already exists");
             if (!Helpers.IsPasswordValid(req.Password))
                 errors.AddError("Password", "Password must include at least 8 characters, one uppercase letter, one lowercase letter and one digit");
             if (errors.Count > 0)
@@ -92,16 +98,25 @@ namespace eBooks.Services
 
         public override async Task<UsersRes> Put(int id, UsersPutReq req)
         {
+            var errors = new Dictionary<string, List<string>>();
+            if (string.IsNullOrEmpty(req.FirstName))
+                errors.AddError("FirstName", "This field is required");
+            if (string.IsNullOrEmpty(req.LastName))
+                errors.AddError("LastName", "This field is required");
             var entity = await _db.Set<User>().FindAsync(id);
             if (entity == null)
                 throw new ExceptionNotFound();
-            if (!string.IsNullOrWhiteSpace(req.Password))
+            if (!string.IsNullOrWhiteSpace(req.OldPassword) && !string.IsNullOrWhiteSpace(req.NewPassword))
             {
-                if (!Helpers.IsPasswordValid(req.Password))
-                    throw new ExceptionBadRequest("Password must include at least 8 characters, one uppercase letter, one lowercase letter and one digit");
+                if (Helpers.GenerateHash(entity.PasswordSalt, req.OldPassword) != entity.PasswordHash)
+                    errors.AddError("OldPassword", "Old password is incorrect");
+                if (!Helpers.IsPasswordValid(req.NewPassword))
+                    errors.AddError("NewPassword", "Password must include at least 8 characters, one uppercase letter, one lowercase letter and one digit");
                 entity.PasswordSalt = Helpers.GenerateSalt();
-                entity.PasswordHash = Helpers.GenerateHash(entity.PasswordSalt, req.Password);
+                entity.PasswordHash = Helpers.GenerateHash(entity.PasswordSalt, req.NewPassword);
             }
+            if (errors.Count > 0)
+                throw new ExceptionBadRequest(errors);
             if (req.ImageFile != null)
                 await Helpers.UploadImageFile(entity.FilePath, req.ImageFile, false);
             _mapper.Map(req, entity);
@@ -177,7 +192,6 @@ namespace eBooks.Services
                 throw new ExceptionNotFound();
             entity.VerificationToken = $"{Guid.NewGuid():N}".Substring(0, 6);
             entity.TokenExpiry = DateTime.UtcNow.AddHours(24);
-            _db.Add(entity);
             await _db.SaveChangesAsync();
             _bus.PubSub.Publish(new EmailVerification { Token = _mapper.Map<TokenRes>(entity) });
             return _mapper.Map<UsersRes>(entity);

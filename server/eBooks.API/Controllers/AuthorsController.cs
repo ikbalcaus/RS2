@@ -28,7 +28,7 @@ namespace eBooks.API.Controllers
             return await base.GetById(id);
         }
 
-        [Authorize(Policy = "User")]
+        [Authorize(Policy = "Moderator")]
         public override async Task<AuthorsRes> Post(AuthorsReq req)
         {
             return await base.Post(req);

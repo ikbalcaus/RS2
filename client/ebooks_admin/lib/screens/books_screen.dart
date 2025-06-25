@@ -238,16 +238,13 @@ class _BooksScreenState extends State<BooksScreen> {
                               IconButton(
                                 icon: const Icon(Icons.arrow_forward),
                                 tooltip: "Open details",
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => BookDetailsScreen(
-                                        bookId: book.bookId!,
-                                      ),
-                                    ),
-                                  );
-                                },
+                                onPressed: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        BookDetailsScreen(bookId: book.bookId!),
+                                  ),
+                                ),
                               ),
                             ],
                           ),

@@ -25,7 +25,7 @@ CREATE TABLE Users (
     VerificationToken NVARCHAR(100),
     TokenExpiry DATETIME,
     DeletionReason NVARCHAR(255),
-    StripeAccountId NVARCHAR(255),
+    StripeAccountId NVARCHAR(100),
     RoleId INT NOT NULL,
     PublisherVerifiedById INT,
     FOREIGN KEY (RoleId) REFERENCES Roles(RoleId),
@@ -60,11 +60,11 @@ CREATE TABLE Books (
     BookId INT PRIMARY KEY IDENTITY,
     Title NVARCHAR(255) NOT NULL,
     Description NVARCHAR(MAX),
-    FilePath NVARCHAR(255) NOT NULL,
+    FilePath NVARCHAR(100) NOT NULL,
     Price DECIMAL(10,2),
     NumberOfPages INT,
     NumberOfViews INT NOT NULL DEFAULT 0,
-    LanguageId INT NOT NULL,
+    LanguageId INT,
     PublisherId INT NOT NULL,
     ModifiedAt DATETIME NOT NULL DEFAULT GETDATE(),
     StateMachine NVARCHAR(50) NOT NULL DEFAULT 'draft',
@@ -127,6 +127,30 @@ CREATE TABLE ReadingProgresses (
     FOREIGN KEY (BookId) REFERENCES Books(BookId)
 );
 
+CREATE TABLE Reviews (
+    UserId INT,
+    BookId INT,
+    ModifiedAt DATETIME NOT NULL DEFAULT GETDATE(),
+    Rating INT NOT NULL,
+    Comment NVARCHAR(MAX),
+    ReportedById INT,
+    ReportReason NVARCHAR(MAX),
+    PRIMARY KEY (UserId, BookId),
+    FOREIGN KEY (UserId) REFERENCES Users(UserId),
+    FOREIGN KEY (BookId) REFERENCES Books(BookId),
+    FOREIGN KEY (ReportedById) REFERENCES Users(UserId)
+);
+
+CREATE TABLE Reports (
+    UserId INT NOT NULL,
+    BookId INT NOT NULL,
+    ModifiedAt DATETIME NOT NULL DEFAULT GETDATE(),
+    Reason NVARCHAR(MAX),
+    PRIMARY KEY (UserId, BookId),
+    FOREIGN KEY (UserId) REFERENCES Users(UserId),
+    FOREIGN KEY (BookId) REFERENCES Books(BookId),
+);
+
 CREATE TABLE Purchases
 (
     PurchaseId INT IDENTITY(1,1) PRIMARY KEY,
@@ -135,12 +159,12 @@ CREATE TABLE Purchases
     BookId INT NOT NULL,
     CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
     TotalPrice DECIMAL(18,2) NOT NULL,
-    PaymentStatus VARCHAR(50) NOT NULL,
-    PaymentMethod VARCHAR(50) NOT NULL,
-    TransactionId VARCHAR(255) NOT NULL,
-    FailureMessage VARCHAR(255),
-    FailureCode VARCHAR(50),
-    FailureReason VARCHAR(255),
+    PaymentStatus NVARCHAR(50) NOT NULL,
+    PaymentMethod NVARCHAR(50) NOT NULL,
+    TransactionId NVARCHAR(255) NOT NULL,
+    FailureMessage NVARCHAR(255),
+    FailureCode NVARCHAR(50),
+    FailureReason NVARCHAR(255),
     FOREIGN KEY (UserId) REFERENCES Users(UserId),
     FOREIGN KEY (PublisherId) REFERENCES Users(UserId),
     FOREIGN KEY (BookId) REFERENCES Books(BookId)
@@ -153,17 +177,6 @@ CREATE TABLE PublisherFollows (
     PRIMARY KEY (UserId, PublisherId),
     FOREIGN KEY (UserId) REFERENCES Users(UserId),
     FOREIGN KEY (PublisherId) REFERENCES Users(UserId)
-);
-
-CREATE TABLE Reviews (
-    UserId INT,
-    BookId INT,
-    ModifiedAt DATETIME NOT NULL DEFAULT GETDATE(),
-    Rating INT NOT NULL,
-    Comment NVARCHAR(MAX),
-    PRIMARY KEY (UserId, BookId),
-    FOREIGN KEY (UserId) REFERENCES Users(UserId),
-    FOREIGN KEY (BookId) REFERENCES Books(BookId)
 );
 
 CREATE TABLE Notifications (

@@ -26,7 +26,9 @@ namespace eBooks.API.Auth
         public async Task CheckIsOwnerByBookId(int id)
         {
             int currentUserId = GetCurrentUserId();
-            Book book = await GetBookById(id);
+            var book = await _db.Set<Book>().FindAsync(id);
+            if (book == null)
+                throw new ExceptionNotFound();
             if (currentUserId != book.PublisherId)
                 throw new ExceptionForbidden("Only owner can use this action");
         }
@@ -38,23 +40,6 @@ namespace eBooks.API.Auth
             if (string.IsNullOrEmpty(userId))
                 throw new ExceptionForbidden("User not authenticated");
             return int.Parse(userId);
-        }
-
-        protected string GetCurrentUserRole()
-        {
-            var user = _httpContextAccessor.HttpContext?.User;
-            var role = user?.FindFirst(ClaimTypes.Role)?.Value;
-            if (string.IsNullOrEmpty(role))
-                throw new ExceptionForbidden("User not authorized");
-            return role;
-        }
-
-        protected async Task<Book> GetBookById(int id)
-        {
-            var book = await _db.Set<Book>().FindAsync(id);
-            if (book == null)
-                throw new ExceptionNotFound();
-            return book;
         }
     }
 }

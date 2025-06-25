@@ -44,7 +44,7 @@ namespace eBooks.API.Controllers
         }
 
         [Authorize(Policy = "User")]
-        public override async Task<UsersRes> Put(int id, UsersPutReq req)
+        public override async Task<UsersRes> Put(int id, [FromForm] UsersPutReq req)
         {
             await _accessControlHandler.CheckIsOwnerByUserId(id);
             return await base.Put(id, req);

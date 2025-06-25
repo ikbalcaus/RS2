@@ -8,6 +8,8 @@ import "package:ebooks_user/providers/stripe_provider.dart";
 import "package:ebooks_user/providers/theme_provider.dart";
 import "package:ebooks_user/providers/users_provider.dart";
 import "package:ebooks_user/screens/book_details_screen.dart";
+import "package:ebooks_user/screens/edit_book_screen.dart";
+import "package:ebooks_user/screens/edit_profile_screen.dart";
 import "package:ebooks_user/screens/faq_screen.dart";
 import "package:ebooks_user/screens/login_screen.dart";
 import "package:ebooks_user/screens/master_screen.dart";
@@ -79,7 +81,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future _fetchUser() async {
     setState(() => _isLoading = true);
     try {
-      final user = await _usersProvider.getById(AuthProvider.userId);
+      final user = await _usersProvider.getById(AuthProvider.userId ?? 0);
       if (!mounted) return;
       setState(() => _user = user);
     } catch (ex) {
@@ -140,7 +142,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   } catch (ex) {
                     Helpers.showErrorMessage(context, ex);
                   }
-                  Navigator.pop(context);
                 },
                 child: const Text("Send Verification Email"),
               ),
@@ -156,6 +157,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     await _usersProvider.verifyEmail(_user!.userId!, token);
                     Helpers.showSuccessMessage(context);
                     await _fetchUser();
+                    Navigator.pop(context);
                   } catch (ex) {
                     Helpers.showErrorMessage(context, ex);
                   }
@@ -245,9 +247,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               authProvider.logout();
               AuthProvider.userId = 0;
               Navigator.pop(context);
-              Navigator.pushReplacement(
+              Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                (_) => false,
               );
             },
             child: const Text("Logout"),
@@ -274,7 +277,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 backgroundColor: Colors.grey[200],
                 child: ClipOval(
                   child: Image.network(
-                    "${Globals.apiAddress}/images/users/${_user?.filePath}.webp",
+                    "${Globals.apiAddress}/images/users/${_user?.filePath}.webp?t=${DateTime.now().millisecondsSinceEpoch}",
                     width: 80,
                     height: 80,
                     fit: BoxFit.cover,
@@ -350,35 +353,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         return Padding(
                           padding: const EdgeInsets.only(right: 8),
                           child: InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      BookDetailsScreen(bookId: book!.bookId!),
-                                ),
-                              );
-                            },
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    BookDetailsScreen(bookId: book!.bookId!),
+                              ),
+                            ),
                             child: Column(
                               children: [
                                 ClipRRect(
-                                  borderRadius: BorderRadius.circular(2),
+                                  borderRadius: BorderRadius.circular(4),
                                   child: Image.network(
-                                    "${Globals.apiAddress}/images/books/${book?.filePath}.webp",
-                                    height: 160,
-                                    width: 100,
+                                    "${Globals.apiAddress}/images/books/${book?.filePath}.webp?t=${DateTime.now().millisecondsSinceEpoch}",
+                                    height: 165,
+                                    width: 110,
                                     fit: BoxFit.cover,
                                     errorBuilder:
                                         (context, error, stackTrace) =>
                                             SizedBox(
-                                              width: 100,
-                                              height: 160,
+                                              height: 165,
+                                              width: 110,
                                               child: FittedBox(
                                                 fit: BoxFit.contain,
-                                                child: const Icon(
-                                                  Icons.book_sharp,
-                                                  color: Colors.black87,
-                                                ),
+                                                child: const Icon(Icons.book),
                                               ),
                                             ),
                                   ),
@@ -413,53 +411,55 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ListTile(
                 leading: const Icon(Icons.account_circle),
                 title: const Text("Edit Profile"),
-                onTap: () {},
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const EditProfileScreen(),
+                  ),
+                ),
               ),
               if (_user?.isEmailVerified == false)
                 ListTile(
                   leading: const Icon(Icons.email),
                   title: const Text("Verify Email"),
-                  onTap: () async {
-                    await _verifyEmailDialog();
-                  },
+                  onTap: () async => await _verifyEmailDialog(),
                 ),
               ListTile(
                 leading: const Icon(Icons.book),
                 title: const Text("Add New Book"),
-                onTap: () {},
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const EditBookScreen(),
+                  ),
+                ),
               ),
               ListTile(
                 leading: const Icon(Icons.favorite),
                 title: const Text("Wishlist"),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const WishlistScreen(),
-                    ),
-                  );
-                },
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const WishlistScreen(),
+                  ),
+                ),
               ),
               ListTile(
                 leading: const Icon(Icons.bookmark),
                 title: const Text("Followed Publishers"),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const FollowedPublishersScreen(),
-                    ),
-                  );
-                },
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const FollowedPublishersScreen(),
+                  ),
+                ),
               ),
               const Divider(),
               ListTile(
                 leading: const Icon(Icons.account_balance_wallet),
                 title: const Text("Stripe Account"),
                 trailing: Icon(Icons.chevron_right_rounded),
-                onTap: () async {
-                  await _openStripeAccount();
-                },
+                onTap: () async => await _openStripeAccount(),
               ),
               ListTile(
                 leading: const Icon(Icons.color_lens),
@@ -469,20 +469,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ListTile(
                 leading: const Icon(Icons.question_mark),
                 title: const Text("Help and Support"),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const FaqScreen()),
-                  );
-                },
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const FaqScreen()),
+                ),
               ),
               const Divider(),
               ListTile(
                 leading: const Icon(Icons.logout),
                 title: const Text("Logout"),
-                onTap: () async {
-                  await _showLogoutDialog();
-                },
+                onTap: () async => await _showLogoutDialog(),
               ),
             ],
           ),

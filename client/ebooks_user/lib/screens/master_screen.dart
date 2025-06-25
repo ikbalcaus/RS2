@@ -13,6 +13,7 @@ class MasterScreen extends StatefulWidget {
   final TextEditingController? searchController;
   final VoidCallback? onSearch;
   final VoidCallback? onFilterPressed;
+  final Map<String, VoidCallback?>? popupActions;
 
   const MasterScreen({
     super.key,
@@ -21,6 +22,7 @@ class MasterScreen extends StatefulWidget {
     this.searchController,
     this.onSearch,
     this.onFilterPressed,
+    this.popupActions,
   });
 
   @override
@@ -50,16 +52,39 @@ class _MasterScreenState extends State<MasterScreen> {
           ],
         ),
         actions: [
-          if (widget.searchController != null)
-            Padding(
-              padding: const EdgeInsets.only(right: 10),
-              child: IconButton(
-                icon: Icon(_showSearch ? Icons.close : Icons.search),
-                onPressed: () {
-                  setState(() => _showSearch = !_showSearch);
-                },
-              ),
+          Padding(
+            padding: const EdgeInsets.only(right: 10),
+            child: Row(
+              children: [
+                if (widget.searchController != null)
+                  IconButton(
+                    icon: Icon(_showSearch ? Icons.close : Icons.search),
+                    onPressed: () {
+                      setState(() => _showSearch = !_showSearch);
+                    },
+                  ),
+                if (widget.popupActions != null)
+                  PopupMenuButton<String>(
+                    icon: const Icon(Icons.more_vert),
+                    onSelected: (String title) {
+                      final callback = widget.popupActions?[title];
+                      if (callback != null) {
+                        Future.microtask(() => callback());
+                      }
+                    },
+                    itemBuilder: (context) {
+                      return widget.popupActions?.entries.map((entry) {
+                            return PopupMenuItem(
+                              value: entry.key,
+                              child: Text(entry.key),
+                            );
+                          }).toList() ??
+                          [];
+                    },
+                  ),
+              ],
             ),
+          ),
         ],
       ),
       body: Column(
@@ -161,9 +186,9 @@ class _MasterScreenState extends State<MasterScreen> {
           }
         })(),
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.book), label: "Books"),
+          BottomNavigationBarItem(icon: Icon(Icons.book_sharp), label: "Books"),
           BottomNavigationBarItem(
-            icon: Icon(Icons.library_books),
+            icon: Icon(Icons.library_books_sharp),
             label: "Library",
           ),
           BottomNavigationBarItem(

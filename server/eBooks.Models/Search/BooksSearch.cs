@@ -3,8 +3,8 @@
     public class BooksSearch : BaseSearch
     {
         public string? Title { get; set; }
-        public decimal? MinPrice { get; set; }
-        public decimal? MaxPrice { get; set; }
+        public int? MinPrice { get; set; }
+        public int? MaxPrice { get; set; }
         public string? Author { get; set; }
         public string? Genre { get; set; }
         public string? Language { get; set; }

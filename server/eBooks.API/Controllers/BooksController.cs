@@ -35,13 +35,13 @@ namespace eBooks.API.Controllers
         }
 
         [Authorize(Policy = "User")]
-        public override async Task<BooksRes> Post(BooksPostReq req)
+        public override async Task<BooksRes> Post([FromForm] BooksPostReq req)
         {
             return await base.Post(req);
         }
 
         [Authorize(Policy = "User")]
-        public override async Task<BooksRes> Put(int id, BooksPutReq req)
+        public override async Task<BooksRes> Put(int id, [FromForm] BooksPutReq req)
         {
             await _accessControlHandler.CheckIsOwnerByBookId(id);
             return await base.Put(id, req);

@@ -8,6 +8,7 @@ import "package:ebooks_user/screens/master_screen.dart";
 import "package:ebooks_user/utils/helpers.dart";
 import "package:ebooks_user/widgets/book_card_view.dart";
 import "package:flutter/material.dart";
+import "package:flutter/services.dart";
 import "package:provider/provider.dart";
 
 class BooksScreen extends StatefulWidget {
@@ -30,6 +31,17 @@ class _BooksScreenState extends State<BooksScreen> {
   Map<String, dynamic> _currentFilter = {};
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  String author = "";
+  String genre = "";
+  String language = "";
+  int? minPrice;
+  int? maxPrice;
+  String orderBy = "Last added";
+  late TextEditingController _authorController;
+  late TextEditingController _genreController;
+  late TextEditingController _languageController;
+  late TextEditingController _minPriceController;
+  late TextEditingController _maxPriceController;
 
   @override
   void initState() {
@@ -45,6 +57,15 @@ class _BooksScreenState extends State<BooksScreen> {
       "Language": widget.language,
     };
     _fetchBooks();
+    _authorController = TextEditingController(text: author);
+    _genreController = TextEditingController(text: genre);
+    _languageController = TextEditingController(text: language);
+    _minPriceController = TextEditingController(
+      text: minPrice?.toString() ?? "",
+    );
+    _maxPriceController = TextEditingController(
+      text: maxPrice?.toString() ?? "",
+    );
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >=
           _scrollController.position.maxScrollExtent - 200) {
@@ -61,6 +82,11 @@ class _BooksScreenState extends State<BooksScreen> {
   void dispose() {
     _scrollController.dispose();
     _searchController.dispose();
+    _authorController.dispose();
+    _genreController.dispose();
+    _languageController.dispose();
+    _minPriceController.dispose();
+    _maxPriceController.dispose();
     super.dispose();
   }
 
@@ -68,12 +94,8 @@ class _BooksScreenState extends State<BooksScreen> {
   Widget build(BuildContext context) {
     return MasterScreen(
       searchController: _searchController,
-      onSearch: () async {
-        await _applySearchFilter();
-      },
-      onFilterPressed: () async {
-        await _showFilterDialog();
-      },
+      onSearch: () async => await _applySearchFilter(),
+      onFilterPressed: () async => await await _showFilterDialog(),
       child: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _buildResultView(),
@@ -122,39 +144,68 @@ class _BooksScreenState extends State<BooksScreen> {
     await showDialog(
       context: context,
       builder: (context) {
-        String author = "";
-        String genre = "";
-        String language = "";
-        String sortBy = "Last modified";
         return AlertDialog(
           title: const Text("Filter Books"),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
+                controller: _authorController,
                 decoration: const InputDecoration(labelText: "Author"),
-                onChanged: (value) => author = value,
               ),
               TextField(
+                controller: _genreController,
                 decoration: const InputDecoration(labelText: "Genre"),
-                onChanged: (value) => genre = value,
               ),
               TextField(
+                controller: _languageController,
                 decoration: const InputDecoration(labelText: "Language"),
-                onChanged: (value) => language = value,
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _minPriceController,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      decoration: const InputDecoration(
+                        labelText: "Min Price (€)",
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: TextField(
+                      controller: _maxPriceController,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      decoration: const InputDecoration(
+                        labelText: "Max Price (€)",
+                      ),
+                      onChanged: (value) {
+                        maxPrice = int.tryParse(value);
+                      },
+                    ),
+                  ),
+                ],
               ),
               DropdownButtonFormField<String>(
                 decoration: const InputDecoration(labelText: "Sort by"),
-                value: sortBy,
-                items: ["Last modified", "Title", "Publisher"].map((
-                  String value,
-                ) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (value) => sortBy = value!,
+                value: orderBy,
+                items:
+                    [
+                      "Last added",
+                      "Most views",
+                      "Highest rated",
+                      "Lowest price",
+                      "Highest price",
+                    ].map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                onChanged: (value) => orderBy = value!,
               ),
             ],
           ),
@@ -165,10 +216,12 @@ class _BooksScreenState extends State<BooksScreen> {
                 _currentPage = 1;
                 _currentFilter = {
                   "Title": _searchController.text,
-                  "Author": author,
-                  "Genre": genre,
-                  "Language": language,
-                  "Sort": sortBy,
+                  "Author": _authorController.text,
+                  "Genre": _genreController.text,
+                  "Language": _languageController.text,
+                  "MinPrice": _minPriceController.text,
+                  "MaxPrice": _maxPriceController.text,
+                  "OrderBy": orderBy,
                   "Status": "Approved",
                   "IsDeleted": "Not deleted",
                 };

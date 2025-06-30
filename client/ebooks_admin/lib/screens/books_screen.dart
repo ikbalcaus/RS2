@@ -26,11 +26,9 @@ class _BooksScreenState extends State<BooksScreen> {
   String _orderBy = "Last modified";
   final List<String> _bookStates = ["Any"];
   Map<String, dynamic> _currentFilter = {};
-  final TextEditingController _titleEditingController = TextEditingController();
-  final TextEditingController _publisherEditingController =
-      TextEditingController();
-  final TextEditingController _languageEditingController =
-      TextEditingController();
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _publisherController = TextEditingController();
+  final TextEditingController _languageController = TextEditingController();
 
   @override
   void initState() {
@@ -43,9 +41,9 @@ class _BooksScreenState extends State<BooksScreen> {
 
   @override
   void dispose() {
-    _titleEditingController.dispose();
-    _publisherEditingController.dispose();
-    _languageEditingController.dispose();
+    _titleController.dispose();
+    _publisherController.dispose();
+    _languageController.dispose();
     super.dispose();
   }
 
@@ -109,21 +107,21 @@ class _BooksScreenState extends State<BooksScreen> {
         children: [
           Expanded(
             child: TextField(
-              controller: _titleEditingController,
+              controller: _titleController,
               decoration: const InputDecoration(labelText: "Title"),
             ),
           ),
           const SizedBox(width: Globals.spacing),
           Expanded(
             child: TextField(
-              controller: _publisherEditingController,
+              controller: _publisherController,
               decoration: const InputDecoration(labelText: "Publisher"),
             ),
           ),
           const SizedBox(width: Globals.spacing),
           Expanded(
             child: TextField(
-              controller: _languageEditingController,
+              controller: _languageController,
               decoration: const InputDecoration(labelText: "Language"),
             ),
           ),
@@ -164,7 +162,6 @@ class _BooksScreenState extends State<BooksScreen> {
                   ),
                 );
               }).toList(),
-              decoration: const InputDecoration(labelText: "Is deleted"),
             ),
           ),
           const SizedBox(width: Globals.spacing),
@@ -193,9 +190,9 @@ class _BooksScreenState extends State<BooksScreen> {
             onPressed: () async {
               _currentPage = 1;
               _currentFilter = {
-                "Title": _titleEditingController.text,
-                "Publisher": _publisherEditingController.text,
-                "Language": _languageEditingController.text,
+                "Title": _titleController.text,
+                "Publisher": _publisherController.text,
+                "Language": _languageController.text,
                 "Status": _status,
                 "IsDeleted": _isDeleted,
                 "OrderBy": _orderBy,

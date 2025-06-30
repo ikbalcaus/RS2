@@ -43,6 +43,8 @@ namespace eBooks.Services
                 query = query.Include(x => x.BookAuthors).ThenInclude(x => x.Author);
             if (search == null || search.IsGenresIncluded == true)
                 query = query.Include(x => x.BookGenres).ThenInclude(x => x.Genre);
+            if (search == null || search.IsReviewsIncluded == true)
+                query = query.Include(x => x.Reviews);
             return query;
         }
 
@@ -79,16 +81,26 @@ namespace eBooks.Services
                 query = query.Where(x => x.DeletionReason != null);
             if (search.FollowingPublishersOnly == true)
                 query = query.Where(x => _db.Set<PublisherFollow>().Any(y => y.PublisherId == x.PublisherId && y.UserId == GetUserId()));
-            query = search.OrderBy switch
+            if (search?.OrderBy == "Highest rated")
             {
-                "Last added" => query.OrderByDescending(x => x.ModifiedAt),
-                "Most views" => query.OrderByDescending(x => x.NumberOfViews),
-                "Lowest price" => query.OrderBy(x => x.Price),
-                "Highest price" => query.OrderByDescending(x => x.Price),
-                "Title" => query.OrderBy(x => x.Title),
-                "Publisher" => query.OrderBy(x => x.Publisher.UserName),
-                _ => query.OrderByDescending(x => x.ModifiedAt),
-            };
+                query = query.Select(x => new
+                {
+                    Book = x,
+                    AverageRating = x.Reviews.Any() ? x.Reviews.Average(y => y.Rating) : 0
+                }).OrderByDescending(x => x.AverageRating).Select(x => x.Book);
+            }
+            else
+            {
+                query = search?.OrderBy switch
+                {
+                    "Most views" => query.OrderByDescending(x => x.NumberOfViews),
+                    "Lowest price" => query.OrderBy(x => x.Price),
+                    "Highest price" => query.OrderByDescending(x => x.Price),
+                    "Title" => query.OrderBy(x => x.Title),
+                    "Publisher" => query.OrderBy(x => x.Publisher.UserName),
+                    _ => query.OrderByDescending(x => x.ModifiedAt),
+                };
+            }
             return query;
         }
 
@@ -101,12 +113,17 @@ namespace eBooks.Services
             if (search?.Page.HasValue == true && search?.PageSize.HasValue == true && search.Page.Value > 0)
                 query = query.Skip((search.Page.Value - 1) * search.PageSize.Value).Take(search.PageSize.Value);
             var list = await query.ToListAsync();
+            var originalEntitiesById = list.ToDictionary(x => x.BookId);
             TypeAdapterConfig<Book, BooksRes>.NewConfig().Map(x => x.Status, src => MapState(src.StateMachine));
             var result = list.Adapt<List<BooksRes>>();
             result = result.Select(book =>
             {
                 book.BookAuthors = book.BookAuthors.OrderByDescending(x => x.ModifiedAt).ToList();
                 book.BookGenres = book.BookGenres.OrderByDescending(x => x.ModifiedAt).ToList();
+                if (originalEntitiesById.TryGetValue(book.BookId, out var originalEntity) && originalEntity.Reviews?.Any() == true)
+                    book.AverageRating = Math.Round(originalEntity.Reviews.Average(x => x.Rating), 1);
+                else
+                    book.AverageRating = 0;
                 return book;
             }).ToList();
             var pagedResult = new PagedResult<BooksRes>
@@ -133,6 +150,7 @@ namespace eBooks.Services
             }
             result.BookAuthors = result.BookAuthors.OrderByDescending(x => x.ModifiedAt).ToList();
             result.BookGenres = result.BookGenres.OrderByDescending(x => x.ModifiedAt).ToList();
+            result.AverageRating = (entity.Reviews != null && entity.Reviews.Any()) ? Math.Round(entity.Reviews.Average(x => x.Rating), 1) : 0;
             result.Status = MapState(entity.StateMachine);
             return result;
         }

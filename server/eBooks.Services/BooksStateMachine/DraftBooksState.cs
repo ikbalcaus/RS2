@@ -148,7 +148,7 @@ namespace eBooks.Services.BooksStateMachine
             var errors = new Dictionary<string, List<string>>();
             var rootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
             var baseFileName = Path.GetFileNameWithoutExtension(entity.FilePath ?? "");
-            if (string.IsNullOrWhiteSpace(entity.Title) || string.IsNullOrWhiteSpace(entity.Description) || entity.Price == null || entity.NumberOfPages == null || entity.LanguageId == 0)
+            if (string.IsNullOrWhiteSpace(entity.Title) || string.IsNullOrWhiteSpace(entity.Description) || entity.Price == null || entity.NumberOfPages == null)
                 errors.AddError("Data", "You must fill out all data before awaiting book");
             if (!Directory.EnumerateFiles(Path.Combine(rootPath, "images", "books"), baseFileName + ".*").Any())
                 errors.AddError("Image", "You must upload book image");
@@ -156,6 +156,8 @@ namespace eBooks.Services.BooksStateMachine
                 errors.AddError("Pdf", "You must upload book pdf");
             if (!Directory.EnumerateFiles(Path.Combine(rootPath, "pdfs", "summary"), baseFileName + ".*").Any())
                 errors.AddError("Pdf", "You must upload summary pdf");
+            if (entity.LanguageId == null)
+                errors.AddError("Language", "You must select a language");
             if (!await _db.Set<BookAuthor>().AnyAsync(x => x.BookId == id))
                 errors.AddError("Authors", "You must select at least one author");
             if (!await _db.Set<BookGenre>().AnyAsync(x => x.BookId == id))

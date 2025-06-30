@@ -1,5 +1,5 @@
 import "package:ebooks_user/models/books/book.dart";
-import "package:ebooks_user/models/publisher_follow/publisher_follow.dart";
+import "package:ebooks_user/models/publisher_follows/publisher_follow.dart";
 import "package:ebooks_user/models/search_result.dart";
 import "package:ebooks_user/providers/books_provider.dart";
 import "package:ebooks_user/providers/publisher_follows_provider.dart";

@@ -1,11 +1,10 @@
 ﻿using eBooks.Models.Responses;
-using eBooks.Models.Search;
 
 namespace eBooks.Interfaces
 {
-    public interface IBaseUserContextService<TRequest, TResponse>
+    public interface IBaseUserContextService<TSearch, TRequest, TResponse>
     {
-        Task<PagedResult<TResponse>> GetPaged(BaseSearch search);
+        Task<PagedResult<TResponse>> GetPaged(TSearch search);
         Task<TResponse> GetByBookId(int bookId);
         Task<TResponse> Post(int bookId, TRequest req);
         Task<TResponse> Patch(int bookId);

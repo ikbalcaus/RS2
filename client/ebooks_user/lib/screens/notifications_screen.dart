@@ -38,7 +38,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     } else if (_isLoading) {
       content = const Center(child: CircularProgressIndicator());
     } else if (_notifications?.count == 0) {
-      content = const Center(child: Text("There are no notifications"));
+      content = const Center(child: Text("You don't have any notifications"));
     } else {
       content = _buildResultView();
     }

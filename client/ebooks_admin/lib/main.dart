@@ -6,6 +6,8 @@ import "package:ebooks_admin/providers/genres_provider.dart";
 import "package:ebooks_admin/providers/languages_provider.dart";
 import "package:ebooks_admin/providers/purchases_provider.dart";
 import "package:ebooks_admin/providers/questions_provider.dart";
+import "package:ebooks_admin/providers/reports_provider.dart";
+import "package:ebooks_admin/providers/reviews_provider.dart";
 import "package:ebooks_admin/providers/roles_provider.dart";
 import "package:ebooks_admin/providers/users_provider.dart";
 import "package:ebooks_admin/screens/books_screen.dart";
@@ -19,13 +21,10 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await windowManager.ensureInitialized();
-
-  if (Platform.isWindows) {
-    WindowManager.instance.setMinimumSize(const Size(800, 600));
+  if (Platform.isWindows || Platform.isMacOS) {
+    WindowManager.instance.setMinimumSize(const Size(1200, 800));
   }
-
   runApp(
     MultiProvider(
       providers: [
@@ -36,6 +35,8 @@ void main() async {
         ChangeNotifierProvider(create: (_) => LanguagesProvider()),
         ChangeNotifierProvider(create: (_) => PurchasesProvider()),
         ChangeNotifierProvider(create: (_) => QuestionsProvider()),
+        ChangeNotifierProvider(create: (_) => ReportsProvider()),
+        ChangeNotifierProvider(create: (_) => ReviewsProvider()),
         ChangeNotifierProvider(create: (_) => RolesProvider()),
         ChangeNotifierProvider(create: (_) => UsersProvider()),
       ],

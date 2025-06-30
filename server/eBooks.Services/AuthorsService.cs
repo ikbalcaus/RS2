@@ -6,6 +6,7 @@ using eBooks.Models.Responses;
 using eBooks.Models.Search;
 using MapsterMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 
 namespace eBooks.Services
 {
@@ -14,6 +15,12 @@ namespace eBooks.Services
         public AuthorsService(EBooksContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor)
             : base(db, mapper, httpContextAccessor)
         {
+        }
+
+        public override IQueryable<Author> AddIncludes(IQueryable<Author> query, AuthorsSearch? search = null)
+        {
+            query = query.Include(x => x.ModifiedBy);
+            return query;
         }
 
         public override IQueryable<Author> AddFilters(IQueryable<Author> query, AuthorsSearch search)

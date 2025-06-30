@@ -22,12 +22,12 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
   int _currentPage = 1;
   String _orderBy = "Last modified";
   Map<String, dynamic> _currentFilter = {};
-  final TextEditingController _nameEditingController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _nameEditingController.text = widget.name ?? "";
+    _nameController.text = widget.name ?? "";
     _currentFilter = {"name": widget.name ?? ""};
     _authorsProvider = context.read<AuthorsProvider>();
     _fetchAuthors();
@@ -35,7 +35,7 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
 
   @override
   void dispose() {
-    _nameEditingController.dispose();
+    _nameController.dispose();
     super.dispose();
   }
 
@@ -78,30 +78,28 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
     }
   }
 
-  Future _editAuthorDialog(int id, String name) async {
-    final TextEditingController dialogController = TextEditingController(
-      text: name,
-    );
+  Future _showEditAuthorDialog(int id, String name) async {
+    String name = _nameController.text;
     await showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: const Text("Confirm edit"),
           content: TextField(
-            controller: dialogController,
             decoration: const InputDecoration(labelText: "Enter new name..."),
+            onChanged: (value) => name = value,
           ),
           actions: [
             TextButton(
               onPressed: () async {
-                final dialogText = dialogController.text.trim();
-                if (dialogText.isNotEmpty) {
-                  Navigator.pop(context);
-                  await Future.delayed(const Duration(milliseconds: 250));
+                if (name.trim().isNotEmpty) {
                   try {
-                    await _authorsProvider.put(id, {"name": dialogText});
-                    Helpers.showSuccessMessage(context);
+                    await _authorsProvider.put(id, {"name": name});
                     await _fetchAuthors();
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      Helpers.showSuccessMessage(context);
+                    }
                   } catch (ex) {
                     Helpers.showErrorMessage(context, ex);
                   }
@@ -119,7 +117,7 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
     );
   }
 
-  Future _deleteAuthorDialog(int id) async {
+  Future _showDeleteAuthorDialog(int id) async {
     await showDialog(
       context: context,
       builder: (context) {
@@ -157,7 +155,7 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
         children: [
           Expanded(
             child: TextField(
-              controller: _nameEditingController,
+              controller: _nameController,
               decoration: const InputDecoration(labelText: "Author"),
             ),
           ),
@@ -191,7 +189,7 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
             onPressed: () async {
               _currentPage = 1;
               _currentFilter = {
-                "Name": _nameEditingController.text,
+                "Name": _nameController.text,
                 "OrderBy": _orderBy,
               };
               await _fetchAuthors();
@@ -202,12 +200,10 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
           ElevatedButton(
             onPressed: () async {
               try {
-                await _authorsProvider.post({
-                  "name": _nameEditingController.text,
-                });
-                Helpers.showSuccessMessage(context);
+                await _authorsProvider.post({"name": _nameController.text});
                 await _fetchAuthors();
-                _nameEditingController.clear();
+                Helpers.showSuccessMessage(context);
+                _nameController.clear();
               } catch (ex) {
                 Helpers.showErrorMessage(context, ex);
               }
@@ -243,7 +239,7 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
                                 icon: const Icon(Icons.edit),
                                 tooltip: "Edit author",
                                 onPressed: () async {
-                                  await _editAuthorDialog(
+                                  await _showEditAuthorDialog(
                                     author.authorId!,
                                     author.name ?? "",
                                   );
@@ -253,7 +249,9 @@ class _AuthorsScreenState extends State<AuthorsScreen> {
                                 icon: const Icon(Icons.delete),
                                 tooltip: "Delete author",
                                 onPressed: () async {
-                                  await _deleteAuthorDialog(author.authorId!);
+                                  await _showDeleteAuthorDialog(
+                                    author.authorId!,
+                                  );
                                 },
                               ),
                             ],

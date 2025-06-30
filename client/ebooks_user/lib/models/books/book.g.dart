@@ -17,6 +17,7 @@ Book _$BookFromJson(Map<String, dynamic> json) => Book(
   status: json['status'] as String?,
   rejectionReason: json['rejectionReason'] as String?,
   deletionReason: json['deletionReason'] as String?,
+  accessRightExist: json['accessRightExist'] as bool?,
   modifiedAt: json['modifiedAt'] == null
       ? null
       : DateTime.parse(json['modifiedAt'] as String),
@@ -39,7 +40,7 @@ Book _$BookFromJson(Map<String, dynamic> json) => Book(
   bookGenres: (json['bookGenres'] as List<dynamic>?)
       ?.map((e) => BookGenre.fromJson(e as Map<String, dynamic>))
       .toList(),
-);
+)..averageRating = (json['averageRating'] as num?)?.toDouble();
 
 Map<String, dynamic> _$BookToJson(Book instance) => <String, dynamic>{
   'bookId': instance.bookId,
@@ -52,6 +53,7 @@ Map<String, dynamic> _$BookToJson(Book instance) => <String, dynamic>{
   'status': instance.status,
   'rejectionReason': instance.rejectionReason,
   'deletionReason': instance.deletionReason,
+  'accessRightExist': instance.accessRightExist,
   'modifiedAt': instance.modifiedAt?.toIso8601String(),
   'discountPercentage': instance.discountPercentage,
   'discountStart': instance.discountStart?.toIso8601String(),
@@ -60,4 +62,5 @@ Map<String, dynamic> _$BookToJson(Book instance) => <String, dynamic>{
   'language': instance.language,
   'bookAuthors': instance.bookAuthors,
   'bookGenres': instance.bookGenres,
+  'averageRating': instance.averageRating,
 };

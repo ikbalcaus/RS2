@@ -1,4 +1,4 @@
-import "package:ebooks_user/models/access_right/access_right.dart";
+import "package:ebooks_user/models/access_rights/access_right.dart";
 import "package:ebooks_user/providers/base_provider.dart";
 import "package:ebooks_user/utils/globals.dart";
 import "package:http/http.dart" as http;

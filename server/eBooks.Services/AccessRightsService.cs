@@ -11,11 +11,17 @@ using Microsoft.EntityFrameworkCore;
 
 namespace eBooks.Services
 {
-    public class AccessRightsService : BaseUserContextService<AccessRight, object, AccessRightsRes>, IAccessRightsService
+    public class AccessRightsService : BaseUserContextService<AccessRight, BaseSearch, object, AccessRightsRes>, IAccessRightsService
     {
         public AccessRightsService(EBooksContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor)
             : base(db, mapper, httpContextAccessor, false)
         {
+        }
+
+        public override IQueryable<AccessRight> AddIncludes(IQueryable<AccessRight> query, BaseSearch? search = null)
+        {
+            query = query.Include(x => x.Book);
+            return query;
         }
 
         public override async Task<PagedResult<AccessRightsRes>> GetPaged(BaseSearch search)

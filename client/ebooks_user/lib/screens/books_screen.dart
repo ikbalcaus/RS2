@@ -3,6 +3,7 @@ import "package:ebooks_user/models/search_result.dart";
 import "package:ebooks_user/providers/auth_provider.dart";
 import "package:ebooks_user/providers/books_provider.dart";
 import "package:ebooks_user/providers/publisher_follows_provider.dart";
+import "package:ebooks_user/providers/reports_provider.dart";
 import "package:ebooks_user/providers/wishlist_provider.dart";
 import "package:ebooks_user/screens/master_screen.dart";
 import "package:ebooks_user/utils/helpers.dart";
@@ -25,6 +26,7 @@ class _BooksScreenState extends State<BooksScreen> {
   late BooksProvider _booksProvider;
   late WishlistProvider _wishlistProvider;
   late PublisherFollowsProvider _publisherFollowsProvider;
+  late ReportsProvider _reportsProvider;
   SearchResult<Book>? _books;
   bool _isLoading = true;
   int _currentPage = 1;
@@ -49,9 +51,11 @@ class _BooksScreenState extends State<BooksScreen> {
     _booksProvider = context.read<BooksProvider>();
     _wishlistProvider = context.read<WishlistProvider>();
     _publisherFollowsProvider = context.read<PublisherFollowsProvider>();
+    _reportsProvider = context.read<ReportsProvider>();
     _currentFilter = {
       "Status": "Approved",
       "IsDeleted": "Not deleted",
+      "IsReviewsIncluded": true,
       "Author": widget.author,
       "Genre": widget.genre,
       "Language": widget.language,
@@ -95,7 +99,7 @@ class _BooksScreenState extends State<BooksScreen> {
     return MasterScreen(
       searchController: _searchController,
       onSearch: () async => await _applySearchFilter(),
-      onFilterPressed: () async => await await _showFilterDialog(),
+      onFilterPressed: () async => await _showFilterDialog(),
       child: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _buildResultView(),
@@ -239,6 +243,51 @@ class _BooksScreenState extends State<BooksScreen> {
     );
   }
 
+  Future _showReportBookDialog(int bookId) async {
+    String reason = "";
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Confirm report"),
+          content: TextField(
+            decoration: const InputDecoration(labelText: "Reason..."),
+            onChanged: (value) => reason = value,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                if (reason.trim().isNotEmpty) {
+                  try {
+                    await _reportsProvider.post({"reason": reason}, bookId);
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      Helpers.showSuccessMessage(
+                        context,
+                        "Successfully reported book",
+                      );
+                    }
+                  } catch (ex) {
+                    Navigator.pop(context);
+                    Helpers.showErrorMessage(
+                      context,
+                      "You already reported this book",
+                    );
+                  }
+                }
+              },
+              child: const Text("Report"),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildResultView() {
     final books = _books?.resultList ?? [];
     return ListView.builder(
@@ -295,6 +344,11 @@ class _BooksScreenState extends State<BooksScreen> {
                         "You must be logged in",
                       );
               }
+            },
+            "Report Book": () async {
+              AuthProvider.isLoggedIn
+                  ? await _showReportBookDialog(books[index].bookId!)
+                  : Helpers.showErrorMessage(context, "You must be logged in");
             },
           },
         );

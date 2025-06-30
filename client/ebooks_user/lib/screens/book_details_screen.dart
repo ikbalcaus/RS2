@@ -1,9 +1,13 @@
-import "package:ebooks_user/models/access_right/access_right.dart";
+import "package:ebooks_user/models/access_rights/access_right.dart";
 import "package:ebooks_user/models/books/book.dart";
+import "package:ebooks_user/models/reviews/review.dart";
+import "package:ebooks_user/models/search_result.dart";
 import "package:ebooks_user/providers/access_rights_provider.dart";
 import "package:ebooks_user/providers/auth_provider.dart";
 import "package:ebooks_user/providers/books_provider.dart";
 import "package:ebooks_user/providers/publisher_follows_provider.dart";
+import "package:ebooks_user/providers/reports_provider.dart";
+import "package:ebooks_user/providers/reviews_provider.dart";
 import "package:ebooks_user/providers/stripe_provider.dart";
 import "package:ebooks_user/providers/wishlist_provider.dart";
 import "package:ebooks_user/screens/books_screen.dart";
@@ -32,12 +36,18 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
   late AccessRightsProvider _accessRightsProvider;
   late WishlistProvider _wishlistProvider;
   late PublisherFollowsProvider _publisherFollowsProvider;
+  late ReportsProvider _reportsProvider;
+  late ReviewsProvider _reviewsProvider;
   late StripeProvider _stripeProvider;
   Book? _book;
+  SearchResult<Review>? _reviews;
   AccessRight? _accessRight;
   final List<String> _allowedActions = [];
+  int _reviewsPage = 1;
+  Map<String, dynamic> _reviewsFilter = {};
   bool _isLoading = true;
   final Map<String, Future<void> Function()> _popupActions = {};
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -46,9 +56,29 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
     _accessRightsProvider = context.read<AccessRightsProvider>();
     _wishlistProvider = context.read<WishlistProvider>();
     _publisherFollowsProvider = context.read<PublisherFollowsProvider>();
+    _reportsProvider = context.read<ReportsProvider>();
+    _reviewsProvider = context.read<ReviewsProvider>();
     _stripeProvider = context.read<StripeProvider>();
+    _reviewsFilter = {"BookId": widget.bookId};
     _fetchBook();
+    _fetchReviews();
     _fetchAccessRight();
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent) {
+        if (!_isLoading &&
+            (_reviews?.resultList.length ?? 0) < (_reviews?.count ?? 0)) {
+          _reviewsPage++;
+          _fetchReviews(append: true);
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -78,6 +108,32 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
       if (!mounted) return;
       setState(() => _isLoading = false);
       await _getAllowedActions();
+    }
+  }
+
+  Future _fetchReviews({bool append = false}) async {
+    try {
+      final reviews = await _reviewsProvider.getPaged(
+        page: _reviewsPage,
+        filter: _reviewsFilter,
+      );
+      if (!mounted) return;
+      setState(() {
+        if (append && _reviews != null) {
+          _reviews?.resultList.addAll(reviews.resultList);
+          _reviews?.count = reviews.count;
+        } else {
+          _reviews = reviews;
+        }
+      });
+    } catch (ex) {
+      if (!mounted) return;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        Helpers.showErrorMessage(context, ex);
+      });
+    } finally {
+      if (!mounted) return;
     }
   }
 
@@ -139,6 +195,11 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                 : Helpers.showErrorMessage(context, "You must be logged in");
           }
         };
+        if (_accessRight != null &&
+            _book?.publisher?.userId != AuthProvider.userId) {
+          _popupActions["Review Book"] = () async =>
+              await _showReviewBookDialog();
+        }
         if (_allowedActions.contains("Update")) {
           _popupActions["Edit Book"] = () async => Navigator.push(
             context,
@@ -157,6 +218,11 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
               : "Unhide Book"] = () async =>
               await _showHideBookDialog();
         }
+        _popupActions["Report Book"] = () async {
+          AuthProvider.isLoggedIn
+              ? await _showReportBookDialog(widget.bookId)
+              : Helpers.showErrorMessage(context, "You must be logged in");
+        };
       });
     } catch (ex) {
       if (!mounted) return;
@@ -181,6 +247,211 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
     } catch (ex) {
       Helpers.showErrorMessage(context, ex);
     }
+  }
+
+  Future _showReviewBookDialog() async {
+    int rating = 0;
+    String comment = "";
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text("Confirm review"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(5, (index) {
+                      return IconButton(
+                        icon: Icon(
+                          index < rating ? Icons.star : Icons.star_border,
+                          color: Colors.orange,
+                        ),
+                        onPressed: () => setState(() => rating = index + 1),
+                      );
+                    }),
+                  ),
+                  TextField(
+                    decoration: const InputDecoration(labelText: "Comment..."),
+                    onChanged: (value) => comment = value,
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    if (rating >= 1 && rating <= 5) {
+                      try {
+                        if (!(_reviews?.resultList.any(
+                              (review) =>
+                                  review.user?.userId == AuthProvider.userId,
+                            ) ??
+                            false)) {
+                          await _reviewsProvider.post({
+                            "rating": rating,
+                            "comment": comment,
+                          }, widget.bookId);
+                        } else {
+                          await _reviewsProvider.put(widget.bookId, {
+                            "rating": rating,
+                            "comment": comment,
+                          });
+                        }
+                        _fetchReviews();
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                          Helpers.showSuccessMessage(
+                            context,
+                            "Book reviewed successfully",
+                          );
+                        }
+                      } catch (ex) {
+                        Navigator.pop(context);
+                        Helpers.showErrorMessage(context, ex);
+                      }
+                    }
+                  },
+                  child: const Text("Review"),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Cancel"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future _showDeleteReviewDialog() async {
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Delete review"),
+        content: const Text("Are you sure you want to delete review?"),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              try {
+                await _reviewsProvider.delete(_book!.bookId!);
+                await _fetchReviews();
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  Helpers.showSuccessMessage(
+                    context,
+                    "Successfully deleted review",
+                  );
+                }
+              } catch (ex) {
+                Navigator.pop(context);
+                Helpers.showErrorMessage(context, ex);
+              }
+            },
+            child: const Text("Delete"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future _showReportBookDialog(int bookId) async {
+    String reason = "";
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Confirm report"),
+          content: TextField(
+            decoration: const InputDecoration(labelText: "Reason..."),
+            onChanged: (value) => reason = value,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                if (reason.trim().isNotEmpty) {
+                  try {
+                    await _reportsProvider.post({"reason": reason}, bookId);
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      Helpers.showSuccessMessage(
+                        context,
+                        "Successfully reported book",
+                      );
+                    }
+                  } catch (ex) {
+                    Navigator.pop(context);
+                    Helpers.showErrorMessage(
+                      context,
+                      "You already reported this book",
+                    );
+                  }
+                }
+              },
+              child: const Text("Report"),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future _showReportReviewDialog(int userId) async {
+    String reason = "";
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Confirm report"),
+          content: TextField(
+            decoration: const InputDecoration(labelText: "Reason..."),
+            onChanged: (value) => reason = value,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                if (reason.trim().isNotEmpty) {
+                  try {
+                    await _reviewsProvider.report(
+                      userId,
+                      widget.bookId,
+                      reason,
+                    );
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      Helpers.showSuccessMessage(
+                        context,
+                        "Successfully reported review",
+                      );
+                    }
+                  } catch (ex) {
+                    Navigator.pop(context);
+                    Helpers.showErrorMessage(context, ex);
+                  }
+                }
+              },
+              child: const Text("Report"),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future _showAwaitBookDialog() async {
@@ -263,6 +534,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
 
   Widget _buildResultView() {
     return SingleChildScrollView(
+      controller: _scrollController,
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -307,11 +579,13 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                   ],
                 ),
                 Column(
-                  children: const [
+                  children: [
                     Text("Rating", style: TextStyle(fontSize: 14)),
                     SizedBox(height: 4),
                     Text(
-                      "4.5",
+                      (_book?.averageRating == 0.0)
+                          ? "N/A"
+                          : (_book?.averageRating ?? "").toString(),
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -324,7 +598,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                     const Text("Language", style: TextStyle(fontSize: 14)),
                     const SizedBox(height: 4),
                     Text(
-                      _book?.language?.name ?? "",
+                      _book?.language?.name ?? "N/A",
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -579,7 +853,102 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
           Text(
             _book?.description ?? "",
             style: const TextStyle(fontSize: 14, height: 1.4),
+            maxLines: 20,
+            overflow: TextOverflow.ellipsis,
           ),
+          const SizedBox(height: 12),
+          ...(_reviews?.resultList ?? []).map((review) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    ClipOval(
+                      child: Image.network(
+                        "${Globals.apiAddress}/images/users/${review.user?.filePath}.webp",
+                        height: 24,
+                        width: 24,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(Icons.account_circle, size: 24),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      review.user?.userName ?? "",
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                      ),
+                    ),
+                    Expanded(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Row(
+                            children: List.generate(5, (index) {
+                              return Icon(
+                                index < (review.rating ?? 0)
+                                    ? Icons.star
+                                    : Icons.star_border,
+                                size: 15,
+                                color: Colors.orange,
+                              );
+                            }),
+                          ),
+                          PopupMenuButton<String>(
+                            icon: const Icon(Icons.more_vert, size: 18),
+                            onSelected: (value) async {
+                              if (value == "edit") {
+                                await _showReviewBookDialog();
+                              } else if (value == "delete") {
+                                await _showDeleteReviewDialog();
+                              } else if (value == "report") {
+                                if (!AuthProvider.isLoggedIn) {
+                                  Helpers.showErrorMessage(
+                                    context,
+                                    "Please log in to continue",
+                                  );
+                                  return;
+                                }
+                                await _showReportReviewDialog(
+                                  review.user?.userId ?? 0,
+                                );
+                              }
+                            },
+                            itemBuilder: (context) => [
+                              if (review.user?.userId ==
+                                  AuthProvider.userId) ...[
+                                const PopupMenuItem(
+                                  value: "edit",
+                                  child: Text("Edit Review"),
+                                ),
+                                const PopupMenuItem(
+                                  value: "delete",
+                                  child: Text("Delete Review"),
+                                ),
+                              ],
+                              const PopupMenuItem(
+                                value: "report",
+                                child: Text("Report Review"),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                if (review.comment?.trim().isNotEmpty == true) ...[
+                  Text(
+                    review.comment ?? "",
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                  const SizedBox(height: 10),
+                ],
+              ],
+            );
+          }),
         ],
       ),
     );

@@ -8,6 +8,8 @@ import "package:ebooks_user/providers/notifications_provider.dart";
 import "package:ebooks_user/providers/publisher_follows_provider.dart";
 import "package:ebooks_user/providers/purchases_provider.dart";
 import "package:ebooks_user/providers/questions_provider.dart";
+import "package:ebooks_user/providers/reports_provider.dart";
+import "package:ebooks_user/providers/reviews_provider.dart";
 import "package:ebooks_user/providers/stripe_provider.dart";
 import "package:ebooks_user/providers/theme_provider.dart";
 import "package:ebooks_user/providers/users_provider.dart";
@@ -33,6 +35,8 @@ void main() async {
         ChangeNotifierProvider(create: (_) => PublisherFollowsProvider()),
         ChangeNotifierProvider(create: (_) => PurchasesProvider()),
         ChangeNotifierProvider(create: (_) => QuestionsProvider()),
+        ChangeNotifierProvider(create: (_) => ReportsProvider()),
+        ChangeNotifierProvider(create: (_) => ReviewsProvider()),
         ChangeNotifierProvider(create: (_) => StripeProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => UsersProvider()),

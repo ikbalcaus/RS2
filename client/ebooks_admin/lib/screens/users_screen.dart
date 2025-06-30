@@ -28,18 +28,15 @@ class _UsersScreenState extends State<UsersScreen> {
   String _orderBy = "Username (A-Z)";
   String _isDeleted = "All users";
   Map<String, dynamic> _currentFilter = {};
-  final TextEditingController _firstNameEditingController =
-      TextEditingController();
-  final TextEditingController _lastNameEditingController =
-      TextEditingController();
-  final TextEditingController _userNameEditingController =
-      TextEditingController();
-  final TextEditingController _emailEditingController = TextEditingController();
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _userNameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _userNameEditingController.text = widget.userName ?? "";
+    _userNameController.text = widget.userName ?? "";
     _currentFilter = {"UserName": widget.userName ?? ""};
     _usersProvider = context.read<UsersProvider>();
     _rolesProvider = context.read<RolesProvider>();
@@ -49,10 +46,10 @@ class _UsersScreenState extends State<UsersScreen> {
 
   @override
   void dispose() {
-    _firstNameEditingController.dispose();
-    _lastNameEditingController.dispose();
-    _userNameEditingController.dispose();
-    _emailEditingController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _userNameController.dispose();
+    _emailController.dispose();
     super.dispose();
   }
 
@@ -108,7 +105,7 @@ class _UsersScreenState extends State<UsersScreen> {
     }
   }
 
-  Future _assignRoleDialog(int userId) async {
+  Future _showAssignRoleDialog(int userId) async {
     String? selectedRoleId = _roles!.resultList.first.roleId.toString();
     await showDialog(
       context: context,
@@ -138,14 +135,15 @@ class _UsersScreenState extends State<UsersScreen> {
           actions: [
             TextButton(
               onPressed: () async {
-                Navigator.pop(context);
-                await Future.delayed(const Duration(milliseconds: 250));
                 try {
                   await _rolesProvider.assignRole(
                     userId,
                     int.parse(selectedRoleId!),
                   );
-                  Helpers.showSuccessMessage(context);
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    Helpers.showSuccessMessage(context);
+                  }
                 } catch (ex) {
                   Helpers.showErrorMessage(context, ex);
                 }
@@ -162,7 +160,7 @@ class _UsersScreenState extends State<UsersScreen> {
     );
   }
 
-  Future _verifyPublisherDialog(int id, bool notVerified) async {
+  Future _showVerifyPublisherDialog(int id, bool notVerified) async {
     await showDialog(
       context: context,
       builder: (context) {
@@ -173,12 +171,13 @@ class _UsersScreenState extends State<UsersScreen> {
           actions: [
             TextButton(
               onPressed: () async {
-                Navigator.pop(context);
-                await Future.delayed(const Duration(milliseconds: 250));
                 try {
                   await _usersProvider.verifyPublisher(id);
-                  Helpers.showSuccessMessage(context);
                   await _fetchUsers();
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    Helpers.showSuccessMessage(context);
+                  }
                 } catch (ex) {
                   Helpers.showErrorMessage(context, ex);
                 }
@@ -197,11 +196,11 @@ class _UsersScreenState extends State<UsersScreen> {
     );
   }
 
-  Future _deleteUserDialog(int id) async {
+  Future _showDeleteUserDialog(int id) async {
+    String reason = "";
     await showDialog(
       context: context,
       builder: (context) {
-        String reason = "";
         return AlertDialog(
           title: const Text("Confirm delete"),
           content: TextField(
@@ -214,12 +213,13 @@ class _UsersScreenState extends State<UsersScreen> {
             TextButton(
               onPressed: () async {
                 if (reason.trim().isNotEmpty) {
-                  Navigator.pop(context);
-                  await Future.delayed(const Duration(milliseconds: 250));
                   try {
                     await _usersProvider.adminDelete(id, reason);
-                    Helpers.showSuccessMessage(context);
                     await _fetchUsers();
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      Helpers.showSuccessMessage(context);
+                    }
                   } catch (ex) {
                     Helpers.showErrorMessage(context, ex);
                   }
@@ -237,7 +237,7 @@ class _UsersScreenState extends State<UsersScreen> {
     );
   }
 
-  Future _undoDeleteUserDialog(int id) async {
+  Future _showUndoDeleteUserDialog(int id) async {
     await showDialog(
       context: context,
       builder: (context) {
@@ -246,12 +246,13 @@ class _UsersScreenState extends State<UsersScreen> {
           actions: [
             TextButton(
               onPressed: () async {
-                Navigator.pop(context);
-                await Future.delayed(const Duration(milliseconds: 250));
                 try {
                   await _usersProvider.adminDelete(id, null);
-                  Helpers.showSuccessMessage(context);
                   await _fetchUsers();
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    Helpers.showSuccessMessage(context);
+                  }
                 } catch (ex) {
                   Helpers.showErrorMessage(context, ex);
                 }
@@ -275,28 +276,28 @@ class _UsersScreenState extends State<UsersScreen> {
         children: [
           Expanded(
             child: TextField(
-              controller: _firstNameEditingController,
+              controller: _firstNameController,
               decoration: const InputDecoration(labelText: "First name"),
             ),
           ),
           const SizedBox(width: Globals.spacing),
           Expanded(
             child: TextField(
-              controller: _lastNameEditingController,
+              controller: _lastNameController,
               decoration: const InputDecoration(labelText: "Last name"),
             ),
           ),
           const SizedBox(width: Globals.spacing),
           Expanded(
             child: TextField(
-              controller: _userNameEditingController,
+              controller: _userNameController,
               decoration: const InputDecoration(labelText: "User name"),
             ),
           ),
           const SizedBox(width: Globals.spacing),
           Expanded(
             child: TextField(
-              controller: _emailEditingController,
+              controller: _emailController,
               decoration: const InputDecoration(labelText: "Email"),
             ),
           ),
@@ -345,10 +346,10 @@ class _UsersScreenState extends State<UsersScreen> {
             onPressed: () async {
               _currentPage = 1;
               _currentFilter = {
-                "FirstName": _firstNameEditingController.text,
-                "LastName": _lastNameEditingController.text,
-                "UserName": _userNameEditingController.text,
-                "Email": _emailEditingController.text,
+                "FirstName": _firstNameController.text,
+                "LastName": _lastNameController.text,
+                "UserName": _userNameController.text,
+                "Email": _emailController.text,
                 "OrderBy": _orderBy,
               };
               await _fetchUsers();
@@ -386,14 +387,25 @@ class _UsersScreenState extends State<UsersScreen> {
                             width: 50,
                             height: 50,
                             errorBuilder: (context, error, stackTrace) =>
-                                const Icon(Icons.broken_image),
+                                const Padding(
+                                  padding: EdgeInsets.all(5),
+                                  child: Icon(Icons.account_box, size: 40),
+                                ),
                           ),
                         ),
                         DataCell(Text(user.firstName ?? "")),
                         DataCell(Text(user.lastName ?? "")),
                         DataCell(Text(user.userName ?? "")),
                         DataCell(Text(user.email ?? "")),
-                        DataCell(Text(user.deletionReason ?? "")),
+                        DataCell(
+                          SizedBox(
+                            width: 180,
+                            child: Text(
+                              user.deletionReason ?? "",
+                              softWrap: true,
+                            ),
+                          ),
+                        ),
                         if (AuthProvider.role == "Admin")
                           DataCell(
                             Row(
@@ -402,7 +414,7 @@ class _UsersScreenState extends State<UsersScreen> {
                                   icon: const Icon(Icons.admin_panel_settings),
                                   tooltip: "Assign role",
                                   onPressed: () async {
-                                    await _assignRoleDialog(user.userId!);
+                                    await _showAssignRoleDialog(user.userId!);
                                   },
                                 ),
                                 IconButton(
@@ -416,7 +428,7 @@ class _UsersScreenState extends State<UsersScreen> {
                                       ? "Verify publisher"
                                       : "Unverify publisher",
                                   onPressed: () async {
-                                    await _verifyPublisherDialog(
+                                    await _showVerifyPublisherDialog(
                                       user.userId!,
                                       user.publisherVerifiedById == null,
                                     );
@@ -427,7 +439,7 @@ class _UsersScreenState extends State<UsersScreen> {
                                     icon: const Icon(Icons.delete),
                                     tooltip: "Delete user",
                                     onPressed: () async {
-                                      await _deleteUserDialog(user.userId!);
+                                      await _showDeleteUserDialog(user.userId!);
                                     },
                                   ),
                                 if (user.deletionReason != null)
@@ -435,7 +447,9 @@ class _UsersScreenState extends State<UsersScreen> {
                                     icon: const Icon(Icons.restore),
                                     tooltip: "Undo delete",
                                     onPressed: () async {
-                                      await _undoDeleteUserDialog(user.userId!);
+                                      await _showUndoDeleteUserDialog(
+                                        user.userId!,
+                                      );
                                     },
                                   ),
                               ],

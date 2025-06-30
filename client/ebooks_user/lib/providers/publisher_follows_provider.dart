@@ -1,4 +1,4 @@
-import "package:ebooks_user/models/publisher_follow/publisher_follow.dart";
+import "package:ebooks_user/models/publisher_follows/publisher_follow.dart";
 import "package:ebooks_user/providers/base_provider.dart";
 
 class PublisherFollowsProvider extends BaseProvider<PublisherFollow> {

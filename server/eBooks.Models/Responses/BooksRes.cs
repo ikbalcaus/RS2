@@ -20,5 +20,6 @@
         public LanguagesRes Language { get; set; }
         public ICollection<BookAuthorsRes> BookAuthors { get; set; } = new List<BookAuthorsRes>();
         public ICollection<BookGenresRes> BookGenres { get; set; } = new List<BookGenresRes>();
+        public double AverageRating { get; set; }
     }
 }

@@ -21,10 +21,9 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
   int _currentPage = 1;
   String _orderBy = "Last created";
   Map<String, dynamic> _currentFilter = {};
-  final TextEditingController _userEditingController = TextEditingController();
-  final TextEditingController _publisherEditingController =
-      TextEditingController();
-  final TextEditingController _bookEditingController = TextEditingController();
+  final TextEditingController _userController = TextEditingController();
+  final TextEditingController _publisherController = TextEditingController();
+  final TextEditingController _bookController = TextEditingController();
 
   @override
   void initState() {
@@ -35,9 +34,9 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
 
   @override
   void dispose() {
-    _userEditingController.dispose();
-    _publisherEditingController.dispose();
-    _bookEditingController.dispose();
+    _userController.dispose();
+    _publisherController.dispose();
+    _bookController.dispose();
     super.dispose();
   }
 
@@ -87,21 +86,21 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
         children: [
           Expanded(
             child: TextField(
-              controller: _userEditingController,
+              controller: _userController,
               decoration: const InputDecoration(labelText: "User"),
             ),
           ),
           const SizedBox(width: Globals.spacing),
           Expanded(
             child: TextField(
-              controller: _publisherEditingController,
+              controller: _publisherController,
               decoration: const InputDecoration(labelText: "Publisher"),
             ),
           ),
           const SizedBox(width: Globals.spacing),
           Expanded(
             child: TextField(
-              controller: _bookEditingController,
+              controller: _bookController,
               decoration: const InputDecoration(labelText: "Book"),
             ),
           ),
@@ -139,9 +138,9 @@ class _PurchasesScreenState extends State<PurchasesScreen> {
             onPressed: () async {
               _currentPage = 1;
               _currentFilter = {
-                "User": _userEditingController.text,
-                "Publisher": _publisherEditingController.text,
-                "Book": _bookEditingController.text,
+                "User": _userController.text,
+                "Publisher": _publisherController.text,
+                "Book": _bookController.text,
                 "OrderBy": _orderBy,
               };
               await _fetchPurchases();

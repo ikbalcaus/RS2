@@ -1,4 +1,4 @@
-import "package:ebooks_user/models/access_right/access_right.dart";
+import "package:ebooks_user/models/access_rights/access_right.dart";
 import "package:ebooks_user/models/search_result.dart";
 import "package:ebooks_user/providers/access_rights_provider.dart";
 import "package:ebooks_user/providers/auth_provider.dart";
@@ -57,7 +57,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
     } else if (_isLoading) {
       content = const Center(child: CircularProgressIndicator());
     } else if (_accessRights?.count == 0) {
-      content = const Center(child: Text("Library is empty"));
+      content = const Center(
+        child: Text("You don't have any books in your library"),
+      );
     } else {
       content = _buildResultView();
     }

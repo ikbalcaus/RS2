@@ -22,12 +22,13 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
   int _currentPage = 1;
   String _orderBy = "Last modified";
   Map<String, dynamic> _currentFilter = {};
-  final TextEditingController _nameEditingController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _modifiedByController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _nameEditingController.text = widget.name ?? "";
+    _nameController.text = widget.name ?? "";
     _currentFilter = {"name": widget.name ?? ""};
     _languagesProvider = context.read<LanguagesProvider>();
     _fetchLanguages();
@@ -35,7 +36,8 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
 
   @override
   void dispose() {
-    _nameEditingController.dispose();
+    _nameController.dispose();
+    _modifiedByController.dispose();
     super.dispose();
   }
 
@@ -80,30 +82,28 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
     }
   }
 
-  Future _editLanguageDialog(int id, String name) async {
-    final TextEditingController dialogController = TextEditingController(
-      text: name,
-    );
+  Future _showEditLanguageDialog(int id, String name) async {
+    String name = "";
     await showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: const Text("Confirm edit"),
           content: TextField(
-            controller: dialogController,
             decoration: const InputDecoration(labelText: "Enter new name..."),
+            onChanged: (value) => name = value,
           ),
           actions: [
             TextButton(
               onPressed: () async {
-                final dialogText = dialogController.text.trim();
-                if (dialogText.isNotEmpty) {
-                  Navigator.pop(context);
-                  await Future.delayed(const Duration(milliseconds: 250));
+                if (name.trim().isNotEmpty) {
                   try {
-                    await _languagesProvider.put(id, {"name": dialogText});
-                    Helpers.showSuccessMessage(context);
+                    await _languagesProvider.put(id, {"name": name});
                     await _fetchLanguages();
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      Helpers.showSuccessMessage(context);
+                    }
                   } catch (ex) {
                     Helpers.showErrorMessage(context, ex);
                   }
@@ -121,7 +121,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
     );
   }
 
-  Future _deleteLanguageDialog(int id) async {
+  Future _showDeleteLanguageDialog(int id) async {
     await showDialog(
       context: context,
       builder: (context) {
@@ -130,12 +130,13 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
           actions: [
             TextButton(
               onPressed: () async {
-                Navigator.pop(context);
-                await Future.delayed(const Duration(milliseconds: 250));
                 try {
                   await _languagesProvider.delete(id);
-                  Helpers.showSuccessMessage(context);
                   await _fetchLanguages();
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    Helpers.showSuccessMessage(context);
+                  }
                 } catch (ex) {
                   Helpers.showErrorMessage(context, ex);
                 }
@@ -159,8 +160,15 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
         children: [
           Expanded(
             child: TextField(
-              controller: _nameEditingController,
+              controller: _nameController,
               decoration: const InputDecoration(labelText: "Language"),
+            ),
+          ),
+          const SizedBox(width: Globals.spacing),
+          Expanded(
+            child: TextField(
+              controller: _modifiedByController,
+              decoration: const InputDecoration(labelText: "Modified by"),
             ),
           ),
           const SizedBox(width: Globals.spacing),
@@ -193,7 +201,8 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
             onPressed: () async {
               _currentPage = 1;
               _currentFilter = {
-                "Name": _nameEditingController.text,
+                "Name": _nameController.text,
+                "ModifiedBy": _modifiedByController.text,
                 "OrderBy": _orderBy,
               };
               await _fetchLanguages();
@@ -204,12 +213,10 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
           ElevatedButton(
             onPressed: () async {
               try {
-                await _languagesProvider.post({
-                  "name": _nameEditingController.text,
-                });
-                Helpers.showSuccessMessage(context);
+                await _languagesProvider.post({"name": _nameController.text});
                 await _fetchLanguages();
-                _nameEditingController.clear();
+                Helpers.showSuccessMessage(context);
+                _nameController.clear();
               } catch (ex) {
                 Helpers.showErrorMessage(context, ex);
               }
@@ -245,7 +252,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
                                 icon: const Icon(Icons.edit),
                                 tooltip: "Edit language",
                                 onPressed: () async {
-                                  await _editLanguageDialog(
+                                  await _showEditLanguageDialog(
                                     language.languageId!,
                                     language.name ?? "",
                                   );
@@ -255,7 +262,7 @@ class _LanguagesScreenState extends State<LanguagesScreen> {
                                 icon: const Icon(Icons.delete),
                                 tooltip: "Delete language",
                                 onPressed: () async {
-                                  await _deleteLanguageDialog(
+                                  await _showDeleteLanguageDialog(
                                     language.languageId!,
                                   );
                                 },

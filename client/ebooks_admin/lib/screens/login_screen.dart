@@ -14,7 +14,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  bool _isLoading = false;
   Map<String, List<String>> _fieldErrors = {};
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -22,7 +21,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future _login() async {
     setState(() {
-      _isLoading = true;
       _fieldErrors.clear();
     });
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -60,96 +58,82 @@ class _LoginScreenState extends State<LoginScreen> {
         });
       }
     }
-    setState(() => _isLoading = false);
   }
 
   @override
   Widget build(BuildContext context) {
     return MasterScreen(
       child: Center(
-        child: SizedBox(
-          width: 400,
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: _emailController,
-                  decoration: InputDecoration(
-                    labelText: "Email",
-                    border: const OutlineInputBorder(),
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 14,
-                    ),
-                    errorText: _fieldErrors["email"]?.first,
+        child: Transform.translate(
+          offset: Offset(0, -60),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Image.asset(
+                    "assets/images/login.png",
+                    width: 250,
+                    height: 250,
                   ),
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                const SizedBox(height: 16.0),
-                TextFormField(
-                  controller: _passwordController,
-                  decoration: InputDecoration(
-                    labelText: "Password",
-                    border: const OutlineInputBorder(),
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 14,
+                  const SizedBox(height: 4),
+                  TextFormField(
+                    controller: _emailController,
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.email_outlined),
+                      labelText: "Email",
+                      errorText: _fieldErrors["email"]?.first,
                     ),
-                    errorText: _fieldErrors["password"]?.first,
+                    keyboardType: TextInputType.emailAddress,
                   ),
-                  obscureText: true,
-                ),
-                const SizedBox(height: 2),
-                _fieldErrors.containsKey("general")
-                    ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: _fieldErrors["general"]!
-                            .map(
-                              (msg) => Padding(
-                                padding: const EdgeInsets.only(top: 2.0),
-                                child: Text(
-                                  msg,
-                                  style: const TextStyle(
-                                    color: Colors.red,
-                                    fontSize: 12,
-                                    height: 1.4,
-                                  ),
-                                ),
-                              ),
-                            )
-                            .toList(),
-                      )
-                    : const SizedBox.shrink(),
-                const SizedBox(height: 16.0),
-                _isLoading
-                    ? const CircularProgressIndicator()
-                    : SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            await _login();
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Globals.backgroundColor,
-                            shape: const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.zero,
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                          ),
-                          child: const Text(
-                            "Login",
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Globals.color,
-                            ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: _passwordController,
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      labelText: "Password",
+                      errorText: _fieldErrors["password"]?.first,
+                    ),
+                    obscureText: true,
+                  ),
+                  if (_fieldErrors.containsKey("general")) ...[
+                    const SizedBox(height: 12),
+                    ..._fieldErrors["general"]!.map(
+                      (msg) => Text(
+                        msg,
+                        style: const TextStyle(color: Colors.red, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () async => await _login(),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Globals.backgroundColor,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            Globals.BorderRadius,
                           ),
                         ),
                       ),
-              ],
+                      child: const Text(
+                        "Login",
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

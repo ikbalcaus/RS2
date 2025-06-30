@@ -2,7 +2,8 @@
 {
     public class ReviewsRes
     {
-        public int UserId { get; set; }
+        public UsersRes User { get; set; }
+        public int BookId { get; set; }
         public BooksRes Book { get; set; }
         public DateTime ModifiedAt { get; set; }
         public int Rating { get; set; }

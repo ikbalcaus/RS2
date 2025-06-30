@@ -20,6 +20,7 @@ class Book {
   String? status;
   String? rejectionReason;
   String? deletionReason;
+  bool? accessRightExist;
   DateTime? modifiedAt;
   int? discountPercentage;
   DateTime? discountStart;
@@ -28,6 +29,7 @@ class Book {
   Language? language;
   List<BookAuthor>? bookAuthors;
   List<BookGenre>? bookGenres;
+  double? averageRating;
 
   List<Author>? get authors =>
       bookAuthors?.map((bookAuthor) => bookAuthor.author!).toList();
@@ -45,6 +47,7 @@ class Book {
     this.status,
     this.rejectionReason,
     this.deletionReason,
+    this.accessRightExist,
     this.modifiedAt,
     this.discountPercentage,
     this.discountStart,

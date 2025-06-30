@@ -22,12 +22,13 @@ class _GenresScreenState extends State<GenresScreen> {
   int _currentPage = 1;
   String _orderBy = "Last modified";
   Map<String, dynamic> _currentFilter = {};
-  final TextEditingController _nameEditingController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _modifiedByController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _nameEditingController.text = widget.name ?? "";
+    _nameController.text = widget.name ?? "";
     _currentFilter = {"name": widget.name ?? ""};
     _genresProvider = context.read<GenresProvider>();
     _fetchGenres();
@@ -35,7 +36,8 @@ class _GenresScreenState extends State<GenresScreen> {
 
   @override
   void dispose() {
-    _nameEditingController.dispose();
+    _nameController.dispose();
+    _modifiedByController.dispose();
     super.dispose();
   }
 
@@ -78,30 +80,28 @@ class _GenresScreenState extends State<GenresScreen> {
     }
   }
 
-  Future _editGenreDialog(int id, String name) async {
-    final TextEditingController dialogController = TextEditingController(
-      text: name,
-    );
+  Future _showEditGenreDialog(int id, String name) async {
+    String name = "";
     await showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: const Text("Confirm edit"),
           content: TextField(
-            controller: dialogController,
             decoration: const InputDecoration(labelText: "Enter new name..."),
+            onChanged: (value) => name = value,
           ),
           actions: [
             TextButton(
               onPressed: () async {
-                final dialogText = dialogController.text.trim();
-                if (dialogText.isNotEmpty) {
-                  Navigator.pop(context);
-                  await Future.delayed(const Duration(milliseconds: 250));
+                if (name.trim().isNotEmpty) {
                   try {
-                    await _genresProvider.put(id, {"name": dialogText});
-                    Helpers.showSuccessMessage(context);
+                    await _genresProvider.put(id, {"name": name});
                     await _fetchGenres();
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      Helpers.showSuccessMessage(context);
+                    }
                   } catch (ex) {
                     Helpers.showErrorMessage(context, ex);
                   }
@@ -119,7 +119,7 @@ class _GenresScreenState extends State<GenresScreen> {
     );
   }
 
-  Future _deleteGenreDialog(int id) async {
+  Future _showDeleteGenreDialog(int id) async {
     await showDialog(
       context: context,
       builder: (context) {
@@ -128,12 +128,13 @@ class _GenresScreenState extends State<GenresScreen> {
           actions: [
             TextButton(
               onPressed: () async {
-                Navigator.pop(context);
-                await Future.delayed(const Duration(milliseconds: 250));
                 try {
                   await _genresProvider.delete(id);
-                  Helpers.showSuccessMessage(context);
                   await _fetchGenres();
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    Helpers.showSuccessMessage(context);
+                  }
                 } catch (ex) {
                   Helpers.showErrorMessage(context, ex);
                 }
@@ -157,7 +158,7 @@ class _GenresScreenState extends State<GenresScreen> {
         children: [
           Expanded(
             child: TextField(
-              controller: _nameEditingController,
+              controller: _nameController,
               decoration: const InputDecoration(labelText: "Genre"),
             ),
           ),
@@ -191,7 +192,8 @@ class _GenresScreenState extends State<GenresScreen> {
             onPressed: () async {
               _currentPage = 1;
               _currentFilter = {
-                "Name": _nameEditingController.text,
+                "Name": _nameController.text,
+                "ModifiedBy": _modifiedByController.text,
                 "OrderBy": _orderBy,
               };
               await _fetchGenres();
@@ -202,12 +204,10 @@ class _GenresScreenState extends State<GenresScreen> {
           ElevatedButton(
             onPressed: () async {
               try {
-                await _genresProvider.post({
-                  "name": _nameEditingController.text,
-                });
-                Helpers.showSuccessMessage(context);
+                await _genresProvider.post({"name": _nameController.text});
                 await _fetchGenres();
-                _nameEditingController.clear();
+                Helpers.showSuccessMessage(context);
+                _nameController.clear();
               } catch (ex) {
                 Helpers.showErrorMessage(context, ex);
               }
@@ -243,7 +243,7 @@ class _GenresScreenState extends State<GenresScreen> {
                                 icon: const Icon(Icons.edit),
                                 tooltip: "Edit genre",
                                 onPressed: () async {
-                                  await _editGenreDialog(
+                                  await _showEditGenreDialog(
                                     genre.genreId!,
                                     genre.name ?? "",
                                   );
@@ -253,7 +253,7 @@ class _GenresScreenState extends State<GenresScreen> {
                                 icon: const Icon(Icons.delete),
                                 tooltip: "Delete genre",
                                 onPressed: () async {
-                                  await _deleteGenreDialog(genre.genreId!);
+                                  await _showDeleteGenreDialog(genre.genreId!);
                                 },
                               ),
                             ],

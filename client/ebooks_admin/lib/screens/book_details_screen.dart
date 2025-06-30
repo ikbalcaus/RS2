@@ -45,10 +45,11 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return MasterScreen(
+        showBackButton: true,
         child: const Center(child: CircularProgressIndicator()),
       );
     }
-    return MasterScreen(child: _buildResultView());
+    return MasterScreen(showBackButton: true, child: _buildResultView());
   }
 
   Future _fetchBook() async {
@@ -143,7 +144,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
     }
   }
 
-  Future _approveBookDialog() async {
+  Future _showApproveBookDialog() async {
     await showDialog(
       context: context,
       builder: (context) {
@@ -152,16 +153,14 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
           actions: [
             TextButton(
               onPressed: () async {
-                Navigator.pop(context);
-                await Future.delayed(const Duration(milliseconds: 250));
                 try {
                   await _booksProvider.approveBook(widget.bookId);
-                  Helpers.showSuccessMessage(
-                    context,
-                    "A book is successfully approved",
-                  );
                   await _fetchBook();
                   await _fetchAllowedActions();
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    Helpers.showSuccessMessage(context);
+                  }
                 } catch (ex) {
                   Helpers.showErrorMessage(context, ex);
                 }
@@ -178,28 +177,27 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
     );
   }
 
-  Future _rejectBookDialog() async {
-    final TextEditingController dialogController = TextEditingController();
+  Future _showRejectBookDialog() async {
+    String reason = "";
     await showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: const Text("Confirm reject"),
           content: TextField(
-            controller: dialogController,
             decoration: const InputDecoration(
               labelText: "Enter reason for rejecting...",
             ),
+            onChanged: (value) => reason = value,
           ),
           actions: [
             TextButton(
               onPressed: () async {
-                final dialogText = dialogController.text.trim();
-                if (dialogText.isNotEmpty) {
+                if (reason.trim().isNotEmpty) {
                   Navigator.pop(context);
                   await Future.delayed(const Duration(milliseconds: 250));
                   try {
-                    await _booksProvider.rejectBook(widget.bookId, dialogText);
+                    await _booksProvider.rejectBook(widget.bookId, reason);
                     Helpers.showSuccessMessage(
                       context,
                       "Book is successfully rejected",
@@ -223,11 +221,11 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
     );
   }
 
-  Future _deleteBookDialog(BuildContext context) async {
+  Future _showDeleteBookDialog(BuildContext context) async {
+    String reason = "";
     await showDialog(
       context: context,
       builder: (context) {
-        String reason = "";
         return AlertDialog(
           title: const Text("Confirm delete"),
           content: TextField(
@@ -240,15 +238,13 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
             TextButton(
               onPressed: () async {
                 if (reason.trim().isNotEmpty) {
-                  Navigator.pop(context);
-                  await Future.delayed(const Duration(milliseconds: 250));
                   try {
                     await _booksProvider.adminDelete(widget.bookId, reason);
-                    Helpers.showSuccessMessage(
-                      context,
-                      "User is successfully deleted",
-                    );
                     await _fetchBook();
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      Helpers.showSuccessMessage(context);
+                    }
                   } catch (ex) {
                     Helpers.showErrorMessage(context, ex);
                   }
@@ -266,7 +262,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
     );
   }
 
-  Future _undoDeleteBookDialog(BuildContext context) async {
+  Future _showUndoDeleteBookDialog(BuildContext context) async {
     await showDialog(
       context: context,
       builder: (context) {
@@ -275,15 +271,13 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
           actions: [
             TextButton(
               onPressed: () async {
-                Navigator.pop(context);
-                await Future.delayed(const Duration(milliseconds: 250));
                 try {
                   await _booksProvider.adminDelete(widget.bookId, null);
-                  Helpers.showSuccessMessage(
-                    context,
-                    "User is successfully undo deleted",
-                  );
                   await _fetchBook();
+                  if (context.mounted) {
+                    Navigator.pop(context);
+                    Helpers.showSuccessMessage(context);
+                  }
                 } catch (ex) {
                   Helpers.showErrorMessage(context, ex);
                 }
@@ -304,274 +298,342 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
     return Align(
       alignment: Alignment.topCenter,
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            _book?.filePath != null
-                ? Container(
-                    constraints: const BoxConstraints(
-                      maxWidth: 600,
-                      maxHeight: 600,
-                    ),
-                    child: Image.network(
-                      "${Globals.apiAddress}/images/books/${_book?.filePath}.webp",
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          const Icon(Icons.broken_image, size: 400),
-                    ),
-                  )
-                : const SizedBox(
-                    width: 400,
-                    height: 400,
-                    child: Icon(Icons.image_not_supported, size: 400),
+            Image.network(
+              "${Globals.apiAddress}/images/books/${_book?.filePath}.webp",
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) =>
+                  const Icon(Icons.broken_image, size: 200),
+            ),
+            const SizedBox(width: 40),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _book?.title ?? "",
+                  style: const TextStyle(
+                    fontSize: 40,
+                    fontWeight: FontWeight.bold,
                   ),
-            const SizedBox(width: 70),
-            SizedBox(
-              width: 600,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _book?.title ?? "",
-                    style: const TextStyle(
-                      fontSize: 40,
-                      fontWeight: FontWeight.bold,
-                    ),
+                ),
+                Text(
+                  "${_book?.price?.toStringAsFixed(2)}€",
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    "${_book?.price?.toStringAsFixed(2)}€",
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: 400,
+                  child: Text(
                     _book?.description ?? "Description is not set",
                     style: const TextStyle(fontSize: 16),
+                    maxLines: 20,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 30),
-                  RichText(
-                    text: TextSpan(
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      children: [
-                        const TextSpan(
-                          text: "Publisher: ",
-                          style: TextStyle(color: Colors.black),
-                        ),
-                        TextSpan(
-                          text: _book?.publisher?.userName ?? "",
-                          style: TextStyle(color: Globals.backgroundColor),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () {
-                              Navigator.pop(context);
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => UsersScreen(
-                                    userName: _book?.publisher?.userName,
-                                  ),
-                                ),
-                              );
-                            },
-                        ),
-                      ],
+                ),
+                const SizedBox(height: 14),
+                RichText(
+                  text: TextSpan(
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  RichText(
-                    text: TextSpan(
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black,
-                      ),
-                      children: [
-                        TextSpan(
-                          text: (_book?.authors?.length ?? 1) == 1
-                              ? "Author: "
-                              : "Authors: ",
-                        ),
-                        ...?_book?.authors?.asMap().entries.expand((entry) {
-                          final index = entry.key;
-                          final author = entry.value;
-                          final isLast = index == _book!.authors!.length - 1;
-                          return [
-                            TextSpan(
-                              text: author.name ?? "",
-                              style: TextStyle(color: Globals.backgroundColor),
-                              recognizer: TapGestureRecognizer()
-                                ..onTap = () {
-                                  Navigator.pop(context);
-                                  Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          AuthorsScreen(name: author.name),
-                                    ),
-                                  );
-                                },
-                            ),
-                            if (!isLast)
-                              const TextSpan(
-                                text: ", ",
-                                style: TextStyle(color: Colors.black),
-                              ),
-                          ];
-                        }),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  RichText(
-                    text: TextSpan(
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black,
-                      ),
-                      children: [
-                        TextSpan(
-                          text: (_book?.genres?.length ?? 1) == 1
-                              ? "Genre: "
-                              : "Genres: ",
-                        ),
-                        ...?_book?.genres?.asMap().entries.expand((entry) {
-                          final index = entry.key;
-                          final genre = entry.value;
-                          final isLast = index == _book!.genres!.length - 1;
-                          return [
-                            TextSpan(
-                              text: genre.name ?? "",
-                              style: TextStyle(color: Globals.backgroundColor),
-                              recognizer: TapGestureRecognizer()
-                                ..onTap = () {
-                                  Navigator.pop(context);
-                                  Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          GenresScreen(name: genre.name),
-                                    ),
-                                  );
-                                },
-                            ),
-                            if (!isLast)
-                              const TextSpan(
-                                text: ", ",
-                                style: TextStyle(color: Colors.black),
-                              ),
-                          ];
-                        }),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  RichText(
-                    text: TextSpan(
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      children: [
-                        const TextSpan(
-                          text: "Language: ",
-                          style: TextStyle(color: Colors.black),
-                        ),
-                        TextSpan(
-                          text: _book?.language?.name ?? "",
-                          style: TextStyle(color: Globals.backgroundColor),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () {
-                              Navigator.pop(context);
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => LanguagesScreen(
-                                    name: _book?.language?.name,
-                                  ),
-                                ),
-                              );
-                            },
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  RichText(
-                    text: TextSpan(
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      children: [
-                        const TextSpan(
-                          text: "Number of pages: ",
-                          style: TextStyle(color: Colors.black),
-                        ),
-                        TextSpan(
-                          text: _book?.numberOfPages.toString(),
-                          style: TextStyle(color: Colors.black),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  RichText(
-                    text: TextSpan(
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      children: [
-                        const TextSpan(
-                          text: "Status: ",
-                          style: TextStyle(color: Colors.black),
-                        ),
-                        TextSpan(
-                          text: _book?.status,
-                          style: TextStyle(color: Globals.backgroundColor),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () {
-                              Navigator.pop(context);
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      BooksScreen(status: _book?.status),
-                                ),
-                              );
-                            },
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Column(
                     children: [
+                      const TextSpan(
+                        text: "Publisher: ",
+                        style: TextStyle(color: Colors.black),
+                      ),
+                      TextSpan(
+                        text: _book?.publisher?.userName ?? "",
+                        style: TextStyle(color: Globals.backgroundColor),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () {
+                            Navigator.pop(context);
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => UsersScreen(
+                                  userName: _book?.publisher?.userName,
+                                ),
+                              ),
+                            );
+                          },
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 2),
+                RichText(
+                  text: TextSpan(
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black,
+                    ),
+                    children: [
+                      TextSpan(
+                        text: (_book?.authors?.length ?? 1) == 1
+                            ? "Author: "
+                            : "Authors: ",
+                      ),
+                      ...?_book?.authors?.asMap().entries.expand((entry) {
+                        final index = entry.key;
+                        final author = entry.value;
+                        final isLast = index == _book!.authors!.length - 1;
+                        return [
+                          TextSpan(
+                            text: author.name ?? "",
+                            style: TextStyle(color: Globals.backgroundColor),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () {
+                                Navigator.pop(context);
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        AuthorsScreen(name: author.name),
+                                  ),
+                                );
+                              },
+                          ),
+                          if (!isLast)
+                            const TextSpan(
+                              text: ", ",
+                              style: TextStyle(color: Colors.black),
+                            ),
+                        ];
+                      }),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 2),
+                RichText(
+                  text: TextSpan(
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black,
+                    ),
+                    children: [
+                      TextSpan(
+                        text: (_book?.genres?.length ?? 1) == 1
+                            ? "Genre: "
+                            : "Genres: ",
+                      ),
+                      ...?_book?.genres?.asMap().entries.expand((entry) {
+                        final index = entry.key;
+                        final genre = entry.value;
+                        final isLast = index == _book!.genres!.length - 1;
+                        return [
+                          TextSpan(
+                            text: genre.name ?? "",
+                            style: TextStyle(color: Globals.backgroundColor),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () {
+                                Navigator.pop(context);
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        GenresScreen(name: genre.name),
+                                  ),
+                                );
+                              },
+                          ),
+                          if (!isLast)
+                            const TextSpan(
+                              text: ", ",
+                              style: TextStyle(color: Colors.black),
+                            ),
+                        ];
+                      }),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 2),
+                RichText(
+                  text: TextSpan(
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    children: [
+                      const TextSpan(
+                        text: "Language: ",
+                        style: TextStyle(color: Colors.black),
+                      ),
+                      TextSpan(
+                        text: _book?.language?.name ?? "",
+                        style: TextStyle(color: Globals.backgroundColor),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () {
+                            Navigator.pop(context);
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => LanguagesScreen(
+                                  name: _book?.language?.name,
+                                ),
+                              ),
+                            );
+                          },
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 2),
+                RichText(
+                  text: TextSpan(
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    children: [
+                      const TextSpan(
+                        text: "Number of pages: ",
+                        style: TextStyle(color: Colors.black),
+                      ),
+                      TextSpan(
+                        text: _book?.numberOfPages.toString(),
+                        style: TextStyle(color: Colors.black),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 2),
+                RichText(
+                  text: TextSpan(
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    children: [
+                      const TextSpan(
+                        text: "Status: ",
+                        style: TextStyle(color: Colors.black),
+                      ),
+                      TextSpan(
+                        text: _book?.status,
+                        style: TextStyle(color: Globals.backgroundColor),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () {
+                            Navigator.pop(context);
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    BooksScreen(status: _book?.status),
+                              ),
+                            );
+                          },
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 26),
+                Column(
+                  children: [
+                    SizedBox(
+                      width: 400,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          await _downloadBookFile(widget.bookId);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Globals.backgroundColor,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(Globals.BorderRadius),
+                            ),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                        child: const Text(
+                          "Book",
+                          style: TextStyle(fontSize: 16, color: Globals.color),
+                        ),
+                      ),
+                    ),
+                    if (_downloadProgress != null)
                       SizedBox(
-                        width: 300,
+                        width: 400,
+                        child: Column(
+                          children: [
+                            const SizedBox(height: 8),
+                            LinearProgressIndicator(
+                              value: _downloadProgress,
+                              minHeight: 8,
+                              backgroundColor: Colors.grey[300],
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Globals.backgroundColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: 400,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          await _openUrl(
+                            "${Globals.apiAddress}/pdfs/summary/${_book?.filePath}.pdf",
+                          );
+                        },
+                        style: OutlinedButton.styleFrom(
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(Globals.BorderRadius),
+                            ),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                        child: const Text(
+                          "Book Summary",
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Globals.backgroundColor,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (_book?.deletionReason != null) ...[
+                  const SizedBox(height: 14),
+                  const Text(
+                    "This book is deleted",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Text(_book?.deletionReason ?? ""),
+                ],
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    if (_allowedActions.contains("Approve")) ...[
+                      SizedBox(
+                        width: 195,
                         child: ElevatedButton(
                           onPressed: () async {
-                            await _downloadBookFile(widget.bookId);
+                            await _showApproveBookDialog();
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Globals.backgroundColor,
                             shape: const RoundedRectangleBorder(
                               borderRadius: BorderRadius.all(
-                                Radius.circular(10),
+                                Radius.circular(Globals.BorderRadius),
                               ),
                             ),
                             padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
                           child: const Text(
-                            "Book",
+                            "Approve",
                             style: TextStyle(
                               fontSize: 16,
                               color: Globals.color,
@@ -579,155 +641,69 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                           ),
                         ),
                       ),
-                      if (_downloadProgress != null)
-                        SizedBox(
-                          width: 300,
-                          child: Column(
-                            children: [
-                              const SizedBox(height: 8),
-                              LinearProgressIndicator(
-                                value: _downloadProgress,
-                                minHeight: 8,
-                                backgroundColor: Colors.grey[300],
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Globals.backgroundColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      const SizedBox(height: 12),
+                      const SizedBox(width: 10),
+                    ],
+                    if (_allowedActions.contains("Reject")) ...[
                       SizedBox(
-                        width: 300,
-                        child: OutlinedButton(
+                        width: 195,
+                        child: ElevatedButton(
                           onPressed: () async {
-                            await _openUrl(
-                              "${Globals.apiAddress}/pdfs/summary/${_book?.filePath}.pdf",
-                            );
+                            await _showRejectBookDialog();
                           },
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(
-                              color: Globals.backgroundColor,
-                              width: 2,
-                            ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Globals.backgroundColor,
                             shape: const RoundedRectangleBorder(
                               borderRadius: BorderRadius.all(
-                                Radius.circular(10),
+                                Radius.circular(Globals.BorderRadius),
                               ),
                             ),
                             padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
                           child: const Text(
-                            "Summary",
+                            "Reject",
                             style: TextStyle(
                               fontSize: 16,
-                              color: Globals.backgroundColor,
+                              color: Globals.color,
                             ),
                           ),
                         ),
                       ),
+                      const SizedBox(width: 10),
                     ],
-                  ),
-                  if (_book?.deletionReason != null) ...[
-                    const SizedBox(height: 16),
-                    const Text(
-                      "This book is deleted",
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    Text(_book?.deletionReason ?? ""),
+                    if (AuthProvider.role == "Admin")
+                      SizedBox(
+                        width: 195,
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            if (_book?.deletionReason == null) {
+                              await _showDeleteBookDialog(context);
+                            } else {
+                              await _showUndoDeleteBookDialog(context);
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(Globals.BorderRadius),
+                              ),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          child: Text(
+                            _book?.deletionReason == null
+                                ? "Delete"
+                                : "Undo delete",
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Globals.color,
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
-                  const SizedBox(height: 32),
-                  Row(
-                    children: [
-                      if (_allowedActions.contains("Approve")) ...[
-                        SizedBox(
-                          width: 140,
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              await _approveBookDialog();
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Globals.backgroundColor,
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(10),
-                                ),
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                            ),
-                            child: const Text(
-                              "Approve",
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Globals.color,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 20),
-                      ],
-                      if (_allowedActions.contains("Reject")) ...[
-                        SizedBox(
-                          width: 140,
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              await _rejectBookDialog();
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Globals.backgroundColor,
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(10),
-                                ),
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                            ),
-                            child: const Text(
-                              "Reject",
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Globals.color,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 20),
-                      ],
-                      if (AuthProvider.role == "Admin")
-                        SizedBox(
-                          width: 140,
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              if (_book?.deletionReason == null) {
-                                await _deleteBookDialog(context);
-                              } else {
-                                await _undoDeleteBookDialog(context);
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red,
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(10),
-                                ),
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                            ),
-                            child: Text(
-                              _book?.deletionReason == null
-                                  ? "Delete"
-                                  : "Undo delete",
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Globals.color,
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ],
         ),

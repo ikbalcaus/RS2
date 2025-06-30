@@ -23,16 +23,21 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
   String _orderBy = "Last added";
   Map<String, dynamic> _currentFilter = {};
 
-  final TextEditingController _questionEditingController =
-      TextEditingController();
-  final TextEditingController _askedByEditingController =
-      TextEditingController();
+  final TextEditingController _questionController = TextEditingController();
+  final TextEditingController _askedByController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _questionsProvider = context.read<QuestionsProvider>();
     _fetchQuestions();
+  }
+
+  @override
+  void dispose() {
+    _questionController.dispose();
+    _askedByController.dispose();
+    super.dispose();
   }
 
   @override
@@ -74,28 +79,28 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
     }
   }
 
-  Future _answerQuestionDialog(BuildContext context, int id) async {
-    final TextEditingController answerController = TextEditingController();
+  Future _showAnswerQuestionDialog(BuildContext context, int id) async {
+    String answer = "";
     await showDialog(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
           title: const Text("Answer"),
           content: TextField(
-            controller: answerController,
             decoration: const InputDecoration(labelText: "Enter an answer..."),
+            onChanged: (value) => answer = value,
           ),
           actions: [
             TextButton(
               onPressed: () async {
-                final dialogText = answerController.text.trim();
-                if (dialogText.isNotEmpty) {
-                  Navigator.pop(context);
-                  await Future.delayed(const Duration(milliseconds: 250));
+                if (answer.trim().isNotEmpty) {
                   try {
-                    await _questionsProvider.patch(id, {"message": dialogText});
-                    Helpers.showSuccessMessage(context);
+                    await _questionsProvider.patch(id, {"message": answer});
                     await _fetchQuestions();
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      Helpers.showSuccessMessage(context);
+                    }
                   } catch (ex) {
                     Helpers.showErrorMessage(context, ex);
                   }
@@ -120,14 +125,14 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
         children: [
           Expanded(
             child: TextField(
-              controller: _questionEditingController,
+              controller: _questionController,
               decoration: const InputDecoration(labelText: "Question"),
             ),
           ),
           const SizedBox(width: Globals.spacing),
           Expanded(
             child: TextField(
-              controller: _askedByEditingController,
+              controller: _askedByController,
               decoration: const InputDecoration(labelText: "Asked by"),
             ),
           ),
@@ -176,8 +181,8 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
             onPressed: () async {
               _currentPage = 1;
               _currentFilter = {
-                "Question": _questionEditingController.text,
-                "AskedBy": _askedByEditingController.text,
+                "Question": _questionController.text,
+                "AskedBy": _askedByController.text,
                 "Status": _status,
                 "OrderBy": _orderBy,
               };
@@ -207,9 +212,22 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                   .map(
                     (question) => DataRow(
                       cells: [
-                        DataCell(Text(question.question1 ?? "")),
+                        DataCell(
+                          SizedBox(
+                            width: 200,
+                            child: Text(
+                              question.question1 ?? "",
+                              softWrap: true,
+                            ),
+                          ),
+                        ),
                         DataCell(Text(question.user?.userName ?? "")),
-                        DataCell(Text(question.answer ?? "")),
+                        DataCell(
+                          SizedBox(
+                            width: 200,
+                            child: Text(question.answer ?? "", softWrap: true),
+                          ),
+                        ),
                         DataCell(Text(question.answeredBy?.userName ?? "")),
                         DataCell(
                           Row(
@@ -218,7 +236,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                                 icon: const Icon(Icons.question_answer),
                                 tooltip: "Answer question",
                                 onPressed: () async {
-                                  await _answerQuestionDialog(
+                                  await _showAnswerQuestionDialog(
                                     context,
                                     question.questionId!,
                                   );

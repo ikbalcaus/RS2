@@ -16,5 +16,6 @@
         public string? OrderBy { get; set; }
         public bool? IsAuthorsIncluded { get; set; }
         public bool? IsGenresIncluded { get; set; }
+        public bool? IsReviewsIncluded { get; set; }
     }
 }

@@ -1,4 +1,3 @@
-import "package:ebooks_admin/main.dart";
 import "package:ebooks_admin/screens/authors_screen.dart";
 import "package:ebooks_admin/screens/books_screen.dart";
 import "package:ebooks_admin/screens/genres_screen.dart";
@@ -6,6 +5,8 @@ import "package:ebooks_admin/screens/languages_screen.dart";
 import "package:ebooks_admin/screens/login_screen.dart";
 import "package:ebooks_admin/screens/purchases_screen.dart";
 import "package:ebooks_admin/screens/questions_screen.dart";
+import "package:ebooks_admin/screens/reports_screen.dart";
+import "package:ebooks_admin/screens/reviews_screen.dart";
 import "package:ebooks_admin/screens/users_screen.dart";
 import "package:ebooks_admin/utils/globals.dart";
 import "package:flutter/material.dart";
@@ -40,14 +41,17 @@ class MasterScreen extends StatelessWidget {
                       ),
                     )
                   : null),
-        title: const Text("EBooks Dashboard"),
+        title: const Text("E-Books Dashboard"),
         actions: isLoggedIn
             ? [
-                IconButton(
-                  icon: const Icon(Icons.logout, color: Globals.color),
-                  onPressed: () async {
-                    await _showLogoutDialog(context, authProvider);
-                  },
+                Padding(
+                  padding: const EdgeInsets.only(right: 10),
+                  child: IconButton(
+                    icon: const Icon(Icons.logout, color: Globals.color),
+                    onPressed: () async {
+                      await _showLogoutDialog(context, authProvider);
+                    },
+                  ),
                 ),
               ]
             : null,
@@ -152,6 +156,32 @@ class MasterScreen extends StatelessWidget {
             },
           ),
           ListTile(
+            leading: const Icon(Icons.report),
+            title: const Text("Reports"),
+            onTap: () {
+              Navigator.pop(context);
+              Future.delayed(Duration(milliseconds: 250), () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => ReportsScreen()),
+                );
+              });
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.reviews),
+            title: const Text("Reviews"),
+            onTap: () {
+              Navigator.pop(context);
+              Future.delayed(Duration(milliseconds: 250), () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => ReviewsScreen()),
+                );
+              });
+            },
+          ),
+          ListTile(
             leading: const Icon(Icons.payment),
             title: const Text("Purchases"),
             onTap: () {
@@ -192,10 +222,10 @@ class MasterScreen extends StatelessWidget {
           TextButton(
             onPressed: () {
               authProvider.logout();
-              Navigator.pop(context);
-              navigatorKey.currentState?.pushAndRemoveUntil(
+              Navigator.pushAndRemoveUntil(
+                context,
                 MaterialPageRoute(builder: (_) => const LoginScreen()),
-                (route) => false,
+                (_) => false,
               );
             },
             child: const Text("Logout"),

@@ -117,10 +117,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future _verifyEmailDialog() async {
+    String token = "";
     await showDialog(
       context: context,
       builder: (context) {
-        String token = "";
         return AlertDialog(
           title: const Text("Verify email"),
           content: Column(
@@ -151,13 +151,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             TextButton(
               onPressed: () async {
                 if (token.trim().isNotEmpty) {
-                  Navigator.pop(context);
-                  await Future.delayed(const Duration(milliseconds: 250));
                   try {
                     await _usersProvider.verifyEmail(_user!.userId!, token);
-                    Helpers.showSuccessMessage(context);
                     await _fetchUser();
-                    Navigator.pop(context);
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      Helpers.showSuccessMessage(context);
+                    }
                   } catch (ex) {
                     Helpers.showErrorMessage(context, ex);
                   }

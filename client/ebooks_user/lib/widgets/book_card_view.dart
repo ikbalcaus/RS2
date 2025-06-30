@@ -164,13 +164,22 @@ class BookCardView extends StatelessWidget {
                             Padding(
                               padding: const EdgeInsets.only(top: 4, right: 8),
                               child: Row(
-                                children: const [
-                                  Icon(Icons.star, size: 12),
-                                  Icon(Icons.star, size: 12),
-                                  Icon(Icons.star, size: 12),
-                                  Icon(Icons.star, size: 12),
-                                  Icon(Icons.star_half, size: 12),
-                                ],
+                                children: List.generate(5, (index) {
+                                  double rating = book.averageRating ?? 0;
+                                  if (rating >= index + 1) {
+                                    return const Icon(Icons.star, size: 12);
+                                  } else if (rating >= index + 0.5) {
+                                    return const Icon(
+                                      Icons.star_half,
+                                      size: 12,
+                                    );
+                                  } else {
+                                    return const Icon(
+                                      Icons.star_border,
+                                      size: 12,
+                                    );
+                                  }
+                                }),
                               ),
                             ),
                           ],

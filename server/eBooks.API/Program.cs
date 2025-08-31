@@ -10,6 +10,7 @@ using Mapster;
 using MapsterMapper;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.OpenApi.Models;
 using Stripe;
@@ -33,12 +34,17 @@ var mapsterConfig = TypeAdapterConfig.GlobalSettings;
 mapsterConfig.Default.IgnoreNullValues(true);
 builder.Services.AddSingleton(mapsterConfig);
 builder.Services.AddScoped<IMapper, Mapper>();
-
-builder.Services.AddDbContext<EBooksContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("Database")));
+builder.Services.AddDbContext<EBooksContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("Database"),
+        sqlOptions => sqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)
+    ).ConfigureWarnings(warnings => warnings.Ignore(CoreEventId.RowLimitingOperationWithoutOrderByWarning))
+);
 builder.Services.AddSingleton<IBus>(_ => RabbitHutch.CreateBus("host=localhost;username=guest;password=guest"));
 builder.Services.AddScoped<AccessControlHandler>();
 builder.Services.AddAuthentication("BasicAuthentication").AddScheme<AuthenticationSchemeOptions, BasicAuthHandler>("BasicAuthentication", null);
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddHttpClient();
 
 builder.Services.AddTransient<IAccessRightsService, AccessRightsService>();
 builder.Services.AddTransient<IAuthorsService, AuthorsService>();
@@ -49,12 +55,11 @@ builder.Services.AddTransient<IGenresService, GenresService>();
 builder.Services.AddTransient<ILanguagesService, LanguagesService>();
 builder.Services.AddTransient<INotificationsService, NotificationsService>();
 builder.Services.AddTransient<IPublisherFollowsService, PublisherFollowsService>();
-builder.Services.AddTransient<IStripeService, StripeService>();
-builder.Services.AddTransient<IReadingProgressService, ReadingProgressService>();
 builder.Services.AddTransient<IPurchasesService, PurchasesService>();
 builder.Services.AddTransient<IQuestionsService, QuestionsService>();
 builder.Services.AddTransient<IReportsService, ReportsService>();
 builder.Services.AddTransient<IReviewsService, ReviewsService>();
+builder.Services.AddTransient<IStripeService, StripeService>();
 builder.Services.AddTransient<IRolesService, RolesService>();
 builder.Services.AddTransient<IUsersService, UsersService>();
 builder.Services.AddTransient<IWishlistService, WishlistService>();

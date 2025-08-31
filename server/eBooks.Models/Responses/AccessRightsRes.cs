@@ -7,5 +7,6 @@
         public DateTime ModifiedAt { get; set; }
         public bool IsFavorite { get; set; }
         public bool IsHidden { get; set; }
+        public int LastReadPage { get; set; }
     }
 }

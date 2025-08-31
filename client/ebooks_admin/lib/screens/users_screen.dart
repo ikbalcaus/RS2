@@ -99,7 +99,9 @@ class _UsersScreenState extends State<UsersScreen> {
       setState(() => _roles = roles);
     } catch (ex) {
       if (!mounted) return;
-      Helpers.showErrorMessage(context, ex);
+      if (ex.toString() != "No internet connection") {
+        Helpers.showErrorMessage(context, ex);
+      }
     } finally {
       if (!mounted) return;
     }

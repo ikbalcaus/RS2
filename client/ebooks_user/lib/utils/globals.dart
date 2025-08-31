@@ -8,5 +8,5 @@ class Globals {
   static int pageIndex = 0;
   static const successMessage = "Action completed successfully";
   static const errorMessage = "Error: An error occurred";
-  static const backgroundColor = Colors.blueAccent;
+  static const backgroundColor = Colors.blue;
 }

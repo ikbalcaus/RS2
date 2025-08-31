@@ -31,6 +31,7 @@ class Program
         services.AddTransient<IMessageHandler<BookReviewed>, BookReviewedHandler>();
         services.AddTransient<IMessageHandler<EmailVerification>, EmailVerificationHandler>();
         services.AddTransient<IMessageHandler<PaymentCompleted>, PaymentCompletedHandler>();
+        services.AddTransient<IMessageHandler<PasswordForgotten>, PasswordForgottenHandler>();
         services.AddTransient<IMessageHandler<PublisherFollowing>, PublisherFollowingHandler>();
         services.AddTransient<IMessageHandler<PublisherVerified>, PublisherVerifiedHandler>();
         services.AddTransient<IMessageHandler<QuestionAnswered>, QuestionAnsweredHandler>();
@@ -43,6 +44,7 @@ class Program
             await bus.PubSub.SubscribeAsync<BookReviewed>("book_reviewed", dispatcher.Dispatch);
             await bus.PubSub.SubscribeAsync<EmailVerification>("email_verification", dispatcher.Dispatch);
             await bus.PubSub.SubscribeAsync<PaymentCompleted>("payment_completed", dispatcher.Dispatch);
+            await bus.PubSub.SubscribeAsync<PasswordForgotten>("password_forgotten", dispatcher.Dispatch);
             await bus.PubSub.SubscribeAsync<PublisherFollowing>("publisher_following", dispatcher.Dispatch);
             await bus.PubSub.SubscribeAsync<PublisherVerified>("publisher_verified", dispatcher.Dispatch);
             await bus.PubSub.SubscribeAsync<QuestionAnswered>("question_answered", dispatcher.Dispatch);

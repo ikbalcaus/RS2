@@ -1,4 +1,6 @@
 import "dart:convert";
+import "dart:io";
+import "package:ebooks_user/screens/forgot_password_screen.dart";
 import "package:ebooks_user/screens/profile_screen.dart";
 import "package:ebooks_user/screens/register_screen.dart";
 import "package:ebooks_user/utils/globals.dart";
@@ -31,43 +33,56 @@ class _LoginScreenState extends State<LoginScreen> {
       _fieldErrors.clear();
     });
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final response = await authProvider.login(
-      _emailController.text,
-      _passwordController.text,
-    );
-    if (response.statusCode == 200) {
-      if (mounted) {
-        final Map<String, dynamic> data = jsonDecode(response.body);
-        AuthProvider.userId = data["userId"];
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const ProfileScreen()),
-        );
-      }
-    } else {
-      try {
-        final Map<String, dynamic> data = json.decode(response.body);
-        final errors = data["errors"] as Map<String, dynamic>;
-        setState(() {
-          _fieldErrors = errors.map((key, value) {
-            final List<String> messages = List<String>.from(value);
-            return MapEntry(key, messages);
+    try {
+      final response = await authProvider.login(
+        _emailController.text,
+        _passwordController.text,
+      );
+      if (response.statusCode == 200) {
+        if (mounted) {
+          final Map<String, dynamic> data = jsonDecode(response.body);
+          AuthProvider.userId = data["userId"];
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const ProfileScreen()),
+          );
+        }
+      } else {
+        try {
+          final Map<String, dynamic> data = json.decode(response.body);
+          final errors = data["errors"] as Map<String, dynamic>;
+          setState(() {
+            _fieldErrors = errors.map((key, value) {
+              final List<String> messages = List<String>.from(value);
+              return MapEntry(key, messages);
+            });
           });
-        });
-      } catch (ex) {
-        setState(() {
-          _fieldErrors = {
-            "general": ["An error occurred. Please try again"],
-          };
-        });
+        } catch (ex) {
+          setState(() {
+            _fieldErrors = {
+              "general": ["An error occurred. Please try again"],
+            };
+          });
+        }
       }
+    } on SocketException {
+      setState(() {
+        _fieldErrors = {
+          "general": ["No internet connection"],
+        };
+      });
+    } catch (ex) {
+      setState(() {
+        _fieldErrors = {
+          "general": ["An error occurred. Please try again"],
+        };
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
     return Center(
       child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -165,30 +180,39 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                Column(
                   children: [
-                    Text(
-                      "Don't have an account?",
-                      style: TextStyle(
-                        color: isDarkMode ? Colors.white70 : Colors.black87,
-                        fontSize: 14,
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Don't have an account?",
+                          style: TextStyle(
+                            color: isDarkMode ? Colors.white70 : Colors.black87,
+                            fontSize: 14,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const RegisterScreen(),
+                            ),
+                          ),
+                          child: const Text("Sign up"),
+                        ),
+                      ],
                     ),
                     TextButton(
-                      onPressed: () => Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const RegisterScreen(),
-                        ),
-                      ),
-                      child: const Text(
-                        "Sign up",
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const ForgotPasswordScreen(),
+                          ),
+                        );
+                      },
+                      child: Text("Forgot Password?"),
                     ),
                   ],
                 ),

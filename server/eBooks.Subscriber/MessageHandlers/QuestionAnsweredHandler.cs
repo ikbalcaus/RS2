@@ -16,14 +16,14 @@ namespace eBooks.Subscriber.MessageHandlers
         public async Task SendEmail(QuestionAnswered message)
         {
             var email = message.Question.User.Email;
-            var notificationMessage = $"Your question \"{message.Question.Question1}\" is answered. Answer: \"{message.Question.Answer}\"";
+            var notificationMessage = $"Your question \"{message.Question.Question1}\" has been answered.<br>Answer: \"{message.Question.Answer}\"";
             Console.WriteLine($"Sending email to: {email}");
             await _emailService.SendEmailAsync(email, "Question answered", notificationMessage);
         }
 
         public async Task NotifyUser(QuestionAnswered message)
         {
-            var notificationMessage = $"Your question \"{message.Question.Question1}\" is answered. Answer: \"{message.Question.Answer}\"";
+            var notificationMessage = $"Your question \"{message.Question.Question1}\" has been answered. Answer: \"{message.Question.Answer}\"";
             Console.WriteLine($"Sending notification to user: {message.Question.User.UserId}");
             var notification = new Notification
             {

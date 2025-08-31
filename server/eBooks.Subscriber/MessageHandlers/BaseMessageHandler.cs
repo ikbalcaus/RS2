@@ -1,4 +1,5 @@
 ﻿using eBooks.Database;
+using eBooks.Models.Messages;
 using eBooks.Subscriber.Services;
 
 namespace eBooks.Subscriber.MessageHandlers

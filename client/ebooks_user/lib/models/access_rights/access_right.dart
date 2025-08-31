@@ -10,6 +10,7 @@ class AccessRight {
   DateTime? modifiedAt;
   bool? isFavorite;
   bool? isHidden;
+  int? lastReadPage;
 
   AccessRight({
     this.userId,
@@ -17,6 +18,7 @@ class AccessRight {
     this.modifiedAt,
     this.isFavorite,
     this.isHidden,
+    this.lastReadPage,
   });
 
   factory AccessRight.fromJson(Map<String, dynamic> json) =>

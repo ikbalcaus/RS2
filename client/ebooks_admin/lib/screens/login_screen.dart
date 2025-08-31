@@ -1,4 +1,5 @@
 import "dart:convert";
+import "dart:io";
 import "package:ebooks_admin/utils/globals.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
@@ -26,37 +27,51 @@ class _LoginScreenState extends State<LoginScreen> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final email = _emailController.text.trim();
     final password = _passwordController.text;
-    final response = await authProvider.login(email, password);
-    if (response.statusCode == 200) {
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const BooksScreen()),
+    try {
+      final response = await authProvider.login(email, password);
+      if (response.statusCode == 200) {
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const BooksScreen()),
+          );
+        }
+      } else if (response.statusCode == 403) {
+        setState(
+          () => _fieldErrors = {
+            "general": ["Only admin and moderator can access the dashboard"],
+          },
         );
-      }
-    } else if (response.statusCode == 403) {
-      setState(
-        () => _fieldErrors = {
-          "general": ["Only admin and moderator can access the dashboard"],
-        },
-      );
-    } else {
-      try {
-        final Map<String, dynamic> data = json.decode(response.body);
-        final errors = data["errors"] as Map<String, dynamic>;
-        setState(() {
-          _fieldErrors = errors.map((key, value) {
-            final List<String> messages = List<String>.from(value);
-            return MapEntry(key.toLowerCase(), messages);
+      } else {
+        try {
+          final Map<String, dynamic> data = json.decode(response.body);
+          final errors = data["errors"] as Map<String, dynamic>;
+          setState(() {
+            _fieldErrors = errors.map((key, value) {
+              final List<String> messages = List<String>.from(value);
+              return MapEntry(key.toLowerCase(), messages);
+            });
           });
-        });
-      } catch (ex) {
-        setState(() {
-          _fieldErrors = {
-            "general": ["Unknown error occurred"],
-          };
-        });
+        } catch (ex) {
+          setState(() {
+            _fieldErrors = {
+              "general": ["Unexpected error occurred"],
+            };
+          });
+        }
       }
+    } on SocketException {
+      setState(() {
+        _fieldErrors = {
+          "general": ["No internet connection"],
+        };
+      });
+    } catch (ex) {
+      setState(() {
+        _fieldErrors = {
+          "general": ["Unexpected error occurred"],
+        };
+      });
     }
   }
 

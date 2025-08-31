@@ -225,7 +225,7 @@ class _BooksScreenState extends State<BooksScreen> {
                     (book) => DataRow(
                       cells: [
                         DataCell(Text(book.title ?? "")),
-                        DataCell(Text("${book.price?.toString()}€")),
+                        DataCell(Text("${book.price?.toStringAsFixed(2)}€")),
                         DataCell(Text(book.publisher?.userName ?? "")),
                         DataCell(Text(book.language?.name ?? "")),
                         DataCell(Text(book.status ?? "")),

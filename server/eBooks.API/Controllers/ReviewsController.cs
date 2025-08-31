@@ -4,7 +4,6 @@ using eBooks.Models.Responses;
 using eBooks.Models.Search;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Identity.Client;
 
 namespace eBooks.API.Controllers
 {

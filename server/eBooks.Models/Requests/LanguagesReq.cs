@@ -1,7 +1,16 @@
-﻿namespace eBooks.Models.Requests
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace eBooks.Models.Requests
 {
     public class LanguagesReq
     {
-        public string Name { get; set; }
+        private string _name;
+
+        [Required]
+        public string Name
+        {
+            get => _name;
+            set => _name = value.Trim();
+        }
     }
 }

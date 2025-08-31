@@ -92,7 +92,7 @@ namespace eBooks.Services
             if (book.StateMachine != "approve")
                 errors.AddError("Book", "This book is not active right now");
             if (!user.IsEmailVerified)
-                errors.AddError("Email", "Your email is not verified");
+                errors.AddError("Email", "You must verify your email before buying a book");
             if (errors.Count > 0)
                 throw new ExceptionBadRequest(errors);
             var finalPrice = Helpers.CalculateDiscountedPrice((decimal)book.Price, book.DiscountPercentage, book.DiscountStart, book.DiscountEnd);
@@ -107,7 +107,7 @@ namespace eBooks.Services
                     { "publisherId", book.PublisherId.ToString() },
                     { "totalPrice", finalPrice.Value.ToString("F2", CultureInfo.InvariantCulture) }
                 },
-                PaymentMethodTypes = new List<string> { "card", "paypal" },
+                PaymentMethodTypes = new List<string> { "card" },
                 LineItems = new List<SessionLineItemOptions>
                 {
                     new SessionLineItemOptions
@@ -147,7 +147,7 @@ namespace eBooks.Services
             }
             catch
             {
-                throw new ExceptionBadRequest("You don't have connected stripe account");
+                throw new ExceptionBadRequest("You must fully complete your stripe account");
             }
             return new StripeRes
             {

@@ -12,6 +12,7 @@ using eBooks.Models.Search;
 using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Stripe;
 
@@ -21,11 +22,13 @@ namespace eBooks.Services
     {
         protected IBus _bus;
         protected ILogger<UsersService> _logger;
+        protected IConfiguration _config;
 
-        public UsersService(EBooksContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IBus bus, ILogger<UsersService> logger)
+        public UsersService(EBooksContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IBus bus, IConfiguration config, ILogger<UsersService> logger)
             : base(db, mapper, httpContextAccessor)
         {
             _bus = bus;
+            _config = config;
             _logger = logger;
         }
         
@@ -50,7 +53,7 @@ namespace eBooks.Services
             return query;
         }
 
-        public virtual async Task<UsersRes> Post(UsersPostReq req)
+        public override async Task<UsersRes> Post(UsersPostReq req)
         {
             var errors = new Dictionary<string, List<string>>();
             req.Email = req.Email.Trim().ToLower();
@@ -61,7 +64,7 @@ namespace eBooks.Services
             if (string.IsNullOrEmpty(req.UserName))
                 errors.AddError("UserName", "This field is required");
             if (!Helpers.IsEmailValid(req.Email))
-                errors.AddError("Email", "Email must be in following format: example@example.com");
+                errors.AddError("Email", "Invalid email format");
             if (await _db.Users.AnyAsync(x => x.Email == req.Email))
                 errors.AddError("Email", "Email already exists");
             if (await _db.Users.AnyAsync(x => x.UserName.Trim().ToLower() == req.UserName.Trim().ToLower()))
@@ -88,8 +91,6 @@ namespace eBooks.Services
             var stripeService = new AccountService();
             var stripeAccount = await stripeService.CreateAsync(accountOptions);
             entity.StripeAccountId = stripeAccount.Id;
-            entity.VerificationToken = $"{Guid.NewGuid():N}".Substring(0, 6);
-            entity.TokenExpiry = DateTime.UtcNow.AddHours(24);
             _db.Add(entity);
             await _db.SaveChangesAsync();
             _bus.PubSub.Publish(new EmailVerification { Token = _mapper.Map<TokenRes>(entity) });
@@ -164,7 +165,7 @@ namespace eBooks.Services
         {
             var errors = new Dictionary<string, List<string>>();
             if (!Helpers.IsEmailValid(req.Email))
-                errors.AddError("Email", "Email must be in following format: example@example.com");
+                errors.AddError("Email", "Invalid email format");
             if (!Helpers.IsPasswordValid(req.Password))
                 errors.AddError("Password", "Password must include at least 8 characters, one uppercase letter, one lowercase letter and one digit");
             var entity = await _db.Set<User>().Include(x => x.Role).FirstOrDefaultAsync(x => x.Email == req.Email);
@@ -185,32 +186,60 @@ namespace eBooks.Services
             return _mapper.Map<LoginRes>(entity);
         }
 
-        public async Task<UsersRes> VerifyEmail(int id)
+        public async Task<UsersRes> ForgotPassword(string email)
         {
-            var entity = await _db.Set<User>().FindAsync(id);
+            var entity = await _db.Users.FirstOrDefaultAsync(x => x.Email == email);
             if (entity == null)
                 throw new ExceptionNotFound();
-            entity.VerificationToken = $"{Guid.NewGuid():N}".Substring(0, 6);
-            entity.TokenExpiry = DateTime.UtcNow.AddHours(24);
+            entity.VerificationToken = Guid.NewGuid().ToString("N");
+            entity.TokenExpiry = DateTime.UtcNow.AddHours(1);
             await _db.SaveChangesAsync();
-            _bus.PubSub.Publish(new EmailVerification { Token = _mapper.Map<TokenRes>(entity) });
+            var result = _mapper.Map<UsersRes>(entity);
+            _bus.PubSub.Publish(new PasswordForgotten { Token = _mapper.Map<TokenRes>(entity) });
+            return result;
+        }
+
+        public async Task<UsersRes> ResetPassword(string token, string password)
+        {
+            var entity = await _db.Users.FirstOrDefaultAsync(x => x.VerificationToken == token);
+            if (entity == null)
+                throw new ExceptionNotFound();
+            if (entity.TokenExpiry < DateTime.UtcNow)
+                throw new ExceptionBadRequest("Verification token has expired");
+            if (!Helpers.IsPasswordValid(password))
+                throw new ExceptionBadRequest("Password must include at least 8 characters, one uppercase letter, one lowercase letter and one digit");
+            entity.PasswordSalt = Helpers.GenerateSalt();
+            entity.PasswordHash = Helpers.GenerateHash(entity.PasswordSalt, password);
+            entity.VerificationToken = null;
+            entity.TokenExpiry = null;
+            await _db.SaveChangesAsync();
             return _mapper.Map<UsersRes>(entity);
         }
 
-        public async Task<UsersRes> VerifyEmail(int id, string token)
+        public async Task<UsersRes> VerifyEmail(int id, string? token = null)
         {
             var entity = await _db.Set<User>().FindAsync(id);
             if (entity == null)
                 throw new ExceptionNotFound();
-            if (entity.VerificationToken != token)
-                throw new ExceptionBadRequest("Invalid verification token");
-            if (entity.TokenExpiry < DateTime.UtcNow)
-                throw new ExceptionBadRequest("Verification token has expired");
-            entity.VerificationToken = null;
-            entity.TokenExpiry = null;
-            entity.IsEmailVerified = true;
-            await _db.SaveChangesAsync();
-            _logger.LogInformation($"User with email {entity.Email} verified email.");
+            if (string.IsNullOrEmpty(token))
+            {
+                entity.VerificationToken = $"{Guid.NewGuid():N}".Substring(0, 6);
+                entity.TokenExpiry = DateTime.UtcNow.AddHours(24);
+                await _db.SaveChangesAsync();
+                _bus.PubSub.Publish(new EmailVerification { Token = _mapper.Map<TokenRes>(entity) });
+            }
+            else
+            {
+                if (entity.VerificationToken != token)
+                    throw new ExceptionBadRequest("Invalid verification token");
+                if (entity.TokenExpiry < DateTime.UtcNow)
+                    throw new ExceptionBadRequest("Verification token has expired");
+                entity.VerificationToken = null;
+                entity.TokenExpiry = null;
+                entity.IsEmailVerified = true;
+                await _db.SaveChangesAsync();
+                _logger.LogInformation($"User with email {entity.Email} verified email.");
+            }
             return _mapper.Map<UsersRes>(entity);
         }
 

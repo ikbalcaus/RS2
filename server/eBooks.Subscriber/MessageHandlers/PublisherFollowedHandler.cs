@@ -21,8 +21,8 @@ namespace eBooks.Subscriber.MessageHandlers
             {
                 Console.WriteLine($"Sending email to: {email}");
                 string subject = $"Publisher {message.Book.Publisher.UserName} {message.Action} book {message.Book.Title}";
-                string body = $"Publisher \"{message.Book.Publisher.UserName}\" {message.Action} book {message.Book.Title}";
-                await _emailService.SendEmailAsync(email, subject, body);
+                string notificationMessage = $"Publisher \"{message.Book.Publisher.UserName}\" {message.Action} book {message.Book.Title}";
+                await _emailService.SendEmailAsync(email, subject, notificationMessage);
             }
         }
 

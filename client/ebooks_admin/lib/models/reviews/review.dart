@@ -11,7 +11,8 @@ class Review {
   DateTime? modifiedAt;
   int? rating;
   String? comment;
-  int? reportedById;
+  User? reportedBy;
+  String? reportReason;
 
   Review({
     this.user,
@@ -19,7 +20,8 @@ class Review {
     this.modifiedAt,
     this.rating,
     this.comment,
-    this.reportedById,
+    this.reportedBy,
+    this.reportReason,
   });
 
   factory Review.fromJson(Map<String, dynamic> json) => _$ReviewFromJson(json);

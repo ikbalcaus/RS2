@@ -1,4 +1,5 @@
 import "dart:convert";
+import "dart:io";
 import "package:ebooks_user/providers/users_provider.dart";
 import "package:ebooks_user/screens/master_screen.dart";
 import "package:ebooks_user/screens/profile_screen.dart";
@@ -68,6 +69,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );
         Helpers.showSuccessMessage(context, "Account successfully created");
       }
+    } on SocketException {
+      setState(() {
+        _fieldErrors = {
+          "general": ["No internet connection"],
+        };
+      });
     } catch (ex) {
       try {
         final Map<String, dynamic> data = jsonDecode(ex.toString());
@@ -91,8 +98,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
     return MasterScreen(
+      showBackButton: true,
       child: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24),

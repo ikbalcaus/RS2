@@ -12,9 +12,12 @@ namespace eBooks.API.Controllers
     [Route("[controller]")]
     public class PurchasesController : BaseReadOnlyController<PurchasesSearch, PurchasesRes>
     {
+        protected new IPurchasesService _service;
+
         public PurchasesController(IPurchasesService service)
             : base(service)
         {
+            _service = service;
         }
 
         [Authorize(Policy = "Moderator")]
@@ -27,6 +30,13 @@ namespace eBooks.API.Controllers
         public override async Task<PurchasesRes> GetById(int id)
         {
             return await base.GetById(id);
+        }
+
+        [Authorize(Policy = "User")]
+        [HttpGet("{publisherId}/payment-history")]
+        public async Task<PagedResult<PurchasesRes>> GetAllByPublisherId(int publisherId, BaseSearch search)
+        {
+            return await _service.GetAllByPublisherId(publisherId, search);
         }
     }
 }

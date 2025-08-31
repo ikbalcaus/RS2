@@ -13,6 +13,7 @@ class MasterScreen extends StatefulWidget {
   final TextEditingController? searchController;
   final VoidCallback? onSearch;
   final VoidCallback? onFilterPressed;
+  final VoidCallback? onBookmarkClicked;
   final Map<String, VoidCallback?>? popupActions;
 
   const MasterScreen({
@@ -22,6 +23,7 @@ class MasterScreen extends StatefulWidget {
     this.searchController,
     this.onSearch,
     this.onFilterPressed,
+    this.onBookmarkClicked,
     this.popupActions,
   });
 
@@ -58,9 +60,19 @@ class _MasterScreenState extends State<MasterScreen> {
               children: [
                 if (widget.searchController != null)
                   IconButton(
-                    icon: Icon(_showSearch ? Icons.close : Icons.search),
+                    icon: _showSearch
+                        ? const Icon(Icons.close)
+                        : const Icon(Icons.search),
                     onPressed: () {
                       setState(() => _showSearch = !_showSearch);
+                    },
+                  ),
+                if (widget.onBookmarkClicked != null)
+                  IconButton(
+                    icon: const Icon(Icons.bookmark),
+                    tooltip: "Save reading progress",
+                    onPressed: () async {
+                      widget.onBookmarkClicked?.call();
                     },
                   ),
                 if (widget.popupActions != null)

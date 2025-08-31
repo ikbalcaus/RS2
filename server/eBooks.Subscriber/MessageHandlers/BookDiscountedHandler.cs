@@ -23,8 +23,8 @@ namespace eBooks.MessageHandlers
             {
                 Console.WriteLine($"Sending email to: {email}");
                 string subject = $"Book \"{message.Book.Title}\" is on discount";
-                string body = $"Book \"{message.Book.Title}\" is on discount, new price is {Helpers.CalculateDiscountedPrice(message.Book.Price, message.Book.DiscountPercentage, message.Book.DiscountStart, message.Book.DiscountEnd)}";
-                await _emailService.SendEmailAsync(email, subject, body);
+                string notificationMessage = $"Book \"{message.Book.Title}\" is on discount, new price is {Helpers.CalculateDiscountedPrice(message.Book.Price, message.Book.DiscountPercentage, message.Book.DiscountStart, message.Book.DiscountEnd)}";
+                await _emailService.SendEmailAsync(email, subject, notificationMessage);
             }
         }
 

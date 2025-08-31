@@ -93,5 +93,17 @@ namespace eBooks.Services
             await _db.SaveChangesAsync();
             return _mapper.Map<AccessRightsRes>(entity);
         }
+
+        public async Task<AccessRightsRes> SaveLastReadPage(int bookId, int page)
+        {
+            var userId = GetUserId();
+            var entity = await _db.Set<AccessRight>().FindAsync(userId, bookId);
+            if (entity == null)
+                throw new ExceptionNotFound();
+            entity.LastReadPage = page;
+            entity.ModifiedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync();
+            return _mapper.Map<AccessRightsRes>(entity);
+        }
     }
 }

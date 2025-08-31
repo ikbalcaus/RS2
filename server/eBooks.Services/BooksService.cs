@@ -265,7 +265,6 @@ namespace eBooks.Services
             return _mapper.Map<BooksRes>(entity);
         }
 
-
         public override async Task<BooksRes> Put(int id, BooksPutReq req)
         {
             if (req.Price < 0)
@@ -317,6 +316,8 @@ namespace eBooks.Services
                 errors.AddError("Discount", "Discount must be between 0 and 100");
             if (req.DiscountStart >= req.DiscountEnd)
                 errors.AddError("Discount", "Discount start date must be before discount end date");
+            if (entity.Price == 0)
+                errors.AddError("Book", "You cannot set discount to a free book");
             if (errors.Count > 0)
                 throw new ExceptionBadRequest(errors);
             _mapper.Map(req, entity);

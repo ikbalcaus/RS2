@@ -1,3 +1,4 @@
+import "dart:io";
 import "package:ebooks_user/models/access_rights/access_right.dart";
 import "package:ebooks_user/models/books/book.dart";
 import "package:ebooks_user/models/reviews/review.dart";
@@ -20,6 +21,7 @@ import "package:ebooks_user/utils/globals.dart";
 import "package:ebooks_user/utils/helpers.dart";
 import "package:flutter/gestures.dart";
 import "package:flutter/material.dart";
+import "package:path_provider/path_provider.dart";
 import "package:provider/provider.dart";
 import "package:url_launcher/url_launcher.dart";
 
@@ -132,8 +134,6 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
         if (!mounted) return;
         Helpers.showErrorMessage(context, ex);
       });
-    } finally {
-      if (!mounted) return;
     }
   }
 
@@ -230,6 +230,27 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
     }
   }
 
+  Future _openBookFile(String fileName, int bookId) async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final filePath = "${dir.path}/$fileName.pdf";
+      final file = File(filePath);
+      if (!await file.exists()) {
+        Helpers.showSuccessMessage(context, "Book is downloading...");
+        await _booksProvider.getBookFile(bookId, filePath);
+      }
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PdfScreen(bookId: bookId, filePath: filePath),
+        ),
+      );
+    } catch (ex) {
+      if (!mounted) return;
+      Helpers.showErrorMessage(context, ex);
+    }
+  }
+
   Future _openStripePaymentPage() async {
     try {
       var paymentPageLink = await _stripeProvider.getPaymentPageLink(
@@ -314,7 +335,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                       }
                     }
                   },
-                  child: const Text("Review"),
+                  child: const Text("Submit"),
                 ),
                 TextButton(
                   onPressed: () => Navigator.pop(context),
@@ -718,6 +739,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                       return;
                     }
                     if (_book?.publisher?.userId == AuthProvider.userId) {
+                      await _openBookFile(_book!.filePath!, _book!.bookId!);
                     } else if (_accessRight == null) {
                       if (_book?.price == 0) {
                         try {
@@ -751,25 +773,74 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Globals.backgroundColor,
                     shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(4)),
+                      borderRadius: BorderRadius.all(Radius.circular(2)),
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 18),
                   ),
-                  child: Text(
-                    _book?.publisher?.userId == AuthProvider.userId
-                        ? "Book ${_book?.price?.toStringAsFixed(2)}€"
-                        : _accessRight == null
-                        ? (_book?.price == 0
-                              ? "Add to Library"
-                              : "Buy ${_book?.price?.toStringAsFixed(2)}€")
-                        : (_accessRight?.isHidden == false
-                              ? "Hide from Library"
-                              : "Add to Library"),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
+                  child: Builder(
+                    builder: (context) {
+                      final now = DateTime.now().toUtc();
+                      final discountActive =
+                          _book?.discountPercentage != null &&
+                          _book?.discountStart != null &&
+                          _book?.discountEnd != null &&
+                          _book!.discountStart!.isBefore(now) &&
+                          _book!.discountEnd!.isAfter(now);
+                      final originalPrice = _book?.price ?? 0;
+                      final discountedPrice = discountActive
+                          ? originalPrice *
+                                (1 - (_book!.discountPercentage! / 100))
+                          : originalPrice;
+                      final bool isHidden = _accessRight?.isHidden == true;
+                      if (_book?.price == 0 && _accessRight == null) {
+                        return const Text(
+                          "Add to Library",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        );
+                      }
+                      if (_accessRight != null) {
+                        return Text(
+                          isHidden ? "Add to Library" : "Hide from Library",
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        );
+                      }
+                      return RichText(
+                        text: TextSpan(
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                          children: [
+                            if (discountActive) ...[
+                              TextSpan(
+                                text:
+                                    "${discountedPrice.toStringAsFixed(2)}€  ",
+                              ),
+                              TextSpan(
+                                text: "${originalPrice.toStringAsFixed(2)}€",
+                                style: TextStyle(
+                                  decoration: TextDecoration.lineThrough,
+                                  color: Colors.grey[400],
+                                ),
+                              ),
+                            ] else ...[
+                              TextSpan(
+                                text: "${originalPrice.toStringAsFixed(2)}€",
+                              ),
+                            ],
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
@@ -780,12 +851,12 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                     context,
                     MaterialPageRoute(
                       builder: (context) =>
-                          PdfScreen(filePath: _book?.filePath),
+                          PdfScreen(filePath: _book!.filePath!),
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
                     shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(4)),
+                      borderRadius: BorderRadius.all(Radius.circular(2)),
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 18),
                   ),

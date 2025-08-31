@@ -104,8 +104,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
       );
       return;
     }
-    final desktopPath = p.join(home, "Desktop");
-    return desktopPath;
+    return p.join(home, "Desktop");
   }
 
   Future _downloadBookFile(int bookId) async {

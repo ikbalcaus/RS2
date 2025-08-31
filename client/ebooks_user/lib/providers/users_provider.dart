@@ -48,6 +48,48 @@ class UsersProvider extends BaseProvider<User> {
     }
   }
 
+  Future forgotPassword(String email) async {
+    try {
+      var uri = Uri.parse(
+        "${Globals.apiAddress}/users/forgot-password?email=$email",
+      );
+      var headers = createHeaders();
+      var response = await http.patch(uri, headers: headers);
+      if (!isValidResponse(response)) {
+        throw response.body;
+      }
+    } on SocketException {
+      throw "No internet connection";
+    } catch (ex) {
+      if (ex.toString().contains("Not found")) {
+        throw "Email not found";
+      } else {
+        throw ex.toString();
+      }
+    }
+  }
+
+  Future resetPassword(String token, String password) async {
+    try {
+      var uri = Uri.parse(
+        "${Globals.apiAddress}/users/reset-password?token=$token&password=$password",
+      );
+      var headers = createHeaders();
+      var response = await http.patch(uri, headers: headers);
+      if (!isValidResponse(response)) {
+        throw response.body;
+      }
+    } on SocketException {
+      throw "No internet connection";
+    } catch (ex) {
+      if (ex.toString().contains("Not found")) {
+        throw "Email not found";
+      } else {
+        throw ex.toString();
+      }
+    }
+  }
+
   Future verifyEmail(int id, String? token) async {
     var uri = Uri.parse(
       "${Globals.apiAddress}/users/$id/verify-email/${token ?? ""}",

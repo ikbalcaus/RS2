@@ -8,8 +8,9 @@ namespace eBooks.Interfaces
     {
         Task<UsersRes> DeleteByAdmin(int id, string? reason);
         Task<LoginRes> Login(LoginReq req);
-        Task<UsersRes> VerifyEmail(int id);
-        Task<UsersRes> VerifyEmail(int id, string token);
+        Task<UsersRes> ForgotPassword(string email);
+        Task<UsersRes> ResetPassword(string token, string password);
+        Task<UsersRes> VerifyEmail(int id, string? token);
         Task<UsersRes> VerifyPublisher(int id);
     }
 }

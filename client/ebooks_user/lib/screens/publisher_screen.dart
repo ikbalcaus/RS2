@@ -103,8 +103,6 @@ class _PublisherScreenState extends State<PublisherScreen> {
     } catch (ex) {
       if (!mounted) return;
       Helpers.showErrorMessage(context, ex);
-    } finally {
-      if (!mounted) return;
     }
   }
 
@@ -134,8 +132,6 @@ class _PublisherScreenState extends State<PublisherScreen> {
     } catch (ex) {
       if (!mounted) return;
       Helpers.showErrorMessage(context, ex);
-    } finally {
-      if (!mounted) return;
     }
   }
 

@@ -1,7 +1,16 @@
-﻿namespace eBooks.Models.Requests
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace eBooks.Models.Requests
 {
     public class ReportsReq
     {
-        public string Reason { get; set; }
+        private string _reason;
+
+        [Required]
+        public string Reason
+        {
+            get => _reason;
+            set => _reason = value.Trim();
+        }
     }
 }

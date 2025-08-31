@@ -15,6 +15,8 @@ public partial class AccessRight
 
     public bool IsHidden { get; set; }
 
+    public int LastReadPage { get; set; }
+
     public virtual Book Book { get; set; } = null!;
 
     public virtual User User { get; set; } = null!;

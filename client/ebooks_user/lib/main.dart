@@ -1,3 +1,4 @@
+import "dart:async";
 import "package:ebooks_user/providers/access_rights_provider.dart";
 import "package:ebooks_user/providers/auth_provider.dart";
 import "package:ebooks_user/providers/authors_provider.dart";
@@ -15,9 +16,11 @@ import "package:ebooks_user/providers/theme_provider.dart";
 import "package:ebooks_user/providers/users_provider.dart";
 import "package:ebooks_user/providers/wishlist_provider.dart";
 import "package:ebooks_user/screens/books_screen.dart";
+import "package:ebooks_user/screens/reset_password_screen.dart";
 import "package:ebooks_user/utils/globals.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
+import "package:uni_links/uni_links.dart";
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -42,13 +45,55 @@ void main() async {
         ChangeNotifierProvider(create: (_) => UsersProvider()),
         ChangeNotifierProvider(create: (_) => WishlistProvider()),
       ],
-      child: MyApp(),
+      child: const MyApp(),
     ),
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  StreamSubscription? _sub;
+  String? _resetPasswordToken;
+
+  @override
+  void initState() {
+    super.initState();
+    _initUniLinks();
+  }
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    super.dispose();
+  }
+
+  Future _initUniLinks() async {
+    try {
+      final initialUri = await getInitialUri();
+      if (initialUri != null) {
+        _handleIncomingUri(initialUri);
+      }
+    } catch (ex) {}
+    _sub = uriLinkStream.listen((Uri? uri) {
+      if (uri != null) {
+        _handleIncomingUri(uri);
+      }
+    }, onError: (err) {});
+  }
+
+  void _handleIncomingUri(Uri uri) {
+    if (uri.scheme == "ebooks" && uri.host == "reset-password") {
+      setState(() {
+        _resetPasswordToken = uri.queryParameters["token"];
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +123,9 @@ class MyApp extends StatelessWidget {
         ),
       ),
       themeMode: context.watch<ThemeProvider>().themeMode,
-      home: const BooksScreen(),
+      home: _resetPasswordToken != null
+          ? ResetPasswordScreen(token: _resetPasswordToken!)
+          : const BooksScreen(),
       debugShowCheckedModeBanner: false,
     );
   }

@@ -1,4 +1,5 @@
 import "dart:convert";
+import "dart:io";
 import "package:ebooks_admin/models/search_result.dart";
 import "package:ebooks_admin/providers/auth_provider.dart";
 import "package:ebooks_admin/utils/globals.dart";
@@ -17,43 +18,55 @@ abstract class BaseProvider<T> with ChangeNotifier {
     int pageSize = 10,
     Map<String, dynamic>? filter,
   }) async {
-    var url = "${Globals.apiAddress}/$_endpoint";
-    final queryParams = <String, String>{};
-    queryParams["Page"] = page.toString();
-    queryParams["PageSize"] = pageSize.toString();
-    if (filter != null) {
-      filter.forEach((key, value) {
-        if (value != null && value.toString().isNotEmpty) {
-          queryParams[key] = value.toString();
-        }
-      });
-    }
-    var uri = Uri.parse(url).replace(queryParameters: queryParams);
-    var headers = createHeaders();
-    var response = await http.get(uri, headers: headers);
-    if (isValidResponse(response)) {
-      var data = jsonDecode(response.body);
-      var result = SearchResult<T>();
-      result.count = data["count"];
-      for (var item in data["resultList"]) {
-        result.resultList.add(fromJson(item));
+    try {
+      var url = "${Globals.apiAddress}/$_endpoint";
+      final queryParams = <String, String>{};
+      queryParams["Page"] = page.toString();
+      queryParams["PageSize"] = pageSize.toString();
+      if (filter != null) {
+        filter.forEach((key, value) {
+          if (value != null && value.toString().isNotEmpty) {
+            queryParams[key] = value.toString();
+          }
+        });
       }
-      result.totalPages = (result.count / pageSize).ceil();
-      return result;
-    } else {
-      throw response.body;
+      var uri = Uri.parse(url).replace(queryParameters: queryParams);
+      var headers = createHeaders();
+      var response = await http.get(uri, headers: headers);
+      if (isValidResponse(response)) {
+        var data = jsonDecode(response.body);
+        var result = SearchResult<T>();
+        result.count = data["count"];
+        for (var item in data["resultList"]) {
+          result.resultList.add(fromJson(item));
+        }
+        result.totalPages = (result.count / pageSize).ceil();
+        return result;
+      } else {
+        throw response.body;
+      }
+    } on SocketException {
+      throw "No internet connection";
+    } catch (ex) {
+      throw ex.toString();
     }
   }
 
   Future getById(int id) async {
-    var uri = Uri.parse("${Globals.apiAddress}/$_endpoint/$id");
-    var headers = createHeaders();
-    var response = await http.get(uri, headers: headers);
-    if (isValidResponse(response)) {
-      var data = jsonDecode(response.body);
-      return fromJson(data);
-    } else {
-      throw response.body;
+    try {
+      var uri = Uri.parse("${Globals.apiAddress}/$_endpoint/$id");
+      var headers = createHeaders();
+      var response = await http.get(uri, headers: headers);
+      if (isValidResponse(response)) {
+        var data = jsonDecode(response.body);
+        return fromJson(data);
+      } else {
+        throw response.body;
+      }
+    } on SocketException {
+      throw "No internet connection";
+    } catch (ex) {
+      throw ex.toString();
     }
   }
 

@@ -16,6 +16,7 @@ AccessRight _$AccessRightFromJson(Map<String, dynamic> json) => AccessRight(
       : DateTime.parse(json['modifiedAt'] as String),
   isFavorite: json['isFavorite'] as bool?,
   isHidden: json['isHidden'] as bool?,
+  lastReadPage: (json['lastReadPage'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$AccessRightToJson(AccessRight instance) =>
@@ -25,4 +26,5 @@ Map<String, dynamic> _$AccessRightToJson(AccessRight instance) =>
       'modifiedAt': instance.modifiedAt?.toIso8601String(),
       'isFavorite': instance.isFavorite,
       'isHidden': instance.isHidden,
+      'lastReadPage': instance.lastReadPage,
     };

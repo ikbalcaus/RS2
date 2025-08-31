@@ -12,7 +12,7 @@ class BookCardView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 7),
       child: InkWell(
         onTap: () => Navigator.push(
           context,
@@ -22,13 +22,13 @@ class BookCardView extends StatelessWidget {
         ),
         child: Material(
           elevation: 1,
-          borderRadius: BorderRadius.all(Radius.circular(4)),
+          borderRadius: BorderRadius.all(Radius.circular(2)),
           child: SizedBox(
             height: 210,
             child: Row(
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(2),
                   child: Image.network(
                     "${Globals.apiAddress}/images/books/${book.filePath}.webp",
                     width: 140,
@@ -154,33 +154,82 @@ class BookCardView extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              "${book.price?.toStringAsFixed(2) ?? "0.00"}€",
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                                fontSize: 16,
-                              ),
+                            Builder(
+                              builder: (context) {
+                                final discountActive =
+                                    book.discountPercentage != null &&
+                                    book.discountStart != null &&
+                                    book.discountEnd != null &&
+                                    book.discountStart!.isBefore(
+                                      DateTime.now().toUtc(),
+                                    ) &&
+                                    book.discountEnd!.isAfter(
+                                      DateTime.now().toUtc(),
+                                    );
+                                final originalPrice = book.price ?? 0;
+                                final discountedPrice = discountActive
+                                    ? originalPrice *
+                                          (1 - (book.discountPercentage! / 100))
+                                    : originalPrice;
+                                return Row(
+                                  children: [
+                                    if (discountActive) ...[
+                                      Text(
+                                        "${originalPrice.toStringAsFixed(2)}€",
+                                        style: const TextStyle(
+                                          decoration:
+                                              TextDecoration.lineThrough,
+                                          color: Colors.grey,
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        "${discountedPrice.toStringAsFixed(2)}€",
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ] else
+                                      Text(
+                                        "${originalPrice.toStringAsFixed(2)}€",
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                  ],
+                                );
+                              },
                             ),
                             Padding(
                               padding: const EdgeInsets.only(top: 4, right: 8),
-                              child: Row(
-                                children: List.generate(5, (index) {
-                                  double rating = book.averageRating ?? 0;
-                                  if (rating >= index + 1) {
-                                    return const Icon(Icons.star, size: 12);
-                                  } else if (rating >= index + 0.5) {
-                                    return const Icon(
-                                      Icons.star_half,
-                                      size: 12,
-                                    );
-                                  } else {
-                                    return const Icon(
-                                      Icons.star_border,
-                                      size: 12,
-                                    );
-                                  }
-                                }),
-                              ),
+                              child: (book.averageRating ?? 0) != 0
+                                  ? Row(
+                                      children: List.generate(5, (index) {
+                                        if ((book.averageRating ?? 0) >=
+                                            index + 1) {
+                                          return const Icon(
+                                            Icons.star,
+                                            size: 12,
+                                          );
+                                        } else if ((book.averageRating ?? 0) >=
+                                            index + 0.5) {
+                                          return const Icon(
+                                            Icons.star_half,
+                                            size: 12,
+                                          );
+                                        } else {
+                                          return const Icon(
+                                            Icons.star_border,
+                                            size: 12,
+                                          );
+                                        }
+                                      }),
+                                    )
+                                  : Text(""),
                             ),
                           ],
                         ),

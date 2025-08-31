@@ -1,13 +1,10 @@
 using eBooks.API.Auth;
 using eBooks.Interfaces;
-using eBooks.Models;
 using eBooks.Models.Requests;
 using eBooks.Models.Responses;
 using eBooks.Models.Search;
-using eBooks.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Stripe;
 
 namespace eBooks.API.Controllers
 {
@@ -71,17 +68,23 @@ namespace eBooks.API.Controllers
             return await _service.Login(req);
         }
 
-        [Authorize(Policy = "User")]
-        [HttpPatch("{id}/verify-email")]
-        public async Task<UsersRes> VerifyEmail(int id)
+        [AllowAnonymous]
+        [HttpPatch("forgot-password")]
+        public async Task<UsersRes> ForgotPassword(string email)
         {
-            await _accessControlHandler.CheckIsOwnerByUserId(id);
-            return await _service.VerifyEmail(id);
+            return await _service.ForgotPassword(email);
+        }
+
+        [AllowAnonymous]
+        [HttpPatch("reset-password")]
+        public async Task<UsersRes> ResetPassword(string token, string password)
+        {
+            return await _service.ResetPassword(token, password);
         }
 
         [Authorize(Policy = "User")]
-        [HttpPatch("{id}/verify-email/{token}")]
-        public async Task<UsersRes> VerifyEmail(int id, string token)
+        [HttpPatch("{id}/verify-email/{token?}")]
+        public async Task<UsersRes> VerifyEmail(int id, string? token = null)
         {
             await _accessControlHandler.CheckIsOwnerByUserId(id);
             return await _service.VerifyEmail(id, token);

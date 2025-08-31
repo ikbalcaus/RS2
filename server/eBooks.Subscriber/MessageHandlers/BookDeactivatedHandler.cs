@@ -18,9 +18,9 @@ namespace eBooks.Subscriber.MessageHandlers
             var email = message.Book.Publisher.Email;
             string notificationMessage;
             if (message.Book.Publisher.DeletionReason != null)
-                notificationMessage = $"Your book is deactivated. Reason: {message.Book.DeletionReason}";
+                notificationMessage = $"Your book has been deactivated. Reason: {message.Book.DeletionReason}";
             else
-                notificationMessage = "Your book is reactivated";
+                notificationMessage = "Your book has been reactivated";
             Console.WriteLine($"Sending email to: {email}");
             await _emailService.SendEmailAsync(email, "Book update", notificationMessage);
         }
@@ -29,9 +29,9 @@ namespace eBooks.Subscriber.MessageHandlers
         {
             string notificationMessage;
             if (message.Book.Publisher.DeletionReason != null)
-                notificationMessage = $"Your book is deactivated. Reason: {message.Book.DeletionReason}";
+                notificationMessage = $"Your book has been deactivated. Reason: {message.Book.DeletionReason}";
             else
-                notificationMessage = "Your book is reactivated";
+                notificationMessage = "Your book has been reactivated";
             var userId = message.Book.Publisher.UserId;
             Console.WriteLine($"Sending notification to user: {userId}");
             var notification = new Notification

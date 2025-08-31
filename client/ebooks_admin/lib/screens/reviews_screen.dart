@@ -21,6 +21,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
   SearchResult<Review>? _reviews;
   bool _isLoading = true;
   int _currentPage = 1;
+  String _isReported = "All reviews";
   String _orderBy = "Last added";
   Map<String, dynamic> _currentFilter = {};
   final TextEditingController _reviewedByController = TextEditingController();
@@ -29,7 +30,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
   @override
   void initState() {
     super.initState();
-    _currentFilter = {"isBookIncluded": true};
+    _currentFilter = {"isBookIncluded": true, "IsReportedByIncluded": true};
     _reviewsProvider = context.read<ReviewsProvider>();
     _fetchReviews();
   }
@@ -135,6 +136,26 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
           const SizedBox(width: Globals.spacing),
           Expanded(
             child: DropdownButtonFormField<String>(
+              value: _isReported,
+              onChanged: (value) {
+                _isReported = value!;
+              },
+              items: ["All reviews", "Reported", "Not reported"].map((
+                String value,
+              ) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(
+                    value,
+                    style: const TextStyle(fontWeight: FontWeight.normal),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          const SizedBox(width: Globals.spacing),
+          Expanded(
+            child: DropdownButtonFormField<String>(
               value: _orderBy,
               onChanged: (value) {
                 _orderBy = value!;
@@ -158,8 +179,10 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
               _currentFilter = {
                 "ReviewedBy": _reviewedByController.text,
                 "BookTitle": _bookTitleController.text,
+                "IsReported": _isReported,
                 "OrderBy": _orderBy,
                 "isBookIncluded": true,
+                "IsReportedByIncluded": true,
               };
               await _fetchReviews();
             },
@@ -180,6 +203,8 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
             DataColumn(label: Text("Book")),
             DataColumn(label: Text("Rating")),
             DataColumn(label: Text("Comment")),
+            DataColumn(label: Text("Reported by")),
+            DataColumn(label: Text("Report reason")),
             DataColumn(label: Text("Actions")),
           ],
           rows:
@@ -192,8 +217,18 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                         DataCell(Text(review.rating.toString())),
                         DataCell(
                           SizedBox(
-                            width: 300,
+                            width: 180,
                             child: Text(review.comment ?? "", softWrap: true),
+                          ),
+                        ),
+                        DataCell(Text(review.reportedBy?.userName ?? "")),
+                        DataCell(
+                          SizedBox(
+                            width: 180,
+                            child: Text(
+                              review.reportReason ?? "",
+                              softWrap: true,
+                            ),
                           ),
                         ),
                         DataCell(

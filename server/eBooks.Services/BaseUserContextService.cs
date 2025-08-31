@@ -41,7 +41,7 @@ namespace eBooks.Services
             int count = await query.CountAsync();
             if (search?.Page.HasValue == true && search?.PageSize.HasValue == true && search.Page.Value > 0)
                 query = query.Skip((search.Page.Value - 1) * search.PageSize.Value).Take(search.PageSize.Value);
-            var list = await query.OrderByDescending(x => x.ModifiedAt).ToListAsync();
+            var list = await query.ToListAsync();
             List<TResponse> result = new List<TResponse>();
             result = _mapper.Map(list, result);
             PagedResult<TResponse> pagedResult = new PagedResult<TResponse>

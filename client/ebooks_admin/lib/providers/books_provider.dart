@@ -1,4 +1,5 @@
 import "dart:convert";
+import "dart:io";
 import "package:ebooks_admin/models/books/book.dart";
 import "package:ebooks_admin/providers/base_provider.dart";
 import "package:ebooks_admin/utils/globals.dart";
@@ -25,29 +26,35 @@ class BooksProvider extends BaseProvider<Book> {
   }
 
   Future getBookStates() async {
-    var uri = Uri.parse("${Globals.apiAddress}/books/book-states");
-    var headers = createHeaders();
-    var response = await http.get(uri, headers: headers);
-    if (isValidResponse(response)) {
-      var data = jsonDecode(response.body);
-      return (data as List<dynamic>).cast<String>();
-    } else {
-      throw response.body;
-    }
+    try {
+      var uri = Uri.parse("${Globals.apiAddress}/books/book-states");
+      var headers = createHeaders();
+      var response = await http.get(uri, headers: headers);
+      if (isValidResponse(response)) {
+        var data = jsonDecode(response.body);
+        return (data as List<dynamic>).cast<String>();
+      } else {
+        throw response.body;
+      }
+    } on SocketException {
+    } catch (ex) {}
   }
 
   Future getAllowedActions(int id) async {
-    var uri = Uri.parse(
-      "${Globals.apiAddress}/books/$id/admin-allowed-actions",
-    );
-    var headers = createHeaders();
-    var response = await http.get(uri, headers: headers);
-    if (isValidResponse(response)) {
-      var data = jsonDecode(response.body);
-      return (data as List<dynamic>).cast<String>();
-    } else {
-      throw response.body;
-    }
+    try {
+      var uri = Uri.parse(
+        "${Globals.apiAddress}/books/$id/admin-allowed-actions",
+      );
+      var headers = createHeaders();
+      var response = await http.get(uri, headers: headers);
+      if (isValidResponse(response)) {
+        var data = jsonDecode(response.body);
+        return (data as List<dynamic>).cast<String>();
+      } else {
+        throw response.body;
+      }
+    } on SocketException {
+    } catch (ex) {}
   }
 
   Future approveBook(int id) async {

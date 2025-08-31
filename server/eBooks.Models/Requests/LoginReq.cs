@@ -1,8 +1,24 @@
-﻿namespace eBooks.Models.Requests
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace eBooks.Models.Requests
 {
     public class LoginReq
     {
-        public string Email { get; set; }
-        public string Password { get; set; }
+        private string _email;
+        private string _password;
+
+        [Required]
+        public string Email
+        {
+            get => _email;
+            set => _email = value.Trim();
+        }
+
+        [Required]
+        public string Password
+        {
+            get => _password;
+            set => _password = value.Trim();
+        }
     }
 }

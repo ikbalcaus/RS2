@@ -8,22 +8,22 @@ using Microsoft.EntityFrameworkCore;
 
 namespace eBooks.MessageHandlers
 {
-    public class EmailVerificationHandler : BaseMessageHandler<EmailVerification>, IMessageHandler<EmailVerification>
+    public class PasswordForgottenHandler : BaseMessageHandler<PasswordForgotten>, IMessageHandler<PasswordForgotten>
     {
-        public EmailVerificationHandler(EBooksContext db, EmailService emailService)
+        public PasswordForgottenHandler(EBooksContext db, EmailService emailService)
             : base(db, emailService)
         {
         }
 
-        public async Task SendEmail(EmailVerification message)
+        public async Task SendEmail(PasswordForgotten message)
         {
             var email = message.Token.Email;
-            var notificationMessage = $"Enter following token in order to verify your email: {message.Token.VerificationToken}";
+            var notificationMessage = $"Click the following link in order to reset you password: {message.Token.VerificationToken}";
             Console.WriteLine($"Sending email to: {email}");
             await _emailService.SendEmailAsync(email, "Email verification", notificationMessage);
         }
 
-        public async Task NotifyUser(EmailVerification message)
+        public async Task NotifyUser(PasswordForgotten message)
         {
             var user = await _db.Set<User>().FirstOrDefaultAsync(x => x.Email == message.Token.Email);
             Console.WriteLine($"Sending notification to user: {user.UserId}");
@@ -31,7 +31,7 @@ namespace eBooks.MessageHandlers
             {
                 UserId = user.UserId,
                 PublisherId = user.UserId,
-                Message = "Verification token has been sent to you email. Please verify it"
+                Message = "Verification link has been sent to you email"
             };
             _db.Set<Notification>().Add(notification);
             await _db.SaveChangesAsync();

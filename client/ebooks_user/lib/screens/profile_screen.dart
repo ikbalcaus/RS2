@@ -14,6 +14,7 @@ import "package:ebooks_user/screens/faq_screen.dart";
 import "package:ebooks_user/screens/login_screen.dart";
 import "package:ebooks_user/screens/master_screen.dart";
 import "package:ebooks_user/screens/followed_publishers_screen.dart";
+import "package:ebooks_user/screens/payment_history_screen.dart";
 import "package:ebooks_user/screens/wishlist_screen.dart";
 import "package:ebooks_user/utils/globals.dart";
 import "package:ebooks_user/utils/helpers.dart";
@@ -111,8 +112,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } catch (ex) {
       if (!mounted) return;
       Helpers.showErrorMessage(context, ex);
-    } finally {
-      if (!mounted) return;
     }
   }
 
@@ -465,6 +464,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 leading: const Icon(Icons.color_lens),
                 title: const Text("Change Theme"),
                 onTap: () => _showSelectModeDialog(),
+              ),
+              ListTile(
+                leading: const Icon(Icons.payment),
+                title: const Text("Payment History"),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        const PaymentHistoryScreen(publisherId: 1),
+                  ),
+                ),
               ),
               ListTile(
                 leading: const Icon(Icons.question_mark),

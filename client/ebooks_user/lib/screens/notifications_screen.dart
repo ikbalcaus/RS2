@@ -1,7 +1,9 @@
 import "package:ebooks_user/models/notifications/app_notification.dart";
 import "package:ebooks_user/models/search_result.dart";
 import "package:ebooks_user/providers/notifications_provider.dart";
+import "package:ebooks_user/screens/book_details_screen.dart";
 import "package:ebooks_user/screens/master_screen.dart";
+import "package:ebooks_user/screens/publisher_screen.dart";
 import "package:ebooks_user/utils/helpers.dart";
 import "package:ebooks_user/widgets/not_logged_in_view.dart";
 import "package:flutter/material.dart";
@@ -111,7 +113,24 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 await _notificationsProvider.markAsRead(
                   notification.notificationId!,
                 );
-                //navigate to the othet screen
+                if (notification.bookId != null) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          BookDetailsScreen(bookId: notification.bookId!),
+                    ),
+                  );
+                } else if (notification.publisherId != null) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PublisherScreen(
+                        publisherId: notification.publisherId!,
+                      ),
+                    ),
+                  );
+                }
               },
               onLongPress: () async => await _showDeleteDialog(
                 context,

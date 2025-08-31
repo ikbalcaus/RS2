@@ -5,15 +5,23 @@ using eBooks.Models.Responses;
 using eBooks.Models.Search;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
+using Azure;
 
 namespace eBooks.Services
 {
     public class PurchasesService : BaseReadOnlyService<Purchase, PurchasesSearch, PurchasesRes>, IPurchasesService
     {
-        public PurchasesService(EBooksContext db, IMapper mapper)
-            : base(db, mapper)
+        IHttpContextAccessor _httpContextAccessor;
+
+        public PurchasesService(EBooksContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor)
+        : base(db, mapper)
         {
+            _httpContextAccessor = httpContextAccessor;
         }
+
+        protected int GetUserId() => int.TryParse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : 0;
 
         public override IQueryable<Purchase> AddIncludes(IQueryable<Purchase> query, PurchasesSearch? search = null)
         {
@@ -43,6 +51,21 @@ namespace eBooks.Services
                 _ => query.OrderByDescending(x => x.CreatedAt),
             };
             return query;
+        }
+
+        public async Task<PagedResult<PurchasesRes>> GetAllByPublisherId(int publisherId)
+        {
+            var query = _db.Set<Purchase>().Where(x => x.UserId == publisherId || x.PublisherId == publisherId).AsQueryable();
+            int count = await query.CountAsync();
+            var list = await query.ToListAsync();
+            var result = new List<PurchasesRes>();
+            result = _mapper.Map(list, result);
+            PagedResult<PurchasesRes> pagedResult = new PagedResult<PurchasesRes>
+            {
+                ResultList = result,
+                Count = count
+            };
+            return pagedResult;
         }
     }
 }

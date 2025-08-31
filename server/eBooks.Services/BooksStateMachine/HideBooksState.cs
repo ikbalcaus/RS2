@@ -30,6 +30,9 @@ namespace eBooks.Services.BooksStateMachine
                 throw new ExceptionNotFound();
             TypeAdapterConfig<BooksPutReq, Book>.NewConfig().Ignore(x => x.Language);
             _mapper.Map(req, entity);
+            entity.DiscountPercentage = null;
+            entity.DiscountStart = null;
+            entity.DiscountEnd = null;
             entity.StateMachine = "draft";
             if (!string.IsNullOrWhiteSpace(req.Language))
             {

@@ -1,7 +1,16 @@
-﻿namespace eBooks.Models.Requests
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace eBooks.Models.Requests
 {
     public class QuestionsReq
     {
-        public string Message { get; set; }
+        private string _message;
+
+        [Required]
+        public string Message
+        {
+            get => _message;
+            set => _message = value.Trim();
+        }
     }
 }

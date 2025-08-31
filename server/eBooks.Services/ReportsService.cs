@@ -39,6 +39,25 @@ namespace eBooks.Services
             return query;
         }
 
+        public override async Task<PagedResult<ReportsRes>> GetPaged(ReportsSearch search)
+        {
+            var result = new List<ReportsRes>();
+            var query = _db.Set<Report>().AsQueryable();
+            query = AddIncludes(query, search);
+            query = AddFilters(query, search);
+            int count = await query.CountAsync();
+            if (search?.Page.HasValue == true && search?.PageSize.HasValue == true && search.Page.Value > 0)
+                query = query.Skip((search.Page.Value - 1) * search.PageSize.Value).Take(search.PageSize.Value);
+            var list = await query.ToListAsync();
+            result = _mapper.Map(list, result);
+            PagedResult<ReportsRes> pagedResult = new PagedResult<ReportsRes>
+            {
+                ResultList = result,
+                Count = count
+            };
+            return pagedResult;
+        }
+
         public async Task<ReportsRes> AdminDelete(int userId, int bookId)
         {
             var set = _db.Set<Report>();

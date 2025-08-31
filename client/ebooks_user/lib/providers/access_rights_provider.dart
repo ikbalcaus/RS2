@@ -19,4 +19,15 @@ class AccessRightsProvider extends BaseProvider<AccessRight> {
       throw response.body;
     }
   }
+
+  Future saveLastReadPage(int id, int page) async {
+    var uri = Uri.parse(
+      "${Globals.apiAddress}/accessrights/$id/last-read-page?page=$page",
+    );
+    var headers = createHeaders();
+    var response = await http.patch(uri, headers: headers);
+    if (!isValidResponse(response)) {
+      throw response.body;
+    }
+  }
 }

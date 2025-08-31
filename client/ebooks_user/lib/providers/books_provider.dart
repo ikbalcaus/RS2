@@ -55,6 +55,18 @@ class BooksProvider extends BaseProvider<Book> {
     }
   }
 
+  Future getBookFile(int id, String filePath) async {
+    var uri = Uri.parse("${Globals.apiAddress}/books/$id/book-file");
+    var headers = createHeaders();
+    var response = await http.get(uri, headers: headers);
+    if (!isValidResponse(response)) {
+      throw response.body;
+    }
+    final file = File(filePath);
+    await file.writeAsBytes(response.bodyBytes);
+    return file;
+  }
+
   Future getBookStates() async {
     var uri = Uri.parse("${Globals.apiAddress}/books/book-states");
     var headers = createHeaders();

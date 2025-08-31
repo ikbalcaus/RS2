@@ -1,12 +1,16 @@
+import "dart:io";
 import "package:ebooks_user/models/access_rights/access_right.dart";
 import "package:ebooks_user/models/search_result.dart";
 import "package:ebooks_user/providers/access_rights_provider.dart";
 import "package:ebooks_user/providers/auth_provider.dart";
+import "package:ebooks_user/providers/books_provider.dart";
 import "package:ebooks_user/screens/master_screen.dart";
+import "package:ebooks_user/screens/pdf_screen.dart";
 import "package:ebooks_user/utils/globals.dart";
 import "package:ebooks_user/utils/helpers.dart";
 import "package:ebooks_user/widgets/not_logged_in_view.dart";
 import "package:flutter/material.dart";
+import "package:path_provider/path_provider.dart";
 import "package:provider/provider.dart";
 
 class LibraryScreen extends StatefulWidget {
@@ -17,6 +21,7 @@ class LibraryScreen extends StatefulWidget {
 }
 
 class _LibraryScreenState extends State<LibraryScreen> {
+  late BooksProvider _booksProvider;
   late AccessRightsProvider _accessRightsProvider;
   SearchResult<AccessRight>? _accessRights;
   bool _isLoading = true;
@@ -28,6 +33,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
     super.initState();
     if (AuthProvider.isLoggedIn) {
       _accessRightsProvider = context.read<AccessRightsProvider>();
+      _booksProvider = context.read<BooksProvider>();
       _fetchAccessRights();
       _scrollController.addListener(() {
         if (_scrollController.position.pixels >=
@@ -91,6 +97,27 @@ class _LibraryScreenState extends State<LibraryScreen> {
     }
   }
 
+  Future _openBookFile(String fileName, int bookId) async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final filePath = "${dir.path}/$fileName.pdf";
+      final file = File(filePath);
+      if (!await file.exists()) {
+        Helpers.showSuccessMessage(context, "Book is downloading...");
+        await _booksProvider.getBookFile(bookId, filePath);
+      }
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PdfScreen(bookId: bookId, filePath: filePath),
+        ),
+      );
+    } catch (ex) {
+      if (!mounted) return;
+      Helpers.showErrorMessage(context, ex);
+    }
+  }
+
   Widget _buildResultView() {
     final accessRight = _accessRights?.resultList ?? [];
     return GridView.builder(
@@ -111,7 +138,13 @@ class _LibraryScreenState extends State<LibraryScreen> {
           );
         }
         return InkWell(
-          onTap: () {},
+          onTap: () async {
+            final accessRight = _accessRights!.resultList[index];
+            await _openBookFile(
+              accessRight.book!.filePath!,
+              accessRight.book!.bookId!,
+            );
+          },
           child: SizedBox(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(2),

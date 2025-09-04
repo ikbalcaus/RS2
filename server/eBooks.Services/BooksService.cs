@@ -142,12 +142,8 @@ namespace eBooks.Services
             if (entity == null)
                 throw new ExceptionNotFound();
             var result = _mapper.Map<BooksRes>(entity);
-            var userId = GetUserId();
-            if (userId != 0 && userId != entity.PublisherId)
-            {
-                entity.NumberOfViews += 1;
-                await _db.SaveChangesAsync();
-            }
+            entity.NumberOfViews += 1;
+            await _db.SaveChangesAsync();
             result.BookAuthors = result.BookAuthors.OrderByDescending(x => x.ModifiedAt).ToList();
             result.BookGenres = result.BookGenres.OrderByDescending(x => x.ModifiedAt).ToList();
             result.AverageRating = (entity.Reviews != null && entity.Reviews.Any()) ? Math.Round(entity.Reviews.Average(x => x.Rating), 1) : 0;

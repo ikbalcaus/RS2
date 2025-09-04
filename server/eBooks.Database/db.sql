@@ -186,7 +186,7 @@ CREATE TABLE Notifications (
     BookId INT,
     PublisherId INT,
     UserId INT NOT NULL,
-    Message NVARCHAR(MAX),
+    Message NVARCHAR(MAX) NOT NULL,
     ModifiedAt DATETIME NOT NULL DEFAULT GETDATE(),
     IsRead BIT NOT NULL DEFAULT 0,
     FOREIGN KEY (BookId) REFERENCES Books(BookId),

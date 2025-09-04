@@ -20,8 +20,9 @@ class NotificationsScreen extends StatefulWidget {
 class _NotificationsScreenState extends State<NotificationsScreen> {
   late NotificationsProvider _notificationsProvider;
   SearchResult<AppNotification>? _notifications;
-  final int _currentPage = 1;
+  int _currentPage = 1;
   bool _isLoading = true;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -29,32 +30,60 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     if (AuthProvider.isLoggedIn) {
       _notificationsProvider = context.read<NotificationsProvider>();
       _fetchNotifications();
+      _scrollController.addListener(_scrollListener);
+    }
+  }
+
+  void _scrollListener() {
+    if (!_scrollController.hasClients) return;
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      if (!_isLoading &&
+          (_notifications?.resultList.length ?? 0) <
+              (_notifications?.count ?? 0)) {
+        _currentPage++;
+        _fetchNotifications(append: true);
+      }
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    Widget content;
-    if (!AuthProvider.isLoggedIn) {
-      content = Center(child: NotLoggedInView());
-    } else if (_isLoading) {
-      content = const Center(child: CircularProgressIndicator());
-    } else if (_notifications?.count == 0) {
-      content = const Center(child: Text("You don't have any notifications"));
-    } else {
-      content = _buildResultView();
-    }
-    return MasterScreen(child: content);
+  void dispose() {
+    _scrollController.removeListener(_scrollListener);
+    _scrollController.dispose();
+    super.dispose();
   }
 
-  Future _fetchNotifications() async {
+  Future _fetchNotifications({bool append = false}) async {
     setState(() => _isLoading = true);
     try {
       final notifications = await _notificationsProvider.getPaged(
         page: _currentPage,
       );
       if (!mounted) return;
-      setState(() => _notifications = notifications);
+      setState(() {
+        if (append && _notifications != null) {
+          _notifications?.resultList.addAll(notifications.resultList);
+          _notifications?.count = notifications.count;
+        } else {
+          _notifications = notifications;
+        }
+      });
+
+      // automatski fetch dok lista ne popuni ekran
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        if (!_scrollController.hasClients) return;
+
+        final maxScroll = _scrollController.position.maxScrollExtent;
+        if (!_isLoading &&
+            (_notifications?.resultList.length ?? 0) <
+                (_notifications?.count ?? 0) &&
+            maxScroll <= 0) {
+          _currentPage++;
+          _fetchNotifications(append: true);
+        }
+      });
     } catch (ex) {
       if (!mounted) return;
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -67,35 +96,25 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
-  Future _showDeleteDialog(BuildContext context, int id) async {
-    await showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text("Delete"),
-        content: const Text(
-          "Are you sure you want to delete this notification?",
-        ),
-        actions: [
-          TextButton(
-            onPressed: () async {
-              Navigator.of(ctx).pop(true);
-              await _notificationsProvider.delete(id);
-              await _fetchNotifications();
-            },
-            child: const Text("Delete"),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text("Cancel"),
-          ),
-        ],
-      ),
-    );
+  @override
+  Widget build(BuildContext context) {
+    Widget content;
+    if (!AuthProvider.isLoggedIn) {
+      content = Center(child: NotLoggedInView());
+    } else if (_isLoading && (_notifications?.resultList.isEmpty ?? true)) {
+      content = const Center(child: CircularProgressIndicator());
+    } else if (_notifications?.count == 0) {
+      content = const Center(child: Text("You don't have any notifications"));
+    } else {
+      content = _buildResultView();
+    }
+    return MasterScreen(child: content);
   }
 
   Widget _buildResultView() {
     final items = _notifications?.resultList ?? [];
     return ListView.builder(
+      controller: _scrollController,
       itemCount: items.length,
       itemBuilder: (context, index) {
         final notification = items[index];
@@ -105,9 +124,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ListTile(
               title: Text(notification.message ?? ""),
               trailing:
-                  notification.bookId != null ||
-                      notification.publisherId != null
-                  ? Icon(Icons.chevron_right_rounded)
+                  (notification.bookId != null ||
+                      notification.publisherId != null)
+                  ? const Icon(Icons.chevron_right_rounded)
                   : null,
               onTap: () async {
                 await _notificationsProvider.markAsRead(
@@ -132,10 +151,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   );
                 }
               },
-              onLongPress: () async => await _showDeleteDialog(
-                context,
-                notification.notificationId!,
-              ),
             ),
             const Divider(height: 1),
             if (isLast) const Divider(height: 0.1),

@@ -20,16 +20,37 @@ class PaymentHistoryScreen extends StatefulWidget {
 class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
   late PurchasesProvider _purchasesProvider;
   SearchResult<Purchase>? _purchases;
-  final int _currentPage = 1;
+  int _currentPage = 1;
   bool _isLoading = true;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     if (AuthProvider.isLoggedIn) {
       _purchasesProvider = context.read<PurchasesProvider>();
-      _fetchPaymentHistory();
+      _fetchPurchases();
+      _scrollController.addListener(_scrollListener);
     }
+  }
+
+  void _scrollListener() {
+    if (!_scrollController.hasClients) return;
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      if (!_isLoading &&
+          (_purchases?.resultList.length ?? 0) < (_purchases?.count ?? 0)) {
+        _currentPage++;
+        _fetchPurchases(append: true);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_scrollListener);
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -37,7 +58,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     Widget content;
     if (!AuthProvider.isLoggedIn) {
       content = Center(child: NotLoggedInView());
-    } else if (_isLoading) {
+    } else if (_isLoading && (_purchases?.resultList.isEmpty ?? true)) {
       content = const Center(child: CircularProgressIndicator());
     } else if (_purchases?.count == 0) {
       content = const Center(child: Text("Your payment history is empty"));
@@ -47,15 +68,33 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     return MasterScreen(child: content);
   }
 
-  Future _fetchPaymentHistory() async {
+  Future _fetchPurchases({bool append = false}) async {
     setState(() => _isLoading = true);
     try {
-      final purchases = await _purchasesProvider.getAllByPublisherId(
-        widget.publisherId,
-        page: _currentPage,
-      );
+      final purchases = await _purchasesProvider.getPaged(page: _currentPage);
       if (!mounted) return;
-      setState(() => _purchases = purchases);
+      setState(() {
+        if (append && _purchases != null) {
+          _purchases?.resultList.addAll(purchases.resultList);
+          _purchases?.count = purchases.count;
+        } else {
+          _purchases = purchases;
+        }
+      });
+
+      // Provjera ako lista nije dovoljno duga da popuni ekran
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        if (!_scrollController.hasClients) return;
+
+        final maxScroll = _scrollController.position.maxScrollExtent;
+        if (!_isLoading &&
+            (_purchases?.resultList.length ?? 0) < (_purchases?.count ?? 0) &&
+            maxScroll <= 0) {
+          _currentPage++;
+          _fetchPurchases(append: true);
+        }
+      });
     } catch (ex) {
       if (!mounted) return;
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -71,6 +110,7 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
   Widget _buildResultView() {
     final items = _purchases?.resultList ?? [];
     return ListView.builder(
+      controller: _scrollController,
       itemCount: items.length,
       itemBuilder: (context, index) {
         final purchase = items[index];

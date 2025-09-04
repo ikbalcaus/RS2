@@ -11,7 +11,7 @@ namespace eBooks.API.Controllers
     [Route("[controller]")]
     public class StripeController : ControllerBase
     {
-        protected readonly IStripeService _service;
+        protected IStripeService _service;
         protected AccessControlHandler _accessControlHandler;
 
         public StripeController(IStripeService service, AccessControlHandler accessControlHandler)

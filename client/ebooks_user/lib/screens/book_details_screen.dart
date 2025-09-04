@@ -42,6 +42,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
   late ReviewsProvider _reviewsProvider;
   late StripeProvider _stripeProvider;
   Book? _book;
+  List<Book>? _recommendedBooks;
   SearchResult<Review>? _reviews;
   AccessRight? _accessRight;
   final List<String> _allowedActions = [];
@@ -63,6 +64,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
     _stripeProvider = context.read<StripeProvider>();
     _reviewsFilter = {"BookId": widget.bookId};
     _fetchBook();
+    _fetchRecommendedBooks();
     _fetchReviews();
     _fetchAccessRight();
     _scrollController.addListener(() {
@@ -110,6 +112,19 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
       if (!mounted) return;
       setState(() => _isLoading = false);
       await _getAllowedActions();
+    }
+  }
+
+  Future _fetchRecommendedBooks() async {
+    try {
+      final recommendedBooks = await _booksProvider.getRecommendedBooks(
+        widget.bookId,
+      );
+      if (!mounted) return;
+      setState(() => _recommendedBooks = recommendedBooks);
+    } catch (ex) {
+      if (!mounted) return;
+      Helpers.showErrorMessage(context, ex);
     }
   }
 
@@ -829,7 +844,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                                 text: "${originalPrice.toStringAsFixed(2)}€",
                                 style: TextStyle(
                                   decoration: TextDecoration.lineThrough,
-                                  color: Colors.grey[400],
+                                  color: Colors.grey[100],
                                 ),
                               ),
                             ] else ...[
@@ -920,106 +935,188 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 12),
           Text(
             _book?.description ?? "",
             style: const TextStyle(fontSize: 14, height: 1.4),
             maxLines: 20,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 12),
-          ...(_reviews?.resultList ?? []).map((review) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    ClipOval(
-                      child: Image.network(
-                        "${Globals.apiAddress}/images/users/${review.user?.filePath}.webp",
-                        height: 24,
-                        width: 24,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            const Icon(Icons.account_circle, size: 24),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      review.user?.userName ?? "",
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 14,
-                      ),
-                    ),
-                    Expanded(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Row(
-                            children: List.generate(5, (index) {
-                              return Icon(
-                                index < (review.rating ?? 0)
-                                    ? Icons.star
-                                    : Icons.star_border,
-                                size: 15,
-                                color: Colors.orange,
-                              );
-                            }),
+          const SizedBox(height: 10),
+          if ((_recommendedBooks?.isNotEmpty ?? false)) ...[
+            const SizedBox(height: 12),
+            const Text(
+              "You may also like",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 210,
+              child: ScrollConfiguration(
+                behavior: ScrollConfiguration.of(context).copyWith(
+                  dragDevices: {
+                    PointerDeviceKind.touch,
+                    PointerDeviceKind.mouse,
+                  },
+                ),
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _recommendedBooks!.length,
+                  itemBuilder: (context, index) {
+                    final book = _recommendedBooks![index];
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: InkWell(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                BookDetailsScreen(bookId: book.bookId!),
                           ),
-                          PopupMenuButton<String>(
-                            icon: const Icon(Icons.more_vert, size: 18),
-                            onSelected: (value) async {
-                              if (value == "edit") {
-                                await _showReviewBookDialog();
-                              } else if (value == "delete") {
-                                await _showDeleteReviewDialog();
-                              } else if (value == "report") {
-                                if (!AuthProvider.isLoggedIn) {
-                                  Helpers.showErrorMessage(
-                                    context,
-                                    "Please log in to continue",
-                                  );
-                                  return;
-                                }
-                                await _showReportReviewDialog(
-                                  review.user?.userId ?? 0,
-                                );
-                              }
-                            },
-                            itemBuilder: (context) => [
-                              if (review.user?.userId ==
-                                  AuthProvider.userId) ...[
-                                const PopupMenuItem(
-                                  value: "edit",
-                                  child: Text("Edit Review"),
+                        ),
+                        child: Column(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(4),
+                              child: Image.network(
+                                "${Globals.apiAddress}/images/books/${book.filePath}.webp?t=${DateTime.now().millisecondsSinceEpoch}",
+                                height: 165,
+                                width: 110,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    SizedBox(
+                                      height: 165,
+                                      width: 110,
+                                      child: FittedBox(
+                                        fit: BoxFit.contain,
+                                        child: const Icon(Icons.book),
+                                      ),
+                                    ),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            SizedBox(
+                              width: 100,
+                              child: Text(
+                                book.title ?? "",
+                                textAlign: TextAlign.center,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
                                 ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+          if ((_reviews?.resultList.isNotEmpty ?? false)) ...[
+            const SizedBox(height: 10),
+            const Text(
+              "Book reviews",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 2),
+            ..._reviews!.resultList.map((review) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      ClipOval(
+                        child: Image.network(
+                          "${Globals.apiAddress}/images/users/${review.user?.filePath}.webp",
+                          height: 24,
+                          width: 24,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(Icons.account_circle, size: 24),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        review.user?.userName ?? "",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                      ),
+                      Expanded(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Row(
+                              children: List.generate(5, (index) {
+                                return Icon(
+                                  index < (review.rating ?? 0)
+                                      ? Icons.star
+                                      : Icons.star_border,
+                                  size: 15,
+                                  color: Colors.orange,
+                                );
+                              }),
+                            ),
+                            PopupMenuButton<String>(
+                              icon: const Icon(Icons.more_vert, size: 18),
+                              onSelected: (value) async {
+                                if (value == "edit") {
+                                  await _showReviewBookDialog();
+                                } else if (value == "delete") {
+                                  await _showDeleteReviewDialog();
+                                } else if (value == "report") {
+                                  if (!AuthProvider.isLoggedIn) {
+                                    Helpers.showErrorMessage(
+                                      context,
+                                      "Please log in to continue",
+                                    );
+                                    return;
+                                  }
+                                  await _showReportReviewDialog(
+                                    review.user?.userId ?? 0,
+                                  );
+                                }
+                              },
+                              itemBuilder: (context) => [
+                                if (review.user?.userId ==
+                                    AuthProvider.userId) ...[
+                                  const PopupMenuItem(
+                                    value: "edit",
+                                    child: Text("Edit Review"),
+                                  ),
+                                  const PopupMenuItem(
+                                    value: "delete",
+                                    child: Text("Delete Review"),
+                                  ),
+                                ],
                                 const PopupMenuItem(
-                                  value: "delete",
-                                  child: Text("Delete Review"),
+                                  value: "report",
+                                  child: Text("Report Review"),
                                 ),
                               ],
-                              const PopupMenuItem(
-                                value: "report",
-                                child: Text("Report Review"),
-                              ),
-                            ],
-                          ),
-                        ],
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                if (review.comment?.trim().isNotEmpty == true) ...[
-                  Text(
-                    review.comment ?? "",
-                    style: const TextStyle(fontSize: 14),
+                    ],
                   ),
-                  const SizedBox(height: 10),
+                  if (review.comment?.trim().isNotEmpty == true) ...[
+                    Text(
+                      review.comment ?? "",
+                      style: const TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(height: 8),
+                  ],
                 ],
-              ],
-            );
-          }),
+              );
+            }),
+          ],
         ],
       ),
     );

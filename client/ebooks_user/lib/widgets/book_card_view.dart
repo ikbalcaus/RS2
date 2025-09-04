@@ -175,19 +175,19 @@ class BookCardView extends StatelessWidget {
                                   children: [
                                     if (discountActive) ...[
                                       Text(
-                                        "${originalPrice.toStringAsFixed(2)}€",
+                                        "${discountedPrice.toStringAsFixed(2)}€",
                                         style: const TextStyle(
-                                          decoration:
-                                              TextDecoration.lineThrough,
-                                          color: Colors.grey,
                                           fontWeight: FontWeight.w700,
                                           fontSize: 16,
                                         ),
                                       ),
                                       const SizedBox(width: 6),
                                       Text(
-                                        "${discountedPrice.toStringAsFixed(2)}€",
-                                        style: const TextStyle(
+                                        "${originalPrice.toStringAsFixed(2)}€",
+                                        style: TextStyle(
+                                          decoration:
+                                              TextDecoration.lineThrough,
+                                          color: Colors.grey[500],
                                           fontWeight: FontWeight.w700,
                                           fontSize: 16,
                                         ),

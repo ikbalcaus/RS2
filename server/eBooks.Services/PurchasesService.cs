@@ -53,7 +53,7 @@ namespace eBooks.Services
             return query;
         }
 
-        public async Task<PagedResult<PurchasesRes>> GetAllByPublisherId(int publisherId)
+        public async Task<PagedResult<PurchasesRes>> GetAllByPublisherId(int publisherId, BaseSearch search)
         {
             var query = _db.Set<Purchase>().Where(x => x.UserId == publisherId || x.PublisherId == publisherId).AsQueryable();
             int count = await query.CountAsync();

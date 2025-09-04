@@ -67,6 +67,20 @@ class BooksProvider extends BaseProvider<Book> {
     return file;
   }
 
+  Future getRecommendedBooks(int id) async {
+    var uri = Uri.parse(
+      "${Globals.apiAddress}/recommender/$id/get-recommended-books",
+    );
+    var headers = createHeaders();
+    var response = await http.get(uri, headers: headers);
+    if (isValidResponse(response)) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.map((json) => Book.fromJson(json)).toList();
+    } else {
+      throw response.body;
+    }
+  }
+
   Future getBookStates() async {
     var uri = Uri.parse("${Globals.apiAddress}/books/book-states");
     var headers = createHeaders();

@@ -42,6 +42,7 @@ builder.Services.AddDbContext<EBooksContext>(options =>
 );
 builder.Services.AddSingleton<IBus>(_ => RabbitHutch.CreateBus("host=localhost;username=guest;password=guest"));
 builder.Services.AddScoped<AccessControlHandler>();
+builder.Services.AddScoped<IRecommenderService, RecommenderService>();
 builder.Services.AddAuthentication("BasicAuthentication").AddScheme<AuthenticationSchemeOptions, BasicAuthHandler>("BasicAuthentication", null);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHttpClient();
@@ -95,8 +96,11 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<EBooksContext>();
+    var recommenderService = scope.ServiceProvider.GetRequiredService<IRecommenderService>();
     DbSeeder.SeedRoles(context);
     DbSeeder.SeedLanguages(context);
+    if (System.IO.File.Exists(Path.Combine(AppContext.BaseDirectory, "ml-model.zip")))
+        await recommenderService.LoadModel();
 }
 
 if (app.Environment.IsDevelopment())

@@ -105,6 +105,19 @@ class BooksProvider extends BaseProvider<Book> {
     }
   }
 
+  Future setDiscount(int id, dynamic request) async {
+    var uri = Uri.parse("${Globals.apiAddress}/books/$id/set-discount");
+    var headers = createHeaders();
+    var jsonRequest = jsonEncode(request);
+    var response = await http.put(uri, headers: headers, body: jsonRequest);
+    if (isValidResponse(response)) {
+      var data = jsonDecode(response.body);
+      return fromJson(data);
+    } else {
+      throw response.body;
+    }
+  }
+
   Future awaitBook(int id) async {
     var uri = Uri.parse("${Globals.apiAddress}/books/$id/await");
     var headers = createHeaders();

@@ -233,9 +233,13 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
               : "Unhide Book"] = () async =>
               await _showHideBookDialog();
         }
+        if (AuthProvider.userId == _book!.publisher!.userId) {
+          _popupActions["Set Discount"] = () async =>
+              await _showSetDiscountDialog();
+        }
         _popupActions["Report Book"] = () async {
           AuthProvider.isLoggedIn
-              ? await _showReportBookDialog(widget.bookId)
+              ? await _showReportBookDialog()
               : Helpers.showErrorMessage(context, "You must be logged in");
         };
       });
@@ -399,7 +403,105 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
     );
   }
 
-  Future _showReportBookDialog(int bookId) async {
+  Future _showSetDiscountDialog() async {
+    final percentageController = TextEditingController();
+    DateTime? startDate;
+    DateTime? endDate;
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            Future pickDate(bool isStart) async {
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime(2020),
+                lastDate: DateTime(2100),
+              );
+              if (picked != null) {
+                setState(() => isStart ? startDate = picked : endDate = picked);
+              }
+            }
+
+            return AlertDialog(
+              title: const Text("Set Discount"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: percentageController,
+                    decoration: const InputDecoration(
+                      labelText: "Discount % (0-100)",
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                  Row(
+                    children: [
+                      Expanded(child: Text("Start: ")),
+                      TextButton(
+                        onPressed: () => pickDate(true),
+                        child: const Text("Pick"),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Expanded(child: Text("End: ")),
+                      TextButton(
+                        onPressed: () => pickDate(false),
+                        child: const Text("Pick"),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    final percentage = int.tryParse(percentageController.text);
+                    if (percentage != null &&
+                        percentage >= 0 &&
+                        percentage <= 100 &&
+                        startDate != null &&
+                        endDate != null &&
+                        endDate!.isAfter(startDate!)) {
+                      try {
+                        await _booksProvider.setDiscount(widget.bookId, {
+                          "discountPercentage": percentage,
+                          "discountStart": startDate!.toIso8601String(),
+                          "discountEnd": endDate!.toIso8601String(),
+                        });
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                          Helpers.showSuccessMessage(
+                            context,
+                            "Discount set successfully",
+                          );
+                        }
+                      } catch (ex) {
+                        Navigator.pop(context);
+                        Helpers.showErrorMessage(context, ex);
+                      }
+                    } else {
+                      Helpers.showErrorMessage(context, "Invalid input");
+                    }
+                  },
+                  child: const Text("Save"),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Cancel"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future _showReportBookDialog() async {
     String reason = "";
     await showDialog(
       context: context,
@@ -407,7 +509,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
         return AlertDialog(
           title: const Text("Confirm report"),
           content: TextField(
-            decoration: const InputDecoration(labelText: "Reason..."),
+            decoration: const InputDecoration(labelText: "Enter reason..."),
             onChanged: (value) => reason = value,
           ),
           actions: [
@@ -415,7 +517,9 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
               onPressed: () async {
                 if (reason.trim().isNotEmpty) {
                   try {
-                    await _reportsProvider.post({"reason": reason}, bookId);
+                    await _reportsProvider.post({
+                      "reason": reason,
+                    }, widget.bookId);
                     if (context.mounted) {
                       Navigator.pop(context);
                       Helpers.showSuccessMessage(

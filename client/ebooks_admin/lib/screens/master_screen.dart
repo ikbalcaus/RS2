@@ -3,6 +3,7 @@ import "package:ebooks_admin/screens/books_screen.dart";
 import "package:ebooks_admin/screens/genres_screen.dart";
 import "package:ebooks_admin/screens/languages_screen.dart";
 import "package:ebooks_admin/screens/login_screen.dart";
+import "package:ebooks_admin/screens/overview_screen.dart";
 import "package:ebooks_admin/screens/purchases_screen.dart";
 import "package:ebooks_admin/screens/questions_screen.dart";
 import "package:ebooks_admin/screens/reports_screen.dart";
@@ -76,6 +77,19 @@ class MasterScreen extends StatelessWidget {
                 style: TextStyle(color: Globals.color, fontSize: 24),
               ),
             ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.dashboard),
+            title: const Text("Overview"),
+            onTap: () {
+              Navigator.pop(context);
+              Future.delayed(Duration(milliseconds: 250), () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => OverviewScreen()),
+                );
+              });
+            },
           ),
           ListTile(
             leading: const Icon(Icons.book),

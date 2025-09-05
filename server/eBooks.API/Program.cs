@@ -55,6 +55,7 @@ builder.Services.AddTransient<IBooksService, BooksService>();
 builder.Services.AddTransient<IGenresService, GenresService>();
 builder.Services.AddTransient<ILanguagesService, LanguagesService>();
 builder.Services.AddTransient<INotificationsService, NotificationsService>();
+builder.Services.AddTransient<IOverviewService, OverviewService>();
 builder.Services.AddTransient<IPublisherFollowsService, PublisherFollowsService>();
 builder.Services.AddTransient<IPurchasesService, PurchasesService>();
 builder.Services.AddTransient<IQuestionsService, QuestionsService>();

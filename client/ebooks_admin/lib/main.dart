@@ -4,14 +4,15 @@ import "package:ebooks_admin/providers/authors_provider.dart";
 import "package:ebooks_admin/providers/books_provider.dart";
 import "package:ebooks_admin/providers/genres_provider.dart";
 import "package:ebooks_admin/providers/languages_provider.dart";
+import "package:ebooks_admin/providers/overview_provider.dart";
 import "package:ebooks_admin/providers/purchases_provider.dart";
 import "package:ebooks_admin/providers/questions_provider.dart";
 import "package:ebooks_admin/providers/reports_provider.dart";
 import "package:ebooks_admin/providers/reviews_provider.dart";
 import "package:ebooks_admin/providers/roles_provider.dart";
 import "package:ebooks_admin/providers/users_provider.dart";
-import "package:ebooks_admin/screens/books_screen.dart";
 import "package:ebooks_admin/screens/login_screen.dart";
+import "package:ebooks_admin/screens/overview_screen.dart";
 import "package:ebooks_admin/utils/globals.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
@@ -33,6 +34,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => BooksProvider()),
         ChangeNotifierProvider(create: (_) => GenresProvider()),
         ChangeNotifierProvider(create: (_) => LanguagesProvider()),
+        ChangeNotifierProvider(create: (_) => OverviewProvider()),
         ChangeNotifierProvider(create: (_) => PurchasesProvider()),
         ChangeNotifierProvider(create: (_) => QuestionsProvider()),
         ChangeNotifierProvider(create: (_) => ReportsProvider()),
@@ -66,7 +68,7 @@ class MyApp extends StatelessWidget {
             ),
           ),
           home: authProvider.isLoggedIn
-              ? const BooksScreen()
+              ? const OverviewScreen()
               : const LoginScreen(),
           debugShowCheckedModeBanner: false,
         );

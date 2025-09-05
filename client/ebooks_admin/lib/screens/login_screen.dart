@@ -1,11 +1,11 @@
 import "dart:convert";
 import "dart:io";
+import "package:ebooks_admin/screens/overview_screen.dart";
 import "package:ebooks_admin/utils/globals.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 import "package:ebooks_admin/providers/auth_provider.dart";
 import "package:ebooks_admin/screens/master_screen.dart";
-import "books_screen.dart";
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -33,7 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (mounted) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const BooksScreen()),
+            MaterialPageRoute(builder: (context) => const OverviewScreen()),
           );
         }
       } else if (response.statusCode == 403) {

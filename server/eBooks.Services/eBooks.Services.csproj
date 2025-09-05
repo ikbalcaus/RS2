@@ -20,7 +20,7 @@
     <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.6" />
     <PackageReference Include="Microsoft.ML" Version="4.0.2" />
     <PackageReference Include="Microsoft.ML.Recommender" Version="0.22.2" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.8" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
     <PackageReference Include="Stripe.net" Version="48.1.0" />
   </ItemGroup>
 

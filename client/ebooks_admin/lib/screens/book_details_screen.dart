@@ -586,6 +586,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                           );
                         },
                         style: OutlinedButton.styleFrom(
+                          backgroundColor: Globals.backgroundColor,
                           shape: const RoundedRectangleBorder(
                             borderRadius: BorderRadius.all(
                               Radius.circular(Globals.BorderRadius),
@@ -595,10 +596,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                         ),
                         child: const Text(
                           "Book Summary",
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Globals.backgroundColor,
-                          ),
+                          style: TextStyle(fontSize: 16, color: Globals.color),
                         ),
                       ),
                     ),

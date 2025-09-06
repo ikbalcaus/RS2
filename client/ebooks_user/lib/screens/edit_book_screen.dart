@@ -20,6 +20,7 @@ import "package:flutter/services.dart";
 import "package:image_picker/image_picker.dart";
 import "package:provider/provider.dart";
 import "package:reorderables/reorderables.dart";
+import 'package:easy_localization/easy_localization.dart';
 
 class EditBookScreen extends StatefulWidget {
   final int? bookId;
@@ -163,7 +164,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return AlertDialog(
-              title: const Text("Select Authors"),
+              title: Text("Select Authors".tr()),
               content: SizedBox(
                 width: double.maxFinite,
                 child: Column(
@@ -174,8 +175,8 @@ class _EditBookScreenState extends State<EditBookScreen> {
                         Expanded(
                           child: TextField(
                             controller: newAuthorController,
-                            decoration: const InputDecoration(
-                              hintText: "Type author name",
+                            decoration: InputDecoration(
+                              hintText: "Type author name".tr(),
                             ),
                             onChanged: (value) {
                               setStateDialog(() {
@@ -213,7 +214,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
                     SizedBox(
                       height: 200,
                       child: filteredAuthors.isEmpty
-                          ? const Center(child: Text("No authors found"))
+                          ? Center(child: Text("No authors found".tr()))
                           : ListView.builder(
                               itemCount: filteredAuthors.length,
                               itemBuilder: (context, index) {
@@ -266,7 +267,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text("Done"),
+                  child: Text("Done".tr()),
                 ),
               ],
             );
@@ -296,7 +297,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return AlertDialog(
-              title: const Text("Select Genres"),
+              title: Text("Select Genres".tr()),
               content: SizedBox(
                 width: double.maxFinite,
                 child: Column(
@@ -307,8 +308,8 @@ class _EditBookScreenState extends State<EditBookScreen> {
                         Expanded(
                           child: TextField(
                             controller: newGenreController,
-                            decoration: const InputDecoration(
-                              hintText: "Type genre",
+                            decoration: InputDecoration(
+                              hintText: "Type genre".tr(),
                             ),
                             onChanged: (value) {
                               setStateDialog(() {
@@ -346,7 +347,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
                     SizedBox(
                       height: 200,
                       child: filteredGenres.isEmpty
-                          ? const Center(child: Text("No genres found"))
+                          ? Center(child: Text("No genres found".tr()))
                           : ListView.builder(
                               itemCount: filteredGenres.length,
                               itemBuilder: (context, index) {
@@ -399,7 +400,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text("Done"),
+                  child: Text("Done".tr()),
                 ),
               ],
             );
@@ -427,7 +428,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             return AlertDialog(
-              title: const Text("Select Language"),
+              title: Text("Select Language".tr()),
               content: SizedBox(
                 width: double.maxFinite,
                 child: Column(
@@ -438,8 +439,8 @@ class _EditBookScreenState extends State<EditBookScreen> {
                         Expanded(
                           child: TextField(
                             controller: newLanguageController,
-                            decoration: const InputDecoration(
-                              hintText: "Type language name",
+                            decoration: InputDecoration(
+                              hintText: "Type language name".tr(),
                             ),
                             onChanged: (value) {
                               setStateDialog(() {
@@ -461,11 +462,9 @@ class _EditBookScreenState extends State<EditBookScreen> {
                                   orElse: () =>
                                       Language(languageId: -1, name: input),
                                 );
-
                             setState(() {
                               _selectedLanguage = existing;
                             });
-
                             Navigator.pop(context);
                           },
                         ),
@@ -475,7 +474,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
                     SizedBox(
                       height: 200,
                       child: filteredLanguages.isEmpty
-                          ? const Center(child: Text("No languages found"))
+                          ? Center(child: Text("No languages found".tr()))
                           : ListView.builder(
                               itemCount: filteredLanguages.length,
                               itemBuilder: (context, index) {
@@ -552,7 +551,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
     try {
       await _booksProvider.editBook(widget.bookId, request);
       if (mounted) {
-        Helpers.showSuccessMessage(context, "Book updated successfully");
+        Helpers.showSuccessMessage(context, "Book updated successfully".tr());
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (_) => const ProfileScreen()),
@@ -571,7 +570,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
       } catch (_) {
         setState(() {
           _fieldErrors = {
-            "general": ["An error occurred. Please try again."],
+            "general": ["An error occurred. Please try again".tr()],
           };
         });
       }
@@ -628,7 +627,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
             TextFormField(
               controller: _titleController,
               decoration: InputDecoration(
-                labelText: "Title",
+                labelText: "Title".tr(),
                 errorText: _fieldErrors["Title"]?.first,
               ),
             ),
@@ -637,7 +636,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
               controller: _descriptionController,
               maxLines: 4,
               decoration: InputDecoration(
-                labelText: "Description",
+                labelText: "Description".tr(),
                 errorText: _fieldErrors["Description"]?.first,
               ),
             ),
@@ -647,7 +646,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               decoration: InputDecoration(
-                labelText: "Price (€)",
+                labelText: "Price (€)".tr(),
                 errorText: _fieldErrors["Price"]?.first,
               ),
             ),
@@ -657,7 +656,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               decoration: InputDecoration(
-                labelText: "Number of Pages",
+                labelText: "Number of Pages".tr(),
                 errorText: _fieldErrors["NumberOfPages"]?.first,
               ),
             ),
@@ -665,10 +664,10 @@ class _EditBookScreenState extends State<EditBookScreen> {
             InkWell(
               onTap: () => _showAuthorsDialog(),
               child: InputDecorator(
-                decoration: InputDecoration(labelText: "Authors"),
+                decoration: InputDecoration(labelText: "Authors".tr()),
                 child: Text(
                   _selectedAuthors.isEmpty
-                      ? "No authors selected"
+                      ? "No authors selected".tr()
                       : _selectedAuthors
                             .map((author) => author.name)
                             .join(", "),
@@ -679,10 +678,10 @@ class _EditBookScreenState extends State<EditBookScreen> {
             InkWell(
               onTap: () => _showGenresDialog(),
               child: InputDecorator(
-                decoration: InputDecoration(labelText: "Genres"),
+                decoration: InputDecoration(labelText: "Genres".tr()),
                 child: Text(
                   _selectedGenres.isEmpty
-                      ? "No genres selected"
+                      ? "No genres selected".tr()
                       : _selectedGenres.map((genre) => genre.name).join(", "),
                 ),
               ),
@@ -691,13 +690,13 @@ class _EditBookScreenState extends State<EditBookScreen> {
             InkWell(
               onTap: _showLanguageDialog,
               child: InputDecorator(
-                decoration: const InputDecoration(labelText: "Language"),
+                decoration: InputDecoration(labelText: "Language".tr()),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
                       child: Text(
-                        _selectedLanguage?.name ?? "No language selected",
+                        _selectedLanguage?.name ?? "No language selected".tr(),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -726,8 +725,8 @@ class _EditBookScreenState extends State<EditBookScreen> {
                 icon: const Icon(Icons.picture_as_pdf_outlined),
                 label: Text(
                   _bookPdfFile != null
-                      ? "Book PDF selected"
-                      : "Select Book PDF",
+                      ? "Book PDF selected".tr()
+                      : "Select Book PDF".tr(),
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -754,8 +753,8 @@ class _EditBookScreenState extends State<EditBookScreen> {
                 icon: const Icon(Icons.picture_as_pdf_outlined),
                 label: Text(
                   _summaryPdfFile != null
-                      ? "Summary PDF selected"
-                      : "Select Summary PDF",
+                      ? "Summary PDF selected".tr()
+                      : "Select Summary PDF".tr(),
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -791,9 +790,9 @@ class _EditBookScreenState extends State<EditBookScreen> {
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                child: const Text(
-                  "Save Changes",
-                  style: TextStyle(
+                child: Text(
+                  "Save Changes".tr(),
+                  style: const TextStyle(
                     fontSize: 16,
                     color: Colors.white,
                     fontWeight: FontWeight.w600,

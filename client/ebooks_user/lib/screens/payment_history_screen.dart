@@ -8,6 +8,7 @@ import "package:ebooks_user/widgets/not_logged_in_view.dart";
 import "package:flutter/material.dart";
 import "package:ebooks_user/providers/auth_provider.dart";
 import "package:provider/provider.dart";
+import 'package:easy_localization/easy_localization.dart';
 
 class PaymentHistoryScreen extends StatefulWidget {
   final int publisherId;
@@ -61,11 +62,11 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     } else if (_isLoading && (_purchases?.resultList.isEmpty ?? true)) {
       content = const Center(child: CircularProgressIndicator());
     } else if (_purchases?.count == 0) {
-      content = const Center(child: Text("Your payment history is empty"));
+      content = Center(child: Text("Your payment history is empty".tr()));
     } else {
       content = _buildResultView();
     }
-    return MasterScreen(child: content);
+    return MasterScreen(showBackButton: true, child: content);
   }
 
   Future _fetchPurchases({bool append = false}) async {
@@ -82,7 +83,6 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
         }
       });
 
-      // Provjera ako lista nije dovoljno duga da popuni ekran
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         if (!_scrollController.hasClients) return;

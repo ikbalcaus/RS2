@@ -9,6 +9,7 @@ import "package:ebooks_user/widgets/not_logged_in_view.dart";
 import "package:flutter/material.dart";
 import "package:ebooks_user/providers/auth_provider.dart";
 import "package:provider/provider.dart";
+import 'package:easy_localization/easy_localization.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -104,7 +105,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     } else if (_isLoading && (_notifications?.resultList.isEmpty ?? true)) {
       content = const Center(child: CircularProgressIndicator());
     } else if (_notifications?.count == 0) {
-      content = const Center(child: Text("You don't have any notifications"));
+      content = Center(child: Text("You don't have any notifications".tr()));
     } else {
       content = _buildResultView();
     }

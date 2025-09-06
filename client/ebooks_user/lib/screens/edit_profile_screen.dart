@@ -12,6 +12,7 @@ import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:image_picker/image_picker.dart";
 import "package:provider/provider.dart";
+import 'package:easy_localization/easy_localization.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -74,9 +75,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     File? selectedFile;
     if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
       final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
-      if (picked != null) {
-        selectedFile = File(picked.path);
-      }
+      if (picked != null) selectedFile = File(picked.path);
     } else {
       final result = await FilePicker.platform.pickFiles(type: FileType.image);
       if (result != null && result.files.single.path != null) {
@@ -84,9 +83,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       }
     }
     if (selectedFile != null) {
-      setState(() {
-        _imageFile = selectedFile;
-      });
+      setState(() => _imageFile = selectedFile);
     }
   }
 
@@ -95,7 +92,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (_newPasswordController.text.isNotEmpty &&
         _newPasswordController.text != _confirmPasswordController.text) {
       setState(() {
-        _fieldErrors["ConfirmPassword"] = ["Passwords do not match"];
+        _fieldErrors["ConfirmPassword"] = ["Passwords do not match".tr()];
       });
       return;
     }
@@ -109,13 +106,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         "newPassword": _newPasswordController.text,
       });
     }
-    if (_imageFile != null) {
-      request["imageFile"] = _imageFile!;
-    }
+    if (_imageFile != null) request["imageFile"] = _imageFile!;
     try {
       await _usersProvider.editUser(AuthProvider.userId ?? 0, request);
       if (mounted) {
-        Helpers.showSuccessMessage(context, "Profile edited successfully");
+        Helpers.showSuccessMessage(context, "Profile edited successfully".tr());
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (_) => const ProfileScreen()),
@@ -135,7 +130,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       } catch (ex) {
         setState(() {
           _fieldErrors = {
-            "general": ["An error occurred. Please try again."],
+            "general": ["An error occurred. Please try again".tr()],
           };
         });
       }
@@ -178,13 +173,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             key: _formKey,
             child: Column(
               children: [
-                const Text(
-                  "Edit Profile",
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
+                Text(
+                  "Edit Profile".tr(),
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 GestureDetector(
-                  onTap: () async => await _pickImage(),
+                  onTap: _pickImage,
                   child: CircleAvatar(
                     radius: 50,
                     backgroundColor: Colors.grey[200],
@@ -220,7 +218,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       child: TextFormField(
                         controller: _firstNameController,
                         decoration: InputDecoration(
-                          labelText: "First Name",
+                          labelText: "First Name".tr(),
                           errorText: _fieldErrors["FirstName"]?.first,
                         ),
                       ),
@@ -230,7 +228,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       child: TextFormField(
                         controller: _lastNameController,
                         decoration: InputDecoration(
-                          labelText: "Last Name",
+                          labelText: "Last Name".tr(),
                           errorText: _fieldErrors["LastName"]?.first,
                         ),
                       ),
@@ -241,7 +239,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 TextFormField(
                   controller: _oldPasswordController,
                   decoration: InputDecoration(
-                    labelText: "Old Password",
+                    labelText: "Old Password".tr(),
                     errorText: _fieldErrors["OldPassword"]?.first,
                   ),
                   obscureText: true,
@@ -250,7 +248,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 TextFormField(
                   controller: _newPasswordController,
                   decoration: InputDecoration(
-                    labelText: "New Password",
+                    labelText: "New Password".tr(),
                     errorText: _fieldErrors["NewPassword"]?.first,
                   ),
                   obscureText: true,
@@ -259,7 +257,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 TextFormField(
                   controller: _confirmPasswordController,
                   decoration: InputDecoration(
-                    labelText: "Confirm New Password",
+                    labelText: "Confirm New Password".tr(),
                     errorText: _fieldErrors["ConfirmPassword"]?.first,
                   ),
                   obscureText: true,
@@ -291,7 +289,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () async => await _saveChanges(),
+                    onPressed: _saveChanges,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Globals.backgroundColor,
                       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -299,9 +297,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
-                    child: const Text(
-                      "Save Changes",
-                      style: TextStyle(
+                    child: Text(
+                      "Save Changes".tr(),
+                      style: const TextStyle(
                         fontSize: 16,
                         color: Colors.white,
                         fontWeight: FontWeight.w600,

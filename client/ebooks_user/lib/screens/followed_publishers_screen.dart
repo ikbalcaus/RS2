@@ -10,6 +10,7 @@ import "package:ebooks_user/utils/helpers.dart";
 import "package:ebooks_user/widgets/book_card_view.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
+import 'package:easy_localization/easy_localization.dart';
 
 class FollowedPublishersScreen extends StatefulWidget {
   const FollowedPublishersScreen({super.key});
@@ -76,7 +77,7 @@ class _FollowedPublishersState extends State<FollowedPublishersScreen> {
     if (_isLoading) {
       content = const Center(child: CircularProgressIndicator());
     } else if (_publishers?.count == 0) {
-      content = const Center(child: Text("You don't follow any publisher"));
+      content = Center(child: Text("You don't follow any publisher".tr()));
     } else {
       content = _buildResultView();
     }
@@ -229,14 +230,15 @@ class _FollowedPublishersState extends State<FollowedPublishersScreen> {
               return BookCardView(
                 book: books[index],
                 popupActions: {
-                  "Unfollow Publisher": () async {
+                  "Unfollow Publisher".tr(): () async {
                     try {
                       await _publisherFollowsProvider.delete(
                         books[index].publisher!.userId!,
                       );
                       Helpers.showSuccessMessage(
                         context,
-                        "You are now not following ${books[index].publisher?.userName}",
+                        "You are now not following ${books[index].publisher?.userName}"
+                            .tr(),
                       );
                       _fetchPublishers();
                       _fetchBooks();

@@ -3,6 +3,7 @@ import "package:ebooks_user/screens/book_details_screen.dart";
 import "package:ebooks_user/screens/publisher_screen.dart";
 import "package:ebooks_user/utils/globals.dart";
 import "package:flutter/material.dart";
+import "package:easy_localization/easy_localization.dart";
 
 class BookCardView extends StatelessWidget {
   final Book book;
@@ -66,7 +67,9 @@ class BookCardView extends StatelessWidget {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    "${book.numberOfViews} views • ${book.modifiedAt?.day}.${book.modifiedAt?.month}.${book.modifiedAt?.year}",
+                                    "${book.numberOfViews} " +
+                                        "views".tr() +
+                                        " • ${book.modifiedAt?.day}.${book.modifiedAt?.month}.${book.modifiedAt?.year}",
                                     style: const TextStyle(fontSize: 12),
                                   ),
                                 ],

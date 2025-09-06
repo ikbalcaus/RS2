@@ -1,4 +1,5 @@
 import "dart:ui";
+import "package:easy_localization/easy_localization.dart";
 import "package:ebooks_user/models/books/book.dart";
 import "package:ebooks_user/models/search_result.dart";
 import "package:ebooks_user/models/users/user.dart";
@@ -121,12 +122,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text("Verify email"),
+          title: Text("Verify email".tr()),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
-                decoration: const InputDecoration(labelText: "Enter token..."),
+                decoration: InputDecoration(labelText: "Enter token...".tr()),
                 onChanged: (value) => token = value,
               ),
               const SizedBox(height: 6),
@@ -136,13 +137,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     await _usersProvider.verifyEmail(_user!.userId!, null);
                     Helpers.showSuccessMessage(
                       context,
-                      "Verification email has been sent",
+                      "Verification email has been sent".tr(),
                     );
                   } catch (ex) {
                     Helpers.showErrorMessage(context, ex);
                   }
                 },
-                child: const Text("Send Verification Email"),
+                child: Text("Send Verification Email".tr()),
               ),
             ],
           ),
@@ -162,11 +163,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   }
                 }
               },
-              child: const Text("Verify"),
+              child: Text("Verify".tr()),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel"),
+              child: Text("Cancel".tr()),
             ),
           ],
         );
@@ -183,7 +184,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       } else {
         Helpers.showErrorMessage(
           context,
-          "Cannot opet an URL: ${uri.toString()}",
+          "Cannot open an URL: ${uri.toString()}".tr(),
         );
       }
     } catch (ex) {
@@ -196,12 +197,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Choose Theme"),
+        title: Text("Choose Theme".tr()),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             RadioListTile(
-              title: const Text("Light"),
+              title: Text("Light".tr()),
               value: ThemeMode.light,
               groupValue: themeProvider.themeMode,
               onChanged: (value) {
@@ -210,7 +211,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               },
             ),
             RadioListTile(
-              title: const Text("Dark"),
+              title: Text("Dark".tr()),
               value: ThemeMode.dark,
               groupValue: themeProvider.themeMode,
               onChanged: (value) {
@@ -219,11 +220,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
               },
             ),
             RadioListTile(
-              title: const Text("System"),
+              title: Text("System".tr()),
               value: ThemeMode.system,
               groupValue: themeProvider.themeMode,
               onChanged: (value) {
                 themeProvider.setThemeMode(value!);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showSelectLanguageDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Select Language".tr()),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            RadioListTile<Locale>(
+              title: Text("English".tr()),
+              value: const Locale('en'),
+              groupValue: context.locale,
+              onChanged: (locale) {
+                context.setLocale(locale!);
+                Navigator.of(context).pop();
+              },
+            ),
+            RadioListTile<Locale>(
+              title: Text("Bosnian".tr()),
+              value: const Locale('bs'),
+              groupValue: context.locale,
+              onChanged: (locale) {
+                context.setLocale(locale!);
                 Navigator.of(context).pop();
               },
             ),
@@ -238,8 +271,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Logout"),
-        content: const Text("Are you sure you want to logout?"),
+        title: Text("Logout".tr()),
+        content: Text("Are you sure you want to logout?".tr()),
         actions: [
           TextButton(
             onPressed: () {
@@ -252,11 +285,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 (_) => false,
               );
             },
-            child: const Text("Logout"),
+            child: Text("Logout".tr()),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
+            child: Text("Cancel".tr()),
           ),
         ],
       ),
@@ -329,9 +362,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  "My Books",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                Text(
+                  "My Books".tr(),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 SizedBox(
@@ -409,7 +445,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const Divider(),
               ListTile(
                 leading: const Icon(Icons.account_circle),
-                title: const Text("Edit Profile"),
+                title: Text("Edit Profile".tr()),
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -420,12 +456,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               if (_user?.isEmailVerified == false)
                 ListTile(
                   leading: const Icon(Icons.email),
-                  title: const Text("Verify Email"),
+                  title: Text("Verify Email".tr()),
                   onTap: () async => await _verifyEmailDialog(),
                 ),
               ListTile(
                 leading: const Icon(Icons.book),
-                title: const Text("Add New Book"),
+                title: Text("Add New Book".tr()),
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -435,7 +471,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               ListTile(
                 leading: const Icon(Icons.favorite),
-                title: const Text("Wishlist"),
+                title: Text("Wishlist".tr()),
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -445,7 +481,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               ListTile(
                 leading: const Icon(Icons.bookmark),
-                title: const Text("Followed Publishers"),
+                title: Text("Followed Publishers".tr()),
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -456,18 +492,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const Divider(),
               ListTile(
                 leading: const Icon(Icons.account_balance_wallet),
-                title: const Text("Stripe Account"),
+                title: Text("Stripe Account".tr()),
                 trailing: Icon(Icons.chevron_right_rounded),
                 onTap: () async => await _openStripeAccount(),
               ),
               ListTile(
                 leading: const Icon(Icons.color_lens),
-                title: const Text("Change Theme"),
+                title: Text("Change Theme".tr()),
                 onTap: () => _showSelectModeDialog(),
               ),
               ListTile(
+                leading: const Icon(Icons.language),
+                title: Text("Change Language".tr()),
+                onTap: () => _showSelectLanguageDialog(),
+              ),
+              ListTile(
                 leading: const Icon(Icons.payment),
-                title: const Text("Payment History"),
+                title: Text("Payment History".tr()),
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -478,7 +519,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               ListTile(
                 leading: const Icon(Icons.question_mark),
-                title: const Text("Help and Support"),
+                title: Text("Help and Support".tr()),
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const FaqScreen()),
@@ -487,7 +528,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const Divider(),
               ListTile(
                 leading: const Icon(Icons.logout),
-                title: const Text("Logout"),
+                title: Text("Logout".tr()),
                 onTap: () async => await _showLogoutDialog(),
               ),
             ],

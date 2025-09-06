@@ -12,6 +12,7 @@ import "package:ebooks_user/widgets/not_logged_in_view.dart";
 import "package:flutter/material.dart";
 import "package:path_provider/path_provider.dart";
 import "package:provider/provider.dart";
+import 'package:easy_localization/easy_localization.dart';
 
 class LibraryScreen extends StatefulWidget {
   const LibraryScreen({super.key});
@@ -63,8 +64,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
     } else if (_isLoading) {
       content = const Center(child: CircularProgressIndicator());
     } else if (_accessRights?.count == 0) {
-      content = const Center(
-        child: Text("You don't have any books in your library"),
+      content = Center(
+        child: Text("You don't have any books in your library".tr()),
       );
     } else {
       content = _buildResultView();
@@ -103,7 +104,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
       final filePath = "${dir.path}/$fileName.pdf";
       final file = File(filePath);
       if (!await file.exists()) {
-        Helpers.showSuccessMessage(context, "Book is downloading...");
+        Helpers.showSuccessMessage(context, "Book is downloading...".tr());
         await _booksProvider.getBookFile(bookId, filePath);
       }
       Navigator.push(

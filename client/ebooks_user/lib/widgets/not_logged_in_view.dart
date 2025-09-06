@@ -1,6 +1,7 @@
 import "package:ebooks_user/utils/globals.dart";
 import "package:flutter/material.dart";
 import "package:ebooks_user/screens/profile_screen.dart";
+import "package:easy_localization/easy_localization.dart";
 
 class NotLoggedInView extends StatelessWidget {
   const NotLoggedInView({super.key});
@@ -10,7 +11,7 @@ class NotLoggedInView extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Text("You are not logged in", style: TextStyle(fontSize: 18)),
+        Text("You are not logged in".tr(), style: TextStyle(fontSize: 18)),
         const SizedBox(height: 12),
         ElevatedButton(
           onPressed: () {
@@ -20,7 +21,7 @@ class NotLoggedInView extends StatelessWidget {
               MaterialPageRoute(builder: (_) => const ProfileScreen()),
             );
           },
-          child: const Text("Log in"),
+          child: Text("Log in".tr()),
         ),
       ],
     );

@@ -24,6 +24,7 @@ import "package:flutter/material.dart";
 import "package:path_provider/path_provider.dart";
 import "package:provider/provider.dart";
 import "package:url_launcher/url_launcher.dart";
+import 'package:easy_localization/easy_localization.dart';
 
 class BookDetailsScreen extends StatefulWidget {
   final int bookId;
@@ -178,20 +179,26 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
           ..clear()
           ..addAll(allowedActions);
         _popupActions.clear();
-        _popupActions["Add to Wishlist"] = () async {
+        _popupActions["Add to Wishlist".tr()] = () async {
           try {
             await _wishlistProvider.post(null, _book?.bookId);
-            Helpers.showSuccessMessage(context, "Book is added to wishlist");
+            Helpers.showSuccessMessage(
+              context,
+              "Book is added to wishlist".tr(),
+            );
           } catch (ex) {
             AuthProvider.isLoggedIn
                 ? Helpers.showErrorMessage(
                     context,
-                    "Book is already in your wishlist",
+                    "Book is already in your wishlist".tr(),
                   )
-                : Helpers.showErrorMessage(context, "You must be logged in");
+                : Helpers.showErrorMessage(
+                    context,
+                    "You must be logged in".tr(),
+                  );
           }
         };
-        _popupActions["Follow Publisher"] = () async {
+        _popupActions["Follow Publisher".tr()] = () async {
           try {
             await _publisherFollowsProvider.post(
               null,
@@ -199,24 +206,27 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
             );
             Helpers.showSuccessMessage(
               context,
-              "You are now following ${_book?.publisher?.userName}",
+              "You are now following ${_book?.publisher?.userName}".tr(),
             );
           } catch (ex) {
             AuthProvider.isLoggedIn
                 ? Helpers.showErrorMessage(
                     context,
-                    "You already follow ${_book?.publisher?.userName}",
+                    "You already follow ${_book?.publisher?.userName}".tr(),
                   )
-                : Helpers.showErrorMessage(context, "You must be logged in");
+                : Helpers.showErrorMessage(
+                    context,
+                    "You must be logged in".tr(),
+                  );
           }
         };
         if (_accessRight != null &&
             _book?.publisher?.userId != AuthProvider.userId) {
-          _popupActions["Review Book"] = () async =>
+          _popupActions["Review Book".tr()] = () async =>
               await _showReviewBookDialog();
         }
         if (_allowedActions.contains("Update")) {
-          _popupActions["Edit Book"] = () async => Navigator.push(
+          _popupActions["Edit Book".tr()] = () async => Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => EditBookScreen(bookId: _book!.bookId!),
@@ -224,23 +234,23 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
           );
         }
         if (_allowedActions.contains("Await")) {
-          _popupActions["Publish Book"] = () async =>
+          _popupActions["Publish Book".tr()] = () async =>
               await _showAwaitBookDialog();
         }
         if (_allowedActions.contains("Hide")) {
           _popupActions[_book?.status == "Approved"
-              ? "Hide Book"
-              : "Unhide Book"] = () async =>
+              ? "Hide Book".tr()
+              : "Unhide Book".tr()] = () async =>
               await _showHideBookDialog();
         }
         if (AuthProvider.userId == _book!.publisher!.userId) {
-          _popupActions["Set Discount"] = () async =>
+          _popupActions["Set Discount".tr()] = () async =>
               await _showSetDiscountDialog();
         }
-        _popupActions["Report Book"] = () async {
+        _popupActions["Report Book".tr()] = () async {
           AuthProvider.isLoggedIn
               ? await _showReportBookDialog()
-              : Helpers.showErrorMessage(context, "You must be logged in");
+              : Helpers.showErrorMessage(context, "You must be logged in".tr());
         };
       });
     } catch (ex) {
@@ -255,7 +265,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
       final filePath = "${dir.path}/$fileName.pdf";
       final file = File(filePath);
       if (!await file.exists()) {
-        Helpers.showSuccessMessage(context, "Book is downloading...");
+        Helpers.showSuccessMessage(context, "Book is downloading...".tr());
         await _booksProvider.getBookFile(bookId, filePath);
       }
       Navigator.push(
@@ -281,7 +291,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
       } else {
         Helpers.showErrorMessage(
           context,
-          "Cannot opet an URL: ${uri.toString()}",
+          "Cannot open an URL: ${uri.toString()}".tr(),
         );
       }
     } catch (ex) {
@@ -298,7 +308,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: const Text("Confirm review"),
+              title: const Text("Confirm review").tr(),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -315,7 +325,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                     }),
                   ),
                   TextField(
-                    decoration: const InputDecoration(labelText: "Comment..."),
+                    decoration: InputDecoration(labelText: "Comment...".tr()),
                     onChanged: (value) => comment = value,
                   ),
                 ],
@@ -345,7 +355,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                           Navigator.pop(context);
                           Helpers.showSuccessMessage(
                             context,
-                            "Book reviewed successfully",
+                            "Book reviewed successfully".tr(),
                           );
                         }
                       } catch (ex) {
@@ -354,11 +364,11 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                       }
                     }
                   },
-                  child: const Text("Submit"),
+                  child: const Text("Submit").tr(),
                 ),
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text("Cancel"),
+                  child: const Text("Cancel").tr(),
                 ),
               ],
             );
@@ -372,8 +382,8 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Delete review"),
-        content: const Text("Are you sure you want to delete review?"),
+        title: const Text("Delete review").tr(),
+        content: const Text("Are you sure you want to delete review?").tr(),
         actions: [
           TextButton(
             onPressed: () async {
@@ -384,7 +394,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                   Navigator.pop(context);
                   Helpers.showSuccessMessage(
                     context,
-                    "Successfully deleted review",
+                    "Successfully deleted review".tr(),
                   );
                 }
               } catch (ex) {
@@ -392,11 +402,11 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                 Helpers.showErrorMessage(context, ex);
               }
             },
-            child: const Text("Delete"),
+            child: const Text("Delete").tr(),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
+            child: const Text("Cancel").tr(),
           ),
         ],
       ),
@@ -425,32 +435,32 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
             }
 
             return AlertDialog(
-              title: const Text("Set Discount"),
+              title: const Text("Set Discount").tr(),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
                     controller: percentageController,
-                    decoration: const InputDecoration(
-                      labelText: "Discount % (0-100)",
+                    decoration: InputDecoration(
+                      labelText: "Discount % (0-100)".tr(),
                     ),
                     keyboardType: TextInputType.number,
                   ),
                   Row(
                     children: [
-                      Expanded(child: Text("Start: ")),
+                      Expanded(child: Text("Start: ").tr()),
                       TextButton(
                         onPressed: () => pickDate(true),
-                        child: const Text("Pick"),
+                        child: const Text("Pick").tr(),
                       ),
                     ],
                   ),
                   Row(
                     children: [
-                      Expanded(child: Text("End: ")),
+                      Expanded(child: Text("End: ").tr()),
                       TextButton(
                         onPressed: () => pickDate(false),
-                        child: const Text("Pick"),
+                        child: const Text("Pick").tr(),
                       ),
                     ],
                   ),
@@ -476,7 +486,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                           Navigator.pop(context);
                           Helpers.showSuccessMessage(
                             context,
-                            "Discount set successfully",
+                            "Discount set successfully".tr(),
                           );
                         }
                       } catch (ex) {
@@ -484,14 +494,14 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                         Helpers.showErrorMessage(context, ex);
                       }
                     } else {
-                      Helpers.showErrorMessage(context, "Invalid input");
+                      Helpers.showErrorMessage(context, "Invalid input".tr());
                     }
                   },
-                  child: const Text("Save"),
+                  child: const Text("Save").tr(),
                 ),
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text("Cancel"),
+                  child: const Text("Cancel").tr(),
                 ),
               ],
             );
@@ -507,9 +517,9 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text("Confirm report"),
+          title: const Text("Confirm report").tr(),
           content: TextField(
-            decoration: const InputDecoration(labelText: "Enter reason..."),
+            decoration: InputDecoration(labelText: "Enter reason...".tr()),
             onChanged: (value) => reason = value,
           ),
           actions: [
@@ -524,23 +534,23 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                       Navigator.pop(context);
                       Helpers.showSuccessMessage(
                         context,
-                        "Successfully reported book",
+                        "Successfully reported book".tr(),
                       );
                     }
                   } catch (ex) {
                     Navigator.pop(context);
                     Helpers.showErrorMessage(
                       context,
-                      "You already reported this book",
+                      "You already reported this book".tr(),
                     );
                   }
                 }
               },
-              child: const Text("Report"),
+              child: const Text("Report").tr(),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel"),
+              child: const Text("Cancel").tr(),
             ),
           ],
         );
@@ -554,9 +564,9 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text("Confirm report"),
+          title: const Text("Confirm report").tr(),
           content: TextField(
-            decoration: const InputDecoration(labelText: "Reason..."),
+            decoration: InputDecoration(labelText: "Reason...".tr()),
             onChanged: (value) => reason = value,
           ),
           actions: [
@@ -573,7 +583,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                       Navigator.pop(context);
                       Helpers.showSuccessMessage(
                         context,
-                        "Successfully reported review",
+                        "Successfully reported review".tr(),
                       );
                     }
                   } catch (ex) {
@@ -582,11 +592,11 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                   }
                 }
               },
-              child: const Text("Report"),
+              child: const Text("Report").tr(),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel"),
+              child: const Text("Cancel").tr(),
             ),
           ],
         );
@@ -598,8 +608,8 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Publish book"),
-        content: const Text("Are you sure you want to await this book?"),
+        title: const Text("Publish book").tr(),
+        content: const Text("Are you sure you want to await this book?").tr(),
         actions: [
           TextButton(
             onPressed: () async {
@@ -607,7 +617,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                 await _booksProvider.awaitBook(_book!.bookId!);
                 Helpers.showSuccessMessage(
                   context,
-                  "Book is now pending review by moderators",
+                  "Book is now pending review by moderators".tr(),
                 );
                 _fetchBook();
                 Navigator.pushAndRemoveUntil(
@@ -619,11 +629,11 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                 Helpers.showErrorMessage(context, ex);
               }
             },
-            child: const Text("Publish"),
+            child: const Text("Publish").tr(),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
+            child: const Text("Cancel").tr(),
           ),
         ],
       ),
@@ -635,9 +645,9 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: _book?.status == "Approved"
-            ? const Text("Hide book")
-            : const Text("Unhide book"),
-        content: const Text("Are you sure you want to hide this book?"),
+            ? const Text("Hide book").tr()
+            : const Text("Unhide book").tr(),
+        content: const Text("Are you sure you want to hide this book?").tr(),
         actions: [
           TextButton(
             onPressed: () async {
@@ -646,8 +656,8 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                 Helpers.showSuccessMessage(
                   context,
                   _book?.status == "Approved"
-                      ? "Book is now hidden to other users"
-                      : "Book is now available to other users",
+                      ? "Book is now hidden to other users".tr()
+                      : "Book is now available to other users".tr(),
                 );
                 _fetchBook();
                 Navigator.pushAndRemoveUntil(
@@ -660,12 +670,12 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
               }
             },
             child: _book?.status == "Approved"
-                ? const Text("Hide")
-                : const Text("Unhide"),
+                ? const Text("Hide").tr()
+                : const Text("Unhide").tr(),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
+            child: const Text("Cancel").tr(),
           ),
         ],
       ),
@@ -707,7 +717,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
               children: [
                 Column(
                   children: [
-                    const Text("Views", style: TextStyle(fontSize: 14)),
+                    const Text("Views").tr(),
                     const SizedBox(height: 4),
                     Text(
                       (_book?.numberOfViews?.toString() ?? ""),
@@ -720,25 +730,12 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                 ),
                 Column(
                   children: [
-                    Text("Rating", style: TextStyle(fontSize: 14)),
+                    Text("Rating").tr(),
                     SizedBox(height: 4),
                     Text(
                       (_book?.averageRating == 0.0)
-                          ? "N/A"
+                          ? "N/A".tr()
                           : (_book?.averageRating ?? "").toString(),
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-                Column(
-                  children: [
-                    const Text("Language", style: TextStyle(fontSize: 14)),
-                    const SizedBox(height: 4),
-                    Text(
-                      _book?.language?.name ?? "N/A",
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -748,7 +745,20 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                 ),
                 Column(
                   children: [
-                    const Text("Pages", style: TextStyle(fontSize: 14)),
+                    const Text("Language").tr(),
+                    const SizedBox(height: 4),
+                    Text(
+                      _book?.language?.name ?? "N/A".tr(),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+                Column(
+                  children: [
+                    const Text("Pages").tr(),
                     const SizedBox(height: 4),
                     Text(
                       (_book?.numberOfPages?.toString() ?? ""),
@@ -772,8 +782,8 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
               children: [
                 TextSpan(
                   text: (_book?.authors?.length ?? 1) == 1
-                      ? "Author: "
-                      : "Authors: ",
+                      ? "Author: ".tr()
+                      : "Authors: ".tr(),
                   style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
                 ...?_book?.authors?.asMap().entries.expand((entry) {
@@ -813,8 +823,8 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
               children: [
                 TextSpan(
                   text: (_book?.genres?.length ?? 1) == 1
-                      ? "Genre: "
-                      : "Genres: ",
+                      ? "Genre: ".tr()
+                      : "Genres: ".tr(),
                   style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
                 ...?_book?.genres?.asMap().entries.expand((entry) {
@@ -853,7 +863,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                     if (!AuthProvider.isLoggedIn) {
                       Helpers.showErrorMessage(
                         context,
-                        "Please log in to continue",
+                        "Please log in to continue".tr(),
                       );
                       return;
                     }
@@ -865,7 +875,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                           await _accessRightsProvider.post(null, _book?.bookId);
                           Helpers.showSuccessMessage(
                             context,
-                            "Book is added to your library",
+                            "Book is added to your library".tr(),
                           );
                           await _fetchAccessRight();
                         } catch (ex) {
@@ -880,8 +890,8 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                         Helpers.showSuccessMessage(
                           context,
                           _accessRight?.isHidden == false
-                              ? "Book is hidden from your library"
-                              : "Book is added to your library",
+                              ? "Book is hidden from your library".tr()
+                              : "Book is added to your library".tr(),
                         );
                         await _fetchAccessRight();
                       } catch (ex) {
@@ -902,7 +912,6 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                       final discountActive =
                           _book?.discountPercentage != null &&
                           _book?.discountStart != null &&
-                          _book?.discountEnd != null &&
                           _book!.discountStart!.isBefore(now) &&
                           _book!.discountEnd!.isAfter(now);
                       final originalPrice = _book?.price ?? 0;
@@ -912,8 +921,8 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                           : originalPrice;
                       final bool isHidden = _accessRight?.isHidden == true;
                       if (_book?.price == 0 && _accessRight == null) {
-                        return const Text(
-                          "Add to Library",
+                        return Text(
+                          "Add to Library".tr(),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
@@ -923,7 +932,9 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                       }
                       if (_accessRight != null) {
                         return Text(
-                          isHidden ? "Add to Library" : "Hide from Library",
+                          isHidden
+                              ? "Add to Library".tr()
+                              : "Hide from Library".tr(),
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
@@ -979,8 +990,8 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 18),
                   ),
-                  child: const Text(
-                    "Book Summary",
+                  child: Text(
+                    "Book Summary".tr(),
                     style: TextStyle(fontSize: 16),
                   ),
                 ),
@@ -1025,11 +1036,15 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                     ),
                     if (_book?.publisher?.publisherVerifiedById != null)
                       Row(
-                        children: const [
-                          Icon(Icons.verified, color: Colors.green, size: 16),
-                          SizedBox(width: 4),
+                        children: [
+                          const Icon(
+                            Icons.verified,
+                            color: Colors.green,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 4),
                           Text(
-                            "Verified Publisher",
+                            "Verified Publisher".tr(),
                             style: TextStyle(fontSize: 12, color: Colors.green),
                           ),
                         ],
@@ -1049,8 +1064,8 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
           const SizedBox(height: 10),
           if ((_recommendedBooks?.isNotEmpty ?? false)) ...[
             const SizedBox(height: 12),
-            const Text(
-              "You may also like",
+            Text(
+              "You may also like".tr(),
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
@@ -1123,8 +1138,8 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
           ],
           if ((_reviews?.resultList.isNotEmpty ?? false)) ...[
             const SizedBox(height: 10),
-            const Text(
-              "Book reviews",
+            Text(
+              "Book reviews".tr(),
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 2),
@@ -1178,7 +1193,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                                   if (!AuthProvider.isLoggedIn) {
                                     Helpers.showErrorMessage(
                                       context,
-                                      "Please log in to continue",
+                                      "Please log in to continue".tr(),
                                     );
                                     return;
                                   }
@@ -1190,18 +1205,18 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                               itemBuilder: (context) => [
                                 if (review.user?.userId ==
                                     AuthProvider.userId) ...[
-                                  const PopupMenuItem(
+                                  PopupMenuItem(
                                     value: "edit",
-                                    child: Text("Edit Review"),
+                                    child: Text("Edit Review").tr(),
                                   ),
-                                  const PopupMenuItem(
+                                  PopupMenuItem(
                                     value: "delete",
-                                    child: Text("Delete Review"),
+                                    child: Text("Delete Review").tr(),
                                   ),
                                 ],
-                                const PopupMenuItem(
+                                PopupMenuItem(
                                   value: "report",
-                                  child: Text("Report Review"),
+                                  child: Text("Report Review").tr(),
                                 ),
                               ],
                             ),

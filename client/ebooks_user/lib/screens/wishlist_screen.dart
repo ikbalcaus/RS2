@@ -6,6 +6,7 @@ import "package:ebooks_user/utils/helpers.dart";
 import "package:ebooks_user/widgets/book_card_view.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
+import "package:easy_localization/easy_localization.dart";
 
 class WishlistScreen extends StatefulWidget {
   const WishlistScreen({super.key});
@@ -50,7 +51,7 @@ class _BooksScreenState extends State<WishlistScreen> {
     if (_isLoading) {
       content = const Center(child: CircularProgressIndicator());
     } else if (_wishlist?.count == 0) {
-      content = const Center(child: Text("Your wishlist is empty"));
+      content = Center(child: Text("Tvoja lista želja je prazna".tr()));
     } else {
       content = _buildResultView();
     }
@@ -93,7 +94,7 @@ class _BooksScreenState extends State<WishlistScreen> {
         return BookCardView(
           book: wishlist[index].book!,
           popupActions: {
-            "Move to the Top": () async {
+            "Move to the Top".tr(): () async {
               try {
                 await _wishlistProvider.patch(wishlist[index].book!.bookId!);
                 _fetchBooks();
@@ -101,12 +102,12 @@ class _BooksScreenState extends State<WishlistScreen> {
                 Helpers.showErrorMessage(context, ex);
               }
             },
-            "Remove from Wishlist": () async {
+            "Remove from Wishlist".tr(): () async {
               try {
                 await _wishlistProvider.delete(wishlist[index].book!.bookId!);
                 Helpers.showSuccessMessage(
                   context,
-                  "Book is removed to your wishlist",
+                  "Knjiga je uklonjena sa tvoje liste želja".tr(),
                 );
                 _fetchBooks();
               } catch (ex) {

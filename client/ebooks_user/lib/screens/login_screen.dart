@@ -7,6 +7,7 @@ import "package:ebooks_user/utils/globals.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 import "package:ebooks_user/providers/auth_provider.dart";
+import 'package:easy_localization/easy_localization.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -60,7 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
         } catch (ex) {
           setState(() {
             _fieldErrors = {
-              "general": ["An error occurred. Please try again"],
+              "general": ["An error occurred. Please try again".tr()],
             };
           });
         }
@@ -68,13 +69,13 @@ class _LoginScreenState extends State<LoginScreen> {
     } on SocketException {
       setState(() {
         _fieldErrors = {
-          "general": ["No internet connection"],
+          "general": ["No internet connection".tr()],
         };
       });
     } catch (ex) {
       setState(() {
         _fieldErrors = {
-          "general": ["An error occurred. Please try again"],
+          "general": ["An error occurred. Please try again".tr()],
         };
       });
     }
@@ -107,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               children: [
                 Text(
-                  "Login",
+                  "Login".tr(),
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.w700,
@@ -119,7 +120,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _emailController,
                   decoration: InputDecoration(
                     prefixIcon: const Icon(Icons.email_outlined),
-                    labelText: "Email",
+                    labelText: "Email".tr(),
                     errorText: _fieldErrors["Email"]?.first,
                   ),
                   keyboardType: TextInputType.emailAddress,
@@ -129,7 +130,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   controller: _passwordController,
                   decoration: InputDecoration(
                     prefixIcon: const Icon(Icons.lock_outline),
-                    labelText: "Password",
+                    labelText: "Password".tr(),
                     errorText: _fieldErrors["Password"]?.first,
                   ),
                   obscureText: true,
@@ -169,9 +170,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
-                    child: const Text(
-                      "Login",
-                      style: TextStyle(
+                    child: Text(
+                      "Login".tr(),
+                      style: const TextStyle(
                         fontSize: 16,
                         color: Colors.white,
                         fontWeight: FontWeight.w500,
@@ -186,7 +187,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          "Don't have an account?",
+                          "Don't have an account?".tr(),
                           style: TextStyle(
                             color: isDarkMode ? Colors.white70 : Colors.black87,
                             fontSize: 14,
@@ -199,7 +200,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               builder: (_) => const RegisterScreen(),
                             ),
                           ),
-                          child: const Text("Sign up"),
+                          child: Text("Sign up".tr()),
                         ),
                       ],
                     ),
@@ -212,7 +213,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         );
                       },
-                      child: Text("Forgot Password?"),
+                      child: Text("Forgot Password?".tr()),
                     ),
                   ],
                 ),

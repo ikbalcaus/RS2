@@ -11,6 +11,7 @@ import "package:ebooks_user/widgets/book_card_view.dart";
 import "package:flutter/material.dart";
 import "package:flutter/services.dart";
 import "package:provider/provider.dart";
+import 'package:easy_localization/easy_localization.dart';
 
 class BooksScreen extends StatefulWidget {
   final String? author;
@@ -149,21 +150,21 @@ class _BooksScreenState extends State<BooksScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text("Filter Books"),
+          title: Text("Filter Books".tr()),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: _authorController,
-                decoration: const InputDecoration(labelText: "Author"),
+                decoration: InputDecoration(labelText: "Author".tr()),
               ),
               TextField(
                 controller: _genreController,
-                decoration: const InputDecoration(labelText: "Genre"),
+                decoration: InputDecoration(labelText: "Genre".tr()),
               ),
               TextField(
                 controller: _languageController,
-                decoration: const InputDecoration(labelText: "Language"),
+                decoration: InputDecoration(labelText: "Language".tr()),
               ),
               Row(
                 children: [
@@ -172,8 +173,8 @@ class _BooksScreenState extends State<BooksScreen> {
                       controller: _minPriceController,
                       keyboardType: TextInputType.number,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      decoration: const InputDecoration(
-                        labelText: "Min Price (€)",
+                      decoration: InputDecoration(
+                        labelText: "Min Price (€)".tr(),
                       ),
                     ),
                   ),
@@ -183,8 +184,8 @@ class _BooksScreenState extends State<BooksScreen> {
                       controller: _maxPriceController,
                       keyboardType: TextInputType.number,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      decoration: const InputDecoration(
-                        labelText: "Max Price (€)",
+                      decoration: InputDecoration(
+                        labelText: "Max Price (€)".tr(),
                       ),
                       onChanged: (value) {
                         maxPrice = int.tryParse(value);
@@ -194,15 +195,15 @@ class _BooksScreenState extends State<BooksScreen> {
                 ],
               ),
               DropdownButtonFormField<String>(
-                decoration: const InputDecoration(labelText: "Sort by"),
+                decoration: InputDecoration(labelText: "Sort by".tr()),
                 value: orderBy,
                 items:
                     [
-                      "Last added",
-                      "Most views",
-                      "Highest rated",
-                      "Lowest price",
-                      "Highest price",
+                      "Last added".tr(),
+                      "Most views".tr(),
+                      "Highest rated".tr(),
+                      "Lowest price".tr(),
+                      "Highest price".tr(),
                     ].map((String value) {
                       return DropdownMenuItem<String>(
                         value: value,
@@ -231,11 +232,11 @@ class _BooksScreenState extends State<BooksScreen> {
                 };
                 _fetchBooks();
               },
-              child: const Text("Apply"),
+              child: Text("Apply".tr()),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel"),
+              child: Text("Cancel".tr()),
             ),
           ],
         );
@@ -249,9 +250,9 @@ class _BooksScreenState extends State<BooksScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text("Confirm report"),
+          title: Text("Confirm report".tr()),
           content: TextField(
-            decoration: const InputDecoration(labelText: "Reason..."),
+            decoration: InputDecoration(labelText: "Reason...".tr()),
             onChanged: (value) => reason = value,
           ),
           actions: [
@@ -264,23 +265,23 @@ class _BooksScreenState extends State<BooksScreen> {
                       Navigator.pop(context);
                       Helpers.showSuccessMessage(
                         context,
-                        "Successfully reported book",
+                        "Successfully reported book".tr(),
                       );
                     }
                   } catch (ex) {
                     Navigator.pop(context);
                     Helpers.showErrorMessage(
                       context,
-                      "You already reported this book",
+                      "You already reported this book".tr(),
                     );
                   }
                 }
               },
-              child: const Text("Report"),
+              child: Text("Report".tr()),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel"),
+              child: Text("Cancel".tr()),
             ),
           ],
         );
@@ -304,26 +305,26 @@ class _BooksScreenState extends State<BooksScreen> {
         return BookCardView(
           book: books[index],
           popupActions: {
-            "Add to Wishlist": () async {
+            "Add to Wishlist".tr(): () async {
               try {
                 await _wishlistProvider.post(null, books[index].bookId);
                 Helpers.showSuccessMessage(
                   context,
-                  "Book is added to your wishlist",
+                  "Book is added to your wishlist".tr(),
                 );
               } catch (ex) {
                 AuthProvider.isLoggedIn
                     ? Helpers.showErrorMessage(
                         context,
-                        "Book is already in your wishlist",
+                        "Book is already in your wishlist".tr(),
                       )
                     : Helpers.showErrorMessage(
                         context,
-                        "You must be logged in",
+                        "You must be logged in".tr(),
                       );
               }
             },
-            "Follow Publisher": () async {
+            "Follow Publisher".tr(): () async {
               try {
                 await _publisherFollowsProvider.post(
                   null,
@@ -331,24 +332,29 @@ class _BooksScreenState extends State<BooksScreen> {
                 );
                 Helpers.showSuccessMessage(
                   context,
-                  "You are now following ${books[index].publisher?.userName}",
+                  "You are now following ${books[index].publisher?.userName}"
+                      .tr(),
                 );
               } catch (ex) {
                 AuthProvider.isLoggedIn
                     ? Helpers.showErrorMessage(
                         context,
-                        "You already follow ${books[index].publisher?.userName}",
+                        "You already follow ${books[index].publisher?.userName}"
+                            .tr(),
                       )
                     : Helpers.showErrorMessage(
                         context,
-                        "You must be logged in",
+                        "You must be logged in".tr(),
                       );
               }
             },
-            "Report Book": () async {
+            "Report Book".tr(): () async {
               AuthProvider.isLoggedIn
                   ? await _showReportBookDialog(books[index].bookId!)
-                  : Helpers.showErrorMessage(context, "You must be logged in");
+                  : Helpers.showErrorMessage(
+                      context,
+                      "You must be logged in".tr(),
+                    );
             },
           },
         );

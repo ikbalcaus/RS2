@@ -7,6 +7,7 @@ import "package:ebooks_user/utils/helpers.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 import "package:syncfusion_flutter_pdfviewer/pdfviewer.dart";
+import 'package:easy_localization/easy_localization.dart';
 
 class PdfScreen extends StatefulWidget {
   final int? bookId;
@@ -61,7 +62,10 @@ class _PdfScreenState extends State<PdfScreen> {
         widget.bookId!,
         _pdfController.pageNumber,
       );
-      Helpers.showErrorMessage(context, "Successfully saved reading progress");
+      Helpers.showErrorMessage(
+        context,
+        "Successfully saved reading progress".tr(),
+      );
     } catch (ex) {
       if (!mounted) return;
       Helpers.showErrorMessage(context, ex);
@@ -124,7 +128,7 @@ class _PdfScreenState extends State<PdfScreen> {
           onDocumentLoadFailed: (details) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (!mounted) return;
-              Helpers.showErrorMessage(context, "PDF not found");
+              Helpers.showErrorMessage(context, "PDF not found".tr());
               Navigator.pop(context);
             });
           },

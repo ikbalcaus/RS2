@@ -6,6 +6,7 @@ import "package:ebooks_user/screens/profile_screen.dart";
 import "package:ebooks_user/utils/globals.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
+import 'package:easy_localization/easy_localization.dart';
 
 class MasterScreen extends StatefulWidget {
   final Widget child;
@@ -47,9 +48,9 @@ class _MasterScreenState extends State<MasterScreen> {
           children: [
             Image.asset("assets/images/logo.png", height: 40),
             const SizedBox(width: 8),
-            const Text(
-              "E-Books",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            Text(
+              "E-Books".tr(),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -70,7 +71,7 @@ class _MasterScreenState extends State<MasterScreen> {
                 if (widget.onBookmarkClicked != null)
                   IconButton(
                     icon: const Icon(Icons.bookmark),
-                    tooltip: "Save reading progress",
+                    tooltip: "Save reading progress".tr(),
                     onPressed: () async {
                       widget.onBookmarkClicked?.call();
                     },
@@ -88,7 +89,7 @@ class _MasterScreenState extends State<MasterScreen> {
                       return widget.popupActions?.entries.map((entry) {
                             return PopupMenuItem(
                               value: entry.key,
-                              child: Text(entry.key),
+                              child: Text(entry.key.tr()),
                             );
                           }).toList() ??
                           [];
@@ -112,7 +113,7 @@ class _MasterScreenState extends State<MasterScreen> {
                       controller: widget.searchController,
                       cursorColor: Colors.white70,
                       decoration: InputDecoration(
-                        hintText: "Search...",
+                        hintText: "Search...".tr(),
                         hintStyle: const TextStyle(color: Colors.white70),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 12,
@@ -197,17 +198,23 @@ class _MasterScreenState extends State<MasterScreen> {
             return brightness == Brightness.dark ? Colors.white : Colors.black;
           }
         })(),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.book_sharp), label: "Books"),
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.library_books_sharp),
-            label: "Library",
+            icon: const Icon(Icons.book_sharp),
+            label: "Books".tr(),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.notifications),
-            label: "Notifications",
+            icon: const Icon(Icons.library_books_sharp),
+            label: "Library".tr(),
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.notifications),
+            label: "Notifications".tr(),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.person),
+            label: "Profile".tr(),
+          ),
         ],
       ),
     );

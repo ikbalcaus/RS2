@@ -3,6 +3,7 @@ import "package:ebooks_user/utils/globals.dart";
 import "package:ebooks_user/utils/helpers.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
+import "package:easy_localization/easy_localization.dart";
 
 class ResetPasswordScreen extends StatefulWidget {
   final String token;
@@ -42,7 +43,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Password reset successfully")),
+          SnackBar(content: Text("Lozinka je uspješno resetovana".tr())),
         );
         Navigator.pop(context);
       }
@@ -56,7 +57,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      appBar: AppBar(title: const Text("Reset Password")),
+      appBar: AppBar(title: Text("Resetuj lozinku".tr())),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -78,21 +79,24 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
               key: _formKey,
               child: Column(
                 children: [
-                  const Text(
-                    "Reset Password",
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
+                  Text(
+                    "Resetuj lozinku".tr(),
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   TextFormField(
                     controller: _passwordController,
-                    decoration: const InputDecoration(
-                      labelText: "New Password",
-                      prefixIcon: Icon(Icons.lock_outline),
+                    decoration: InputDecoration(
+                      labelText: "Nova lozinka".tr(),
+                      prefixIcon: const Icon(Icons.lock_outline),
                     ),
                     obscureText: true,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return "This field is required";
+                        return "Ovo polje je obavezno".tr();
                       }
                       return null;
                     },
@@ -100,17 +104,17 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   const SizedBox(height: 10),
                   TextFormField(
                     controller: _confirmPasswordController,
-                    decoration: const InputDecoration(
-                      labelText: "Confirm Password",
-                      prefixIcon: Icon(Icons.lock_outline),
+                    decoration: InputDecoration(
+                      labelText: "Potvrdi lozinku".tr(),
+                      prefixIcon: const Icon(Icons.lock_outline),
                     ),
                     obscureText: true,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return "This field is required";
+                        return "Ovo polje je obavezno".tr();
                       }
                       if (value != _passwordController.text) {
-                        return "Passwords do not match";
+                        return "Lozinke se ne podudaraju".tr();
                       }
                       return null;
                     },
@@ -127,9 +131,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
-                      child: const Text(
-                        "Submit",
-                        style: TextStyle(
+                      child: Text(
+                        "Potvrdi".tr(),
+                        style: const TextStyle(
                           fontSize: 16,
                           color: Colors.white,
                           fontWeight: FontWeight.w500,

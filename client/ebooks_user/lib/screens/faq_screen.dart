@@ -4,6 +4,7 @@ import "package:ebooks_user/utils/globals.dart";
 import "package:ebooks_user/utils/helpers.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
+import 'package:easy_localization/easy_localization.dart';
 
 class FaqScreen extends StatefulWidget {
   const FaqScreen({super.key});
@@ -25,7 +26,51 @@ class _FaqScreenState extends State<FaqScreen> {
     {
       "question": "Can I read books offline?",
       "answer":
-          "Yes, once purchased, books are available offline in your library.",
+          "Currently no, but we are planning to add offline reading in the future.",
+    },
+    {
+      "question": "How do I change my password?",
+      "answer": "Go to your profile, click on \"Edit profile\" and change it.",
+    },
+    {
+      "question": "Can I get a refund for a book?",
+      "answer":
+          "Refunds are available within 7 days of purchase if the book has not been downloaded.",
+    },
+    {
+      "question": "How do I contact support?",
+      "answer":
+          "You can contact support using the \"Help and Support\" section in your profile or send a question through the FAQ page.",
+    },
+    {
+      "question": "How do I follow a publisher?",
+      "answer":
+          "Visit the publisher's page and click the \"Follow\" button to get updates on their new books.",
+    },
+    {
+      "question": "How do I add books to my wishlist?",
+      "answer":
+          "Click on the three dots icons, and then click \"Add to wishlist\".",
+    },
+    {
+      "question": "Are there discounts on books?",
+      "answer":
+          "Some books may have discounts. Check the book details to see if a discount is active.",
+    },
+    {
+      "question": "Is my personal data safe?",
+      "answer":
+          "Yes, we follow strict security protocols to protect your data and never share it with third parties.",
+    },
+    {
+      "question": "Can I share books with friends?",
+      "answer":
+          "No, books are for personal use only and sharing is not allowed due to copyright rules.",
+    },
+    {
+      "question": "How can I rate a book?",
+      "answer":
+          "Open the book details page and scroll down to the rating section to give your feedback.",
     },
   ];
 
@@ -52,7 +97,7 @@ class _FaqScreenState extends State<FaqScreen> {
         await _questionsProvider.post({
           "message": _questionController.text,
         }, null);
-        Helpers.showSuccessMessage(context, "Question has been sent");
+        Helpers.showSuccessMessage(context, "Question has been sent".tr());
         Navigator.pop(context);
       } catch (ex) {
         Helpers.showErrorMessage(context, ex);
@@ -65,21 +110,21 @@ class _FaqScreenState extends State<FaqScreen> {
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
       child: Column(
         children: [
-          const Text(
-            "Frequently asked questions",
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+          Text(
+            "Frequently asked questions".tr(),
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
           ),
-          SizedBox(height: 10),
+          const SizedBox(height: 10),
           Expanded(
             child: ListView.builder(
               itemCount: _faqList.length,
               itemBuilder: (context, index) {
                 return ExpansionTile(
-                  title: Text(_faqList[index]["question"] ?? ""),
+                  title: Text(_faqList[index]["question"]?.tr() ?? ""),
                   children: [
                     Padding(
                       padding: const EdgeInsets.all(8),
-                      child: Text(_faqList[index]["answer"] ?? ""),
+                      child: Text(_faqList[index]["answer"]?.tr() ?? ""),
                     ),
                   ],
                 );
@@ -90,13 +135,13 @@ class _FaqScreenState extends State<FaqScreen> {
           const SizedBox(height: 8),
           Row(
             children: [
-              SizedBox(width: 5),
+              const SizedBox(width: 5),
               Expanded(
                 child: TextField(
                   controller: _questionController,
-                  decoration: const InputDecoration(
-                    labelText: "Still have a question? Ask here...",
-                    contentPadding: EdgeInsets.symmetric(horizontal: 6),
+                  decoration: InputDecoration(
+                    labelText: "Still have a question? Ask here...".tr(),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 6),
                   ),
                 ),
               ),
@@ -104,7 +149,7 @@ class _FaqScreenState extends State<FaqScreen> {
               IconButton(
                 onPressed: () async => await _submitQuestion(),
                 icon: const Icon(Icons.send),
-                tooltip: "Send",
+                tooltip: "Send".tr(),
                 color: Globals.backgroundColor,
               ),
             ],

@@ -21,31 +21,40 @@ import "package:ebooks_user/utils/globals.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 import "package:uni_links/uni_links.dart";
+import "package:easy_localization/easy_localization.dart";
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await EasyLocalization.ensureInitialized();
+
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AccessRightsProvider()),
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => AuthorsProvider()),
-        ChangeNotifierProvider(create: (_) => BooksProvider()),
-        ChangeNotifierProvider(create: (_) => GenresProvider()),
-        ChangeNotifierProvider(create: (_) => LanguagesProvider()),
-        ChangeNotifierProvider(create: (_) => NotificationsProvider()),
-        ChangeNotifierProvider(create: (_) => PublisherFollowsProvider()),
-        ChangeNotifierProvider(create: (_) => PurchasesProvider()),
-        ChangeNotifierProvider(create: (_) => QuestionsProvider()),
-        ChangeNotifierProvider(create: (_) => ReportsProvider()),
-        ChangeNotifierProvider(create: (_) => ReviewsProvider()),
-        ChangeNotifierProvider(create: (_) => StripeProvider()),
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => UsersProvider()),
-        ChangeNotifierProvider(create: (_) => WishlistProvider()),
-      ],
-      child: const MyApp(),
+    EasyLocalization(
+      supportedLocales: const [Locale("en"), Locale("bs")],
+      path: "assets/translations",
+      fallbackLocale: const Locale("en"),
+      child: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => AccessRightsProvider()),
+          ChangeNotifierProvider(create: (_) => AuthProvider()),
+          ChangeNotifierProvider(create: (_) => AuthorsProvider()),
+          ChangeNotifierProvider(create: (_) => BooksProvider()),
+          ChangeNotifierProvider(create: (_) => GenresProvider()),
+          ChangeNotifierProvider(create: (_) => LanguagesProvider()),
+          ChangeNotifierProvider(create: (_) => NotificationsProvider()),
+          ChangeNotifierProvider(create: (_) => PublisherFollowsProvider()),
+          ChangeNotifierProvider(create: (_) => PurchasesProvider()),
+          ChangeNotifierProvider(create: (_) => QuestionsProvider()),
+          ChangeNotifierProvider(create: (_) => ReportsProvider()),
+          ChangeNotifierProvider(create: (_) => ReviewsProvider()),
+          ChangeNotifierProvider(create: (_) => StripeProvider()),
+          ChangeNotifierProvider(create: (_) => ThemeProvider()),
+          ChangeNotifierProvider(create: (_) => UsersProvider()),
+          ChangeNotifierProvider(create: (_) => WishlistProvider()),
+        ],
+        child: const MyApp(),
+      ),
     ),
   );
 }
@@ -123,6 +132,9 @@ class _MyAppState extends State<MyApp> {
         ),
       ),
       themeMode: context.watch<ThemeProvider>().themeMode,
+      localizationsDelegates: context.localizationDelegates,
+      supportedLocales: context.supportedLocales,
+      locale: context.locale,
       home: _resetPasswordToken != null
           ? ResetPasswordScreen(token: _resetPasswordToken!)
           : const BooksScreen(),

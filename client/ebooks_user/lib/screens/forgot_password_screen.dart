@@ -4,6 +4,7 @@ import "package:ebooks_user/utils/helpers.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
 import "package:ebooks_user/utils/globals.dart";
+import 'package:easy_localization/easy_localization.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -36,7 +37,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         Navigator.pop(context);
         Helpers.showSuccessMessage(
           context,
-          "Verification link has been sent to you email",
+          "Verification link has been sent to your email".tr(),
         );
       }
     } catch (ex) {
@@ -74,7 +75,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               child: Column(
                 children: [
                   Text(
-                    "Forgot password",
+                    "Forgot password".tr(),
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w700,
@@ -86,12 +87,12 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     controller: _emailController,
                     decoration: InputDecoration(
                       prefixIcon: const Icon(Icons.email_outlined),
-                      labelText: "Email",
+                      labelText: "Email".tr(),
                     ),
                     keyboardType: TextInputType.emailAddress,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return "This field is required";
+                        return "This field is required".tr();
                       }
                       return null;
                     },
@@ -108,9 +109,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
-                      child: const Text(
-                        "Submit",
-                        style: TextStyle(
+                      child: Text(
+                        "Submit".tr(),
+                        style: const TextStyle(
                           fontSize: 16,
                           color: Colors.white,
                           fontWeight: FontWeight.w500,

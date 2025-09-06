@@ -12,6 +12,7 @@ import "package:ebooks_user/utils/helpers.dart";
 import "package:ebooks_user/widgets/book_card_view.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
+import "package:easy_localization/easy_localization.dart";
 
 class PublisherScreen extends StatefulWidget {
   final int publisherId;
@@ -127,7 +128,9 @@ class _PublisherScreenState extends State<PublisherScreen> {
       });
       Helpers.showSuccessMessage(
         context,
-        _isFollowing ? "Publisher is followed" : "Publisher is unfollowed",
+        _isFollowing
+            ? "Publisher is followed".tr()
+            : "Publisher is unfollowed".tr(),
       );
     } catch (ex) {
       if (!mounted) return;
@@ -204,8 +207,8 @@ class _PublisherScreenState extends State<PublisherScreen> {
                 ElevatedButton(
                   onPressed: () async => await _toggleFollow(),
                   child: !_isFollowing
-                      ? const Text("Follow")
-                      : const Text("Unfollow"),
+                      ? Text("Follow".tr())
+                      : Text("Unfollow".tr()),
                 ),
             ],
           ),
@@ -225,22 +228,22 @@ class _PublisherScreenState extends State<PublisherScreen> {
               return BookCardView(
                 book: books[index],
                 popupActions: {
-                  "Add to Wishlist": () async {
+                  "Add to Wishlist".tr(): () async {
                     try {
                       await _wishlistProvider.post(null, books[index].bookId);
                       Helpers.showSuccessMessage(
                         context,
-                        "Book is added to your wishlist",
+                        "Book is added to your wishlist".tr(),
                       );
                     } catch (ex) {
                       AuthProvider.isLoggedIn
                           ? Helpers.showErrorMessage(
                               context,
-                              "Book is already in your wishlist",
+                              "Book is already in your wishlist".tr(),
                             )
                           : Helpers.showErrorMessage(
                               context,
-                              "You must be logged in",
+                              "You must be logged in".tr(),
                             );
                     }
                   },

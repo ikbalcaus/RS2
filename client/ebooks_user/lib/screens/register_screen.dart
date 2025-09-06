@@ -7,6 +7,7 @@ import "package:ebooks_user/utils/globals.dart";
 import "package:ebooks_user/utils/helpers.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
+import "package:easy_localization/easy_localization.dart";
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -50,7 +51,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
     if (_passwordController.text != _confirmPasswordController.text) {
       setState(() {
-        _fieldErrors["ConfirmPassword"] = ["Passwords do not match"];
+        _fieldErrors["ConfirmPassword"] = ["Lozinke se ne podudaraju".tr()];
       });
       return;
     }
@@ -67,12 +68,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
           context,
           MaterialPageRoute(builder: (context) => const ProfileScreen()),
         );
-        Helpers.showSuccessMessage(context, "Account successfully created");
+        Helpers.showSuccessMessage(context, "Nalog je uspješno kreiran".tr());
       }
     } on SocketException {
       setState(() {
         _fieldErrors = {
-          "general": ["No internet connection"],
+          "general": ["Nema internet konekcije".tr()],
         };
       });
     } catch (ex) {
@@ -82,13 +83,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
         setState(() {
           _fieldErrors = errors.map((key, value) {
             final List<String> messages = List<String>.from(value);
-            return MapEntry(key, messages);
+            return MapEntry(key, messages.map((msg) => msg.tr()).toList());
           });
         });
       } catch (_) {
         setState(() {
           _fieldErrors = {
-            "general": ["An error occurred. Please try again"],
+            "general": ["Došlo je do greške. Pokušajte ponovo".tr()],
           };
         });
       }
@@ -124,7 +125,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               child: Column(
                 children: [
                   Text(
-                    "Sign up",
+                    "Registracija".tr(),
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w700,
@@ -138,7 +139,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         child: TextFormField(
                           controller: _firstNameController,
                           decoration: InputDecoration(
-                            labelText: "First Name",
+                            labelText: "Ime".tr(),
                             errorText: _fieldErrors["FirstName"]?.first,
                           ),
                         ),
@@ -148,7 +149,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         child: TextFormField(
                           controller: _lastNameController,
                           decoration: InputDecoration(
-                            labelText: "Last Name",
+                            labelText: "Prezime".tr(),
                             errorText: _fieldErrors["LastName"]?.first,
                           ),
                         ),
@@ -159,7 +160,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   TextFormField(
                     controller: _userNameController,
                     decoration: InputDecoration(
-                      labelText: "Username",
+                      labelText: "Korisničko ime".tr(),
                       errorText: _fieldErrors["UserName"]?.first,
                     ),
                   ),
@@ -167,7 +168,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   TextFormField(
                     controller: _emailController,
                     decoration: InputDecoration(
-                      labelText: "Email",
+                      labelText: "Email".tr(),
                       errorText: _fieldErrors["Email"]?.first,
                     ),
                     keyboardType: TextInputType.emailAddress,
@@ -176,7 +177,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   TextFormField(
                     controller: _passwordController,
                     decoration: InputDecoration(
-                      labelText: "Password",
+                      labelText: "Lozinka".tr(),
                       errorText: _fieldErrors["Password"]?.first,
                     ),
                     obscureText: true,
@@ -185,7 +186,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   TextFormField(
                     controller: _confirmPasswordController,
                     decoration: InputDecoration(
-                      labelText: "Confirm Password",
+                      labelText: "Potvrdi lozinku".tr(),
                       errorText: _fieldErrors["ConfirmPassword"]?.first,
                     ),
                     obscureText: true,
@@ -225,9 +226,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
-                      child: const Text(
-                        "Sign up",
-                        style: TextStyle(
+                      child: Text(
+                        "Registruj se".tr(),
+                        style: const TextStyle(
                           fontSize: 16,
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
@@ -240,7 +241,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "Already have an account?",
+                        "Već imate nalog?".tr(),
                         style: TextStyle(
                           color: isDarkMode ? Colors.white70 : Colors.black87,
                           fontSize: 14,
@@ -253,9 +254,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             builder: (_) => const ProfileScreen(),
                           ),
                         ),
-                        child: const Text(
-                          "Log in",
-                          style: TextStyle(
+                        child: Text(
+                          "Prijavi se".tr(),
+                          style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),

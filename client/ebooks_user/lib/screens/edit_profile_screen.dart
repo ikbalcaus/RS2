@@ -218,7 +218,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       child: TextFormField(
                         controller: _firstNameController,
                         decoration: InputDecoration(
-                          labelText: "First Name".tr(),
+                          labelText: "First name".tr(),
                           errorText: _fieldErrors["FirstName"]?.first,
                         ),
                       ),
@@ -228,7 +228,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       child: TextFormField(
                         controller: _lastNameController,
                         decoration: InputDecoration(
-                          labelText: "Last Name".tr(),
+                          labelText: "Last name".tr(),
                           errorText: _fieldErrors["LastName"]?.first,
                         ),
                       ),
@@ -239,7 +239,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 TextFormField(
                   controller: _oldPasswordController,
                   decoration: InputDecoration(
-                    labelText: "Old Password".tr(),
+                    labelText: "Old password".tr(),
                     errorText: _fieldErrors["OldPassword"]?.first,
                   ),
                   obscureText: true,
@@ -248,7 +248,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 TextFormField(
                   controller: _newPasswordController,
                   decoration: InputDecoration(
-                    labelText: "New Password".tr(),
+                    labelText: "New password".tr(),
                     errorText: _fieldErrors["NewPassword"]?.first,
                   ),
                   obscureText: true,
@@ -257,7 +257,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 TextFormField(
                   controller: _confirmPasswordController,
                   decoration: InputDecoration(
-                    labelText: "Confirm New Password".tr(),
+                    labelText: "Confirm new password".tr(),
                     errorText: _fieldErrors["ConfirmPassword"]?.first,
                   ),
                   obscureText: true,
@@ -298,7 +298,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                     ),
                     child: Text(
-                      "Save Changes".tr(),
+                      "Save changes".tr(),
                       style: const TextStyle(
                         fontSize: 16,
                         color: Colors.white,

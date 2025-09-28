@@ -54,8 +54,8 @@ namespace eBooks.Services
                 var accountLink = await accountLinkService.CreateAsync(new AccountLinkCreateOptions
                 {
                     Account = user.StripeAccountId,
-                    RefreshUrl = "https://example.com/refresh",
-                    ReturnUrl = "https://example.com/return",
+                    RefreshUrl = "ebooks://profile",
+                    ReturnUrl = "ebooks://profile",
                     Type = "account_onboarding"
                 });
                 return new StripeRes { Url = accountLink.Url };
@@ -127,8 +127,8 @@ namespace eBooks.Services
                     }
                 },
                 Mode = "payment",
-                SuccessUrl = "https://example.com/success",
-                CancelUrl = "https://example.com/cancel",
+                SuccessUrl = "ebooks://profile",
+                CancelUrl = "ebooks://profile",
                 PaymentIntentData = new SessionPaymentIntentDataOptions
                 {
                     ApplicationFeeAmount = platformFee,

@@ -461,7 +461,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ListTile(
                 leading: const Icon(Icons.book),
-                title: Text("Add New Book".tr()),
+                title: Text("Add new Book".tr()),
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(

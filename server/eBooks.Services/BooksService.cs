@@ -63,9 +63,9 @@ namespace eBooks.Services
             if (!string.IsNullOrWhiteSpace(search.Language))
                 query = query.Where(x => x.Language.Name.ToLower().Contains(search.Language.ToLower()));
             if (search.MinPrice != null)
-                query = query.Where(x => x.Price >= search.MinPrice);
+                query = query.Where(x => (x.DiscountPercentage != null && x.DiscountStart <= DateTime.Now && x.DiscountEnd >= DateTime.Now) ? (x.Price - (x.Price * x.DiscountPercentage.Value / 100)) >= search.MinPrice : x.Price >= search.MinPrice);
             if (search.MaxPrice != null)
-                query = query.Where(x => x.Price <= search.MaxPrice);
+                query = query.Where(x => (x.DiscountPercentage != null && x.DiscountStart <= DateTime.Now && x.DiscountEnd >= DateTime.Now) ? (x.Price - (x.Price * x.DiscountPercentage.Value / 100)) <= search.MaxPrice : x.Price <= search.MaxPrice);
             query = search.Status switch
             {
                 "Approved" => query.Where(x => x.StateMachine == "approve"),

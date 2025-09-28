@@ -23,8 +23,6 @@ class Program
         services.AddDbContext<EBooksContext>(options => options.UseSqlServer(configuration.GetConnectionString("Database")));
         services.AddTransient<EmailService>();
         services.AddSingleton<MessageDispatcher>();
-        var serviceProvider = services.BuildServiceProvider();
-        var dispatcher = serviceProvider.GetRequiredService<MessageDispatcher>();
         services.AddTransient<IMessageHandler<AccountDeactivated>, AccountDeactivatedHandler>();
         services.AddTransient<IMessageHandler<BookDeactivated>, BookDeactivatedHandler>();
         services.AddTransient<IMessageHandler<BookDiscounted>, BookDiscountedHandler>();
@@ -35,6 +33,8 @@ class Program
         services.AddTransient<IMessageHandler<PublisherFollowing>, PublisherFollowingHandler>();
         services.AddTransient<IMessageHandler<PublisherVerified>, PublisherVerifiedHandler>();
         services.AddTransient<IMessageHandler<QuestionAnswered>, QuestionAnsweredHandler>();
+        var serviceProvider = services.BuildServiceProvider();
+        var dispatcher = serviceProvider.GetRequiredService<MessageDispatcher>();
         try
         {
             var bus = RabbitHutch.CreateBus("host=localhost;username=guest;password=guest");

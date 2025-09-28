@@ -3,6 +3,7 @@ using eBooks.API;
 using eBooks.API.Auth;
 using eBooks.API.Filters;
 using eBooks.Database;
+using eBooks.Database.Models;
 using eBooks.Interfaces;
 using eBooks.Services;
 using eBooks.Services.BooksStateMachine;
@@ -96,14 +97,17 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    var context = scope.ServiceProvider.GetRequiredService<EBooksContext>();
+    var db = scope.ServiceProvider.GetRequiredService<EBooksContext>();
     var recommenderService = scope.ServiceProvider.GetRequiredService<IRecommenderService>();
-    DbSeeder.SeedRoles(context);
-    DbSeeder.SeedLanguages(context);
+    DbSeeder.SeedRoles(db);
+    DbSeeder.SeedLanguages(db);
     if (System.IO.File.Exists(Path.Combine(AppContext.BaseDirectory, "ml-model.zip")))
         await recommenderService.LoadModel();
     else
-        await recommenderService.TrainModel();
+    {
+        if (await db.Set<AccessRight>().CountAsync(x => !x.IsHidden) > 1)
+            await recommenderService.TrainModel();
+    }
 }
 
 if (app.Environment.IsDevelopment())

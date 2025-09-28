@@ -150,7 +150,7 @@ class _BooksScreenState extends State<BooksScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text("Filter Books".tr()),
+          title: Text("Filter books".tr()),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -174,7 +174,7 @@ class _BooksScreenState extends State<BooksScreen> {
                       keyboardType: TextInputType.number,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       decoration: InputDecoration(
-                        labelText: "Min Price (€)".tr(),
+                        labelText: "Min price (€)".tr(),
                       ),
                     ),
                   ),
@@ -185,7 +185,7 @@ class _BooksScreenState extends State<BooksScreen> {
                       keyboardType: TextInputType.number,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       decoration: InputDecoration(
-                        labelText: "Max Price (€)".tr(),
+                        labelText: "Max price (€)".tr(),
                       ),
                       onChanged: (value) {
                         maxPrice = int.tryParse(value);
@@ -199,18 +199,22 @@ class _BooksScreenState extends State<BooksScreen> {
                 value: orderBy,
                 items:
                     [
-                      "Last added".tr(),
-                      "Most views".tr(),
-                      "Highest rated".tr(),
-                      "Lowest price".tr(),
-                      "Highest price".tr(),
-                    ].map((String value) {
+                      {"value": "Last added", "label": "Last added".tr()},
+                      {"value": "Most views", "label": "Most views".tr()},
+                      {"value": "Highest rated", "label": "Highest rated".tr()},
+                      {"value": "Lowest price", "label": "Lowest price".tr()},
+                      {"value": "Highest price", "label": "Highest price".tr()},
+                    ].map((item) {
                       return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
+                        value: item["value"],
+                        child: Text(item["label"]!.tr()),
                       );
                     }).toList(),
-                onChanged: (value) => orderBy = value!,
+                onChanged: (value) {
+                  setState(() {
+                    orderBy = value!;
+                  });
+                },
               ),
             ],
           ),
@@ -305,7 +309,7 @@ class _BooksScreenState extends State<BooksScreen> {
         return BookCardView(
           book: books[index],
           popupActions: {
-            "Add to Wishlist".tr(): () async {
+            "Add to wishlist".tr(): () async {
               try {
                 await _wishlistProvider.post(null, books[index].bookId);
                 Helpers.showSuccessMessage(
@@ -324,7 +328,7 @@ class _BooksScreenState extends State<BooksScreen> {
                       );
               }
             },
-            "Follow Publisher".tr(): () async {
+            "Follow publisher".tr(): () async {
               try {
                 await _publisherFollowsProvider.post(
                   null,
@@ -348,7 +352,7 @@ class _BooksScreenState extends State<BooksScreen> {
                       );
               }
             },
-            "Report Book".tr(): () async {
+            "Report book".tr(): () async {
               AuthProvider.isLoggedIn
                   ? await _showReportBookDialog(books[index].bookId!)
                   : Helpers.showErrorMessage(

@@ -656,7 +656,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               decoration: InputDecoration(
-                labelText: "Number of Pages".tr(),
+                labelText: "Number of pages".tr(),
                 errorText: _fieldErrors["NumberOfPages"]?.first,
               ),
             ),

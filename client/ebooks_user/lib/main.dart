@@ -16,6 +16,7 @@ import "package:ebooks_user/providers/theme_provider.dart";
 import "package:ebooks_user/providers/users_provider.dart";
 import "package:ebooks_user/providers/wishlist_provider.dart";
 import "package:ebooks_user/screens/books_screen.dart";
+import "package:ebooks_user/screens/profile_screen.dart";
 import "package:ebooks_user/screens/reset_password_screen.dart";
 import "package:ebooks_user/utils/globals.dart";
 import "package:flutter/material.dart";
@@ -68,7 +69,6 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   StreamSubscription? _sub;
-  String? _resetPasswordToken;
 
   @override
   void initState() {
@@ -98,9 +98,19 @@ class _MyAppState extends State<MyApp> {
 
   void _handleIncomingUri(Uri uri) {
     if (uri.scheme == "ebooks" && uri.host == "reset-password") {
-      setState(() {
-        _resetPasswordToken = uri.queryParameters["token"];
-      });
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) =>
+              ResetPasswordScreen(token: uri.queryParameters["token"] ?? ""),
+        ),
+      );
+    } else if (uri.scheme == "ebooks" && uri.host == "profile") {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const ProfileScreen()),
+        (_) => false,
+      );
     }
   }
 
@@ -135,9 +145,7 @@ class _MyAppState extends State<MyApp> {
       localizationsDelegates: context.localizationDelegates,
       supportedLocales: context.supportedLocales,
       locale: context.locale,
-      home: _resetPasswordToken != null
-          ? ResetPasswordScreen(token: _resetPasswordToken!)
-          : const BooksScreen(),
+      home: const BooksScreen(),
       debugShowCheckedModeBanner: false,
     );
   }

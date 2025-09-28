@@ -179,7 +179,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
           ..clear()
           ..addAll(allowedActions);
         _popupActions.clear();
-        _popupActions["Add to Wishlist".tr()] = () async {
+        _popupActions["Add to wishlist".tr()] = () async {
           try {
             await _wishlistProvider.post(null, _book?.bookId);
             Helpers.showSuccessMessage(
@@ -198,7 +198,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                   );
           }
         };
-        _popupActions["Follow Publisher".tr()] = () async {
+        _popupActions["Follow publisher".tr()] = () async {
           try {
             await _publisherFollowsProvider.post(
               null,
@@ -222,11 +222,11 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
         };
         if (_accessRight != null &&
             _book?.publisher?.userId != AuthProvider.userId) {
-          _popupActions["Review Book".tr()] = () async =>
+          _popupActions["Review book".tr()] = () async =>
               await _showReviewBookDialog();
         }
         if (_allowedActions.contains("Update")) {
-          _popupActions["Edit Book".tr()] = () async => Navigator.push(
+          _popupActions["Edit book".tr()] = () async => Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => EditBookScreen(bookId: _book!.bookId!),
@@ -234,20 +234,20 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
           );
         }
         if (_allowedActions.contains("Await")) {
-          _popupActions["Publish Book".tr()] = () async =>
+          _popupActions["Publish book".tr()] = () async =>
               await _showAwaitBookDialog();
         }
         if (_allowedActions.contains("Hide")) {
           _popupActions[_book?.status == "Approved"
-              ? "Hide Book".tr()
-              : "Unhide Book".tr()] = () async =>
+              ? "Hide book".tr()
+              : "Unhide book".tr()] = () async =>
               await _showHideBookDialog();
         }
         if (AuthProvider.userId == _book!.publisher!.userId) {
-          _popupActions["Set Discount".tr()] = () async =>
+          _popupActions["Set discount".tr()] = () async =>
               await _showSetDiscountDialog();
         }
-        _popupActions["Report Book".tr()] = () async {
+        _popupActions["Report book".tr()] = () async {
           AuthProvider.isLoggedIn
               ? await _showReportBookDialog()
               : Helpers.showErrorMessage(context, "You must be logged in".tr());
@@ -435,7 +435,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
             }
 
             return AlertDialog(
-              title: const Text("Set Discount").tr(),
+              title: const Text("Set discount").tr(),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -922,7 +922,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                       final bool isHidden = _accessRight?.isHidden == true;
                       if (_book?.price == 0 && _accessRight == null) {
                         return Text(
-                          "Add to Library".tr(),
+                          "Add to library".tr(),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
@@ -933,8 +933,8 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                       if (_accessRight != null) {
                         return Text(
                           isHidden
-                              ? "Add to Library".tr()
-                              : "Hide from Library".tr(),
+                              ? "Add to library".tr()
+                              : "Hide from library".tr(),
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
@@ -1044,7 +1044,7 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            "Verified Publisher".tr(),
+                            "Verified publisher".tr(),
                             style: TextStyle(fontSize: 12, color: Colors.green),
                           ),
                         ],
@@ -1207,16 +1207,16 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
                                     AuthProvider.userId) ...[
                                   PopupMenuItem(
                                     value: "edit",
-                                    child: Text("Edit Review").tr(),
+                                    child: Text("Edit review").tr(),
                                   ),
                                   PopupMenuItem(
                                     value: "delete",
-                                    child: Text("Delete Review").tr(),
+                                    child: Text("Delete review").tr(),
                                   ),
                                 ],
                                 PopupMenuItem(
                                   value: "report",
-                                  child: Text("Report Review").tr(),
+                                  child: Text("Report review").tr(),
                                 ),
                               ],
                             ),

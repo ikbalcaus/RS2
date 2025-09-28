@@ -139,7 +139,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         child: TextFormField(
                           controller: _firstNameController,
                           decoration: InputDecoration(
-                            labelText: "Ime".tr(),
+                            labelText: "First name".tr(),
                             errorText: _fieldErrors["FirstName"]?.first,
                           ),
                         ),
@@ -149,7 +149,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         child: TextFormField(
                           controller: _lastNameController,
                           decoration: InputDecoration(
-                            labelText: "Prezime".tr(),
+                            labelText: "Last name".tr(),
                             errorText: _fieldErrors["LastName"]?.first,
                           ),
                         ),
@@ -160,7 +160,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   TextFormField(
                     controller: _userNameController,
                     decoration: InputDecoration(
-                      labelText: "Korisničko ime".tr(),
+                      labelText: "Username".tr(),
                       errorText: _fieldErrors["UserName"]?.first,
                     ),
                   ),
@@ -177,7 +177,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   TextFormField(
                     controller: _passwordController,
                     decoration: InputDecoration(
-                      labelText: "Lozinka".tr(),
+                      labelText: "Password".tr(),
                       errorText: _fieldErrors["Password"]?.first,
                     ),
                     obscureText: true,
@@ -186,7 +186,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   TextFormField(
                     controller: _confirmPasswordController,
                     decoration: InputDecoration(
-                      labelText: "Potvrdi lozinku".tr(),
+                      labelText: "Confirm password".tr(),
                       errorText: _fieldErrors["ConfirmPassword"]?.first,
                     ),
                     obscureText: true,
@@ -227,7 +227,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ),
                       child: Text(
-                        "Registruj se".tr(),
+                        "Register".tr(),
                         style: const TextStyle(
                           fontSize: 16,
                           color: Colors.white,
@@ -241,7 +241,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        "Već imate nalog?".tr(),
+                        "Already have an account?".tr(),
                         style: TextStyle(
                           color: isDarkMode ? Colors.white70 : Colors.black87,
                           fontSize: 14,
@@ -255,7 +255,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                         ),
                         child: Text(
-                          "Prijavi se".tr(),
+                          "Login".tr(),
                           style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,

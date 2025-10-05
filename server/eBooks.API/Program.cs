@@ -22,7 +22,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddRouting(options => options.LowercaseUrls = true);
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers(options => options.Filters.Add<ExceptionFilter>());
-StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+StripeConfiguration.ApiKey = Environment.GetEnvironmentVariable("_stripeSecretKey");
 
 builder.Services.AddAuthorization(options =>
 {
@@ -37,11 +37,15 @@ builder.Services.AddSingleton(mapsterConfig);
 builder.Services.AddScoped<IMapper, Mapper>();
 builder.Services.AddDbContext<EBooksContext>(options =>
     options.UseSqlServer(
-        builder.Configuration.GetConnectionString("Database"),
+        Environment.GetEnvironmentVariable("_connectionString"),
         sqlOptions => sqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)
     ).ConfigureWarnings(warnings => warnings.Ignore(CoreEventId.RowLimitingOperationWithoutOrderByWarning))
 );
-builder.Services.AddSingleton<IBus>(_ => RabbitHutch.CreateBus("host=localhost;username=guest;password=guest"));
+
+var RabbitMqHost = Environment.GetEnvironmentVariable("_rabbitMqHost") ?? "localhost";
+var RabbitMqUser = Environment.GetEnvironmentVariable("_rabbitMqUser") ?? "guest";
+var RabbitMqPassword = Environment.GetEnvironmentVariable("_rabbitMqUser") ?? "guest";
+builder.Services.AddSingleton<IBus>(_ => RabbitHutch.CreateBus($"host={RabbitMqHost};username={RabbitMqUser};password={RabbitMqPassword}"));
 builder.Services.AddScoped<AccessControlHandler>();
 builder.Services.AddScoped<IRecommenderService, RecommenderService>();
 builder.Services.AddAuthentication("BasicAuthentication").AddScheme<AuthenticationSchemeOptions, BasicAuthHandler>("BasicAuthentication", null);
@@ -98,9 +102,15 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<EBooksContext>();
+    try
+    {
+        db.Database.Migrate();
+    }
+    catch
+    {
+    }
+    DbSeeder.SeedData(db);
     var recommenderService = scope.ServiceProvider.GetRequiredService<IRecommenderService>();
-    DbSeeder.SeedRoles(db);
-    DbSeeder.SeedLanguages(db);
     if (System.IO.File.Exists(Path.Combine(AppContext.BaseDirectory, "ml-model.zip")))
         await recommenderService.LoadModel();
     else

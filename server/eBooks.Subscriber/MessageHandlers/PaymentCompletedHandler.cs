@@ -18,13 +18,11 @@ namespace eBooks.MessageHandlers
         {
             var email = message.Purchase.User.Email;
             var notificationMessage = $"Payment {message.Purchase.PaymentStatus}.<br>Purchased book: {message.Purchase.Book.Title}<br>Total price: {message.Purchase.TotalPrice}";
-            Console.WriteLine($"Sending email to: {email}");
             await _emailService.SendEmailAsync(email, $"Payment {message.Purchase.PaymentStatus}", notificationMessage);
         }
 
         public async Task NotifyUser(PaymentCompleted message)
         {
-            Console.WriteLine($"Sending notification to user: {message.Purchase.User.UserId}");
             var notification = new Notification
             {
                 UserId = message.Purchase.User.UserId,

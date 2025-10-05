@@ -23,7 +23,6 @@ namespace eBooks.MessageHandlers
                 notificationMessage = "Your book has been approved";
             else
                 notificationMessage = $"Your book has been rejected. Reason: {message.Book.RejectionReason}";
-            Console.WriteLine($"Sending email to: {email}");
             await _emailService.SendEmailAsync(email, "Book reviewed", notificationMessage);
         }
 
@@ -35,7 +34,6 @@ namespace eBooks.MessageHandlers
             else
                 notificationMessage = $"Your book has been rejected. Reason: {message.Book.RejectionReason}";
             var user = await _db.Set<User>().FirstOrDefaultAsync(x => x.UserId == message.Book.Publisher.UserId);
-            Console.WriteLine($"Sending notification to user: {user.UserId}");
             var notification = new Notification
             {
                 UserId = user.UserId,

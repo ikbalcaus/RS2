@@ -41,10 +41,19 @@ namespace eBooks.Services.BooksStateMachine
             entity.StateMachine = "reject";
             entity.RejectionReason = message;
             entity.ReviewedById = int.TryParse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var temp) ? temp : 0;
-            await _db.SaveChangesAsync();
             _logger.LogInformation($"Book with title {entity.Title} rejected. Reason: {message}");
             var result = _mapper.Map<BooksRes>(entity);
             _bus.PubSub.Publish(new BookReviewed { Book = result });
+            string notificationMessage = $"Your book has been rejected. Reason: {result.RejectionReason}";
+            var user = await _db.Set<User>().FirstOrDefaultAsync(x => x.UserId == result.Publisher.UserId);
+            var notification = new Notification
+            {
+                UserId = user.UserId,
+                BookId = result.BookId,
+                Message = notificationMessage
+            };
+            _db.Set<Notification>().Add(notification);
+            await _db.SaveChangesAsync();
             return result;
         }
 

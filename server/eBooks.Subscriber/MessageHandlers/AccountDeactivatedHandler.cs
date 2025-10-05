@@ -21,7 +21,6 @@ namespace eBooks.Subscriber.MessageHandlers
                 notificationMessage = $"Your account has been deactivated. Reason: {message.User.DeletionReason}";
             else
                 notificationMessage = "Your account has been reactivated";
-            Console.WriteLine($"Sending email to: {email}");
             await _emailService.SendEmailAsync(email, "Account update", notificationMessage);
         }
 
@@ -32,7 +31,6 @@ namespace eBooks.Subscriber.MessageHandlers
                 notificationMessage = $"Your account has been deactivated. Reason: {message.User.DeletionReason}";
             else
                 notificationMessage = "Your account has been reactivated";
-            Console.WriteLine($"Sending notification to user: {message.User.UserId}");
             var notification = new Notification
             {
                 UserId = message.User.UserId,

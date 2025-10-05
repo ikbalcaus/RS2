@@ -13,14 +13,9 @@ class Program
 {
     static async Task Main(string[] args)
     {
-        var configuration = new ConfigurationBuilder()
-            .SetBasePath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "eBooks.API"))
-            .AddJsonFile("appsettings.json", optional: true)
-            .AddUserSecrets<Program>()
-            .Build();
         var services = new ServiceCollection();
-        services.AddSingleton<IConfiguration>(configuration);
-        services.AddDbContext<EBooksContext>(options => options.UseSqlServer(configuration.GetConnectionString("Database")));
+        var connectionString = Environment.GetEnvironmentVariable("_connectionString");
+        services.AddDbContext<EBooksContext>(options => options.UseSqlServer(Environment.GetEnvironmentVariable("_connectionString")));
         services.AddTransient<EmailService>();
         services.AddSingleton<MessageDispatcher>();
         services.AddTransient<IMessageHandler<AccountDeactivated>, AccountDeactivatedHandler>();
@@ -35,25 +30,36 @@ class Program
         services.AddTransient<IMessageHandler<QuestionAnswered>, QuestionAnsweredHandler>();
         var serviceProvider = services.BuildServiceProvider();
         var dispatcher = serviceProvider.GetRequiredService<MessageDispatcher>();
-        try
+        var bus = default(IBus);
+        while (true)
         {
-            var bus = RabbitHutch.CreateBus("host=localhost;username=guest;password=guest");
-            await bus.PubSub.SubscribeAsync<AccountDeactivated>("account_deactivated", dispatcher.Dispatch);
-            await bus.PubSub.SubscribeAsync<BookDeactivated>("book_deactivated", dispatcher.Dispatch);
-            await bus.PubSub.SubscribeAsync<BookDiscounted>("book_discounted", dispatcher.Dispatch);
-            await bus.PubSub.SubscribeAsync<BookReviewed>("book_reviewed", dispatcher.Dispatch);
-            await bus.PubSub.SubscribeAsync<EmailVerification>("email_verification", dispatcher.Dispatch);
-            await bus.PubSub.SubscribeAsync<PaymentCompleted>("payment_completed", dispatcher.Dispatch);
-            await bus.PubSub.SubscribeAsync<PasswordForgotten>("password_forgotten", dispatcher.Dispatch);
-            await bus.PubSub.SubscribeAsync<PublisherFollowing>("publisher_following", dispatcher.Dispatch);
-            await bus.PubSub.SubscribeAsync<PublisherVerified>("publisher_verified", dispatcher.Dispatch);
-            await bus.PubSub.SubscribeAsync<QuestionAnswered>("question_answered", dispatcher.Dispatch);
-            Console.WriteLine("Listening for messages, press <return> key to exit...");
+            try
+            {
+                var rabbitMqHost = Environment.GetEnvironmentVariable("_rabbitMqHost") ?? "localhost";
+                var rabbitMqUser = Environment.GetEnvironmentVariable("_rabbitMqUser") ?? "guest";
+                var rabbitMqPassword = Environment.GetEnvironmentVariable("_rabbitMqPassword") ?? "guest";
+
+                bus = RabbitHutch.CreateBus($"host={rabbitMqHost};username={rabbitMqUser};password={rabbitMqPassword}");
+                Console.WriteLine("Connected to RabbitMQ successfully.");
+                break;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"RabbitMQ connection failed: {ex.Message}. Retrying in 5 seconds...");
+                await Task.Delay(5000);
+            }
         }
-        catch
-        {
-            Console.WriteLine("RabbitMQ is not activated, press <return> key to exit...");
-        }
-        Console.ReadLine();
+        await bus.PubSub.SubscribeAsync<AccountDeactivated>("account_deactivated", dispatcher.Dispatch);
+        await bus.PubSub.SubscribeAsync<BookDeactivated>("book_deactivated", dispatcher.Dispatch);
+        await bus.PubSub.SubscribeAsync<BookDiscounted>("book_discounted", dispatcher.Dispatch);
+        await bus.PubSub.SubscribeAsync<BookReviewed>("book_reviewed", dispatcher.Dispatch);
+        await bus.PubSub.SubscribeAsync<EmailVerification>("email_verification", dispatcher.Dispatch);
+        await bus.PubSub.SubscribeAsync<PaymentCompleted>("payment_completed", dispatcher.Dispatch);
+        await bus.PubSub.SubscribeAsync<PasswordForgotten>("password_forgotten", dispatcher.Dispatch);
+        await bus.PubSub.SubscribeAsync<PublisherFollowing>("publisher_following", dispatcher.Dispatch);
+        await bus.PubSub.SubscribeAsync<PublisherVerified>("publisher_verified", dispatcher.Dispatch);
+        await bus.PubSub.SubscribeAsync<QuestionAnswered>("question_answered", dispatcher.Dispatch);
+        Console.WriteLine("Listening for messages, press <return> key to exit...");
+        await Task.Delay(Timeout.Infinite);
     }
 }

@@ -18,15 +18,13 @@ namespace eBooks.MessageHandlers
         public async Task SendEmail(PasswordForgotten message)
         {
             var email = message.Token.Email;
-            var notificationMessage = $"Click the following link in order to reset you password: {message.Token.VerificationToken}";
-            Console.WriteLine($"Sending email to: {email}");
+            var notificationMessage = $"Click the following link in order to reset you password: ebooks://reset-password?token={message.Token.VerificationToken}";
             await _emailService.SendEmailAsync(email, "Email verification", notificationMessage);
         }
 
         public async Task NotifyUser(PasswordForgotten message)
         {
             var user = await _db.Set<User>().FirstOrDefaultAsync(x => x.Email == message.Token.Email);
-            Console.WriteLine($"Sending notification to user: {user.UserId}");
             var notification = new Notification
             {
                 UserId = user.UserId,

@@ -22,13 +22,11 @@ namespace eBooks.Services
     {
         protected IBus _bus;
         protected ILogger<UsersService> _logger;
-        protected IConfiguration _config;
 
-        public UsersService(EBooksContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IBus bus, IConfiguration config, ILogger<UsersService> logger)
+        public UsersService(EBooksContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IBus bus, ILogger<UsersService> logger)
             : base(db, mapper, httpContextAccessor)
         {
             _bus = bus;
-            _config = config;
             _logger = logger;
         }
         
@@ -92,8 +90,17 @@ namespace eBooks.Services
             var stripeAccount = await stripeService.CreateAsync(accountOptions);
             entity.StripeAccountId = stripeAccount.Id;
             _db.Add(entity);
+            var message = _mapper.Map<TokenRes>(entity);
+            _bus.PubSub.Publish(new EmailVerification { Token = message });
+            var user = await _db.Set<User>().FirstOrDefaultAsync(x => x.Email == message.Email);
+            var notification = new Notification
+            {
+                UserId = user.UserId,
+                PublisherId = user.UserId,
+                Message = "Verification token has been sent to you email. Please verify it"
+            };
+            _db.Set<Notification>().Add(notification);
             await _db.SaveChangesAsync();
-            _bus.PubSub.Publish(new EmailVerification { Token = _mapper.Map<TokenRes>(entity) });
             return _mapper.Map<UsersRes>(entity);
         }
 
@@ -133,10 +140,22 @@ namespace eBooks.Services
             if (entity == null)
                 throw new ExceptionNotFound();
             entity.DeletionReason = "Deleted by user";
-            await _db.SaveChangesAsync();
             _logger.LogInformation($"User with email {entity.Email} deleted.");
             var result = _mapper.Map<UsersRes>(entity);
             _bus.PubSub.Publish(new AccountDeactivated { User = result });
+            string notificationMessage;
+            if (result.DeletionReason != null)
+                notificationMessage = $"Your account has been deactivated. Reason: {result.DeletionReason}";
+            else
+                notificationMessage = "Your account has been reactivated";
+            var notification = new Notification
+            {
+                UserId = result.UserId,
+                PublisherId = result.UserId,
+                Message = notificationMessage
+            };
+            _db.Set<Notification>().Add(notification);
+            await _db.SaveChangesAsync();
             return result;
         }
 
@@ -154,10 +173,22 @@ namespace eBooks.Services
             if (id == currentUser.UserId)
                 throw new ExceptionBadRequest("You cannot delete yourself");
             entity.DeletionReason = reason;
-            await _db.SaveChangesAsync();
             _logger.LogInformation($"User with email {entity.Email} deleted.");
             var result = _mapper.Map<UsersRes>(entity);
             _bus.PubSub.Publish(new AccountDeactivated { User = result });
+            string notificationMessage;
+            if (result.DeletionReason != null)
+                notificationMessage = $"Your account has been deactivated. Reason: {result.DeletionReason}";
+            else
+                notificationMessage = "Your account has been reactivated";
+            var notification = new Notification
+            {
+                UserId = result.UserId,
+                PublisherId = result.UserId,
+                Message = notificationMessage
+            };
+            _db.Set<Notification>().Add(notification);
+            await _db.SaveChangesAsync();
             return result;
         }
 
@@ -195,7 +226,17 @@ namespace eBooks.Services
             entity.TokenExpiry = DateTime.UtcNow.AddHours(1);
             await _db.SaveChangesAsync();
             var result = _mapper.Map<UsersRes>(entity);
-            _bus.PubSub.Publish(new PasswordForgotten { Token = _mapper.Map<TokenRes>(entity) });
+            var message = _mapper.Map<TokenRes>(entity);
+            _bus.PubSub.Publish(new PasswordForgotten { Token = message });
+            var user = await _db.Set<User>().FirstOrDefaultAsync(x => x.Email == message.Email);
+            var notification = new Notification
+            {
+                UserId = user.UserId,
+                PublisherId = user.UserId,
+                Message = "Verification link has been sent to you email"
+            };
+            _db.Set<Notification>().Add(notification);
+            await _db.SaveChangesAsync();
             return result;
         }
 
@@ -225,8 +266,17 @@ namespace eBooks.Services
             {
                 entity.VerificationToken = $"{Guid.NewGuid():N}".Substring(0, 6);
                 entity.TokenExpiry = DateTime.UtcNow.AddHours(24);
+                var message = _mapper.Map<TokenRes>(entity);
+                _bus.PubSub.Publish(new EmailVerification { Token = message });
+                var user = await _db.Set<User>().FirstOrDefaultAsync(x => x.Email == message.Email);
+                var notification = new Notification
+                {
+                    UserId = user.UserId,
+                    PublisherId = user.UserId,
+                    Message = "Verification token has been sent to you email. Please verify it"
+                };
+                _db.Set<Notification>().Add(notification);
                 await _db.SaveChangesAsync();
-                _bus.PubSub.Publish(new EmailVerification { Token = _mapper.Map<TokenRes>(entity) });
             }
             else
             {
@@ -256,6 +306,19 @@ namespace eBooks.Services
             _logger.LogInformation($"Publisher with email {entity.Email} is verified.");
             var result = _mapper.Map<UsersRes>(entity);
             _bus.PubSub.Publish(new PublisherVerified { User = result });
+            string notificationMessage;
+            if (result.PublisherVerifiedById != null)
+                notificationMessage = "Your account has been verified";
+            else
+                notificationMessage = "Your account has been unverified";
+            var notification = new Notification
+            {
+                UserId = result.UserId,
+                PublisherId = result.UserId,
+                Message = notificationMessage
+            };
+            _db.Set<Notification>().Add(notification);
+            await _db.SaveChangesAsync();
             return result;
         }
     }

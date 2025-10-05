@@ -21,7 +21,6 @@ namespace eBooks.Subscriber.MessageHandlers
                 notificationMessage = $"Your account has been verified";
             else
                 notificationMessage = "Your account has been unverified";
-            Console.WriteLine($"Sending email to: {email}");
             await _emailService.SendEmailAsync(email, "Account update", notificationMessage);
         }
 
@@ -29,10 +28,9 @@ namespace eBooks.Subscriber.MessageHandlers
         {
             string notificationMessage;
             if (message.User.PublisherVerifiedById != null)
-                notificationMessage = $"Your account has been verified";
+                notificationMessage = "Your account has been verified";
             else
                 notificationMessage = "Your account has been unverified";
-            Console.WriteLine($"Sending notification to user: {message.User.UserId}");
             var notification = new Notification
             {
                 UserId = message.User.UserId,

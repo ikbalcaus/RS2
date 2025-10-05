@@ -94,7 +94,7 @@ class _BooksScreenState extends State<WishlistScreen> {
         return BookCardView(
           book: wishlist[index].book!,
           popupActions: {
-            "Move to the Top".tr(): () async {
+            "Move to the top".tr(): () async {
               try {
                 await _wishlistProvider.patch(wishlist[index].book!.bookId!);
                 _fetchBooks();
@@ -102,12 +102,12 @@ class _BooksScreenState extends State<WishlistScreen> {
                 Helpers.showErrorMessage(context, ex);
               }
             },
-            "Remove from Wishlist".tr(): () async {
+            "Remove from wishlist".tr(): () async {
               try {
                 await _wishlistProvider.delete(wishlist[index].book!.bookId!);
                 Helpers.showSuccessMessage(
                   context,
-                  "Knjiga je uklonjena sa tvoje liste želja".tr(),
+                  "Book is removed from your wishlist".tr(),
                 );
                 _fetchBooks();
               } catch (ex) {

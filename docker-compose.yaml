@@ -1,0 +1,122 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: ebooks-rabbitmq
+    hostname: rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${_rabbitMqUser}
+      RABBITMQ_DEFAULT_PASS: ${_rabbitMqPassword}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - ebooksnet2025
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  ebooks-sql:
+    image: mcr.microsoft.com/mssql/server:2017-latest-ubuntu
+    restart: unless-stopped
+    container_name: ebooks-sql
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=${_saPassword}
+      - MSSQL_PID=Developer
+    ports:
+      - 1401:1433
+    networks:
+      - ebooksnet2025
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P ${_saPassword} -Q 'SELECT 1'"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  ebooks-api:
+    restart: unless-stopped
+    build:
+      context: .
+    container_name: ebooks-api
+    volumes:
+      - ./server/eBooks.API/ml-model.zip:/app/ml-model.zip
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - _connectionString=${_connectionString}
+      - _smtpSenderEmail=${_smtpSenderEmail}
+      - _smtpSenderPassword=${_smtpSenderPassword}
+      - _smtpServer=${_smtpServer}
+      - _enableSSL=${_enableSSL}
+      - _smtpSenderName=${_smtpSenderName}
+      - _timeout=${_timeout}
+      - _smtpPort=${_smtpPort}
+      - _rabbitMqHost=${_rabbitMqHost}
+      - _rabbitMqUser=${_rabbitMqUser}
+      - _rabbitMqPassword=${_rabbitMqPassword}
+      - _rabbitMqPort=${_rabbitMqPort}
+      - _saPassword=${_saPassword}
+      - _stripeSecretKey=${_stripeSecretKey}
+      - _stripePublishableKey=${_stripePublishableKey}
+      - _stripeWebhookSecret=${_stripeWebhookSecret}
+      - _ngrokURL=${_ngrokURL}
+    ports:
+      - 5255:5255
+    networks:
+      - ebooksnet2025
+    depends_on:
+      ebooks-sql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  ebooks-console:
+    restart: on-failure
+    build:
+      context: .
+      dockerfile: server/eBooks.Subscriber/Dockerfile
+    container_name: ebooks-console
+    depends_on:
+      ebooks-sql:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - _connectionString=${_connectionString}
+      - _smtpSenderEmail=${_smtpSenderEmail}
+      - _smtpSenderPassword=${_smtpSenderPassword}
+      - _smtpServer=${_smtpServer}
+      - _enableSSL=${_enableSSL}
+      - _smtpSenderName=${_smtpSenderName}
+      - _timeout=${_timeout}
+      - _smtpPort=${_smtpPort}
+      - _rabbitMqHost=${_rabbitMqHost}
+      - _rabbitMqUser=${_rabbitMqUser}
+      - _rabbitMqPassword=${_rabbitMqPassword}
+      - _rabbitMqPort=${_rabbitMqPort}
+      - _saPassword=${_saPassword}
+      - _stripeSecretKey=${_stripeSecretKey}
+      - _stripePublishableKey=${_stripePublishableKey}
+      - _stripeWebhookSecret=${_stripeWebhookSecret}
+      - _ngrokURL=${_ngrokURL}
+    networks:
+      - ebooksnet2025
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    container_name: ebooks-ngrok
+    depends_on:
+      - ebooks-api
+    environment:
+      NGROK_AUTHTOKEN: ${_ngrokAuthToken}
+    command: ${_ngrokStartCommand}
+    networks:
+      - ebooksnet2025
+
+networks:
+  ebooksnet2025:
+    name: ebooksnet2025
+    driver: bridge

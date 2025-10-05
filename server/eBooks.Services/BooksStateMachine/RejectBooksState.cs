@@ -151,11 +151,28 @@ namespace eBooks.Services.BooksStateMachine
             entity.StateMachine = "approve";
             entity.RejectionReason = null;
             entity.ReviewedById = int.TryParse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var temp) ? temp : 0;
-            await _db.SaveChangesAsync();
             _logger.LogInformation($"Book with title {entity.Title} approved.");
             var result = _mapper.Map<BooksRes>(entity);
             _bus.PubSub.Publish(new BookReviewed { Book = result });
             _bus.PubSub.Publish(new PublisherFollowing { Book = result, Action = "added new" });
+            string notificationMessage = $"Your book has been approved";
+            var user = await _db.Set<User>().FirstOrDefaultAsync(x => x.UserId == result.Publisher.UserId);
+            var notification = new Notification
+            {
+                UserId = user.UserId,
+                BookId = result.BookId,
+                Message = notificationMessage
+            };
+            _db.Set<Notification>().Add(notification);
+            var userIds = await _db.Set<PublisherFollow>().Where(x => x.PublisherId == result.Publisher.UserId).Select(x => x.UserId).ToListAsync();
+            var notifications = userIds.Select(userId => new Notification
+            {
+                PublisherId = result.Publisher.UserId,
+                UserId = userId,
+                Message = $"Publisher {result.Publisher.UserName} published a book {result.Title}"
+            }).ToList();
+            _db.Set<Notification>().AddRange(notifications);
+            await _db.SaveChangesAsync();
             return result;
         }
 

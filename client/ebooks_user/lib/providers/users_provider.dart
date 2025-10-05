@@ -92,7 +92,7 @@ class UsersProvider extends BaseProvider<User> {
 
   Future verifyEmail(int id, String? token) async {
     var uri = Uri.parse(
-      "${Globals.apiAddress}/users/$id/verify-email/${token ?? ""}",
+      "${Globals.apiAddress}/users/$id/verify-email?token=${token ?? ""}",
     );
     var headers = createHeaders();
     var response = await http.patch(uri, headers: headers);

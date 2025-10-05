@@ -19,14 +19,12 @@ namespace eBooks.MessageHandlers
         {
             var email = message.Token.Email;
             var notificationMessage = $"Enter following token in order to verify your email: {message.Token.VerificationToken}";
-            Console.WriteLine($"Sending email to: {email}");
             await _emailService.SendEmailAsync(email, "Email verification", notificationMessage);
         }
 
         public async Task NotifyUser(EmailVerification message)
         {
             var user = await _db.Set<User>().FirstOrDefaultAsync(x => x.Email == message.Token.Email);
-            Console.WriteLine($"Sending notification to user: {user.UserId}");
             var notification = new Notification
             {
                 UserId = user.UserId,

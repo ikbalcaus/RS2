@@ -5,7 +5,6 @@ import "package:ebooks_user/models/search_result.dart";
 import "package:ebooks_user/models/users/user.dart";
 import "package:ebooks_user/providers/auth_provider.dart";
 import "package:ebooks_user/providers/books_provider.dart";
-import "package:ebooks_user/providers/stripe_provider.dart";
 import "package:ebooks_user/providers/theme_provider.dart";
 import "package:ebooks_user/providers/users_provider.dart";
 import "package:ebooks_user/screens/book_details_screen.dart";
@@ -21,7 +20,6 @@ import "package:ebooks_user/utils/globals.dart";
 import "package:ebooks_user/utils/helpers.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
-import "package:url_launcher/url_launcher.dart";
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -33,7 +31,6 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   late UsersProvider _usersProvider;
   late BooksProvider _booksProvider;
-  late StripeProvider _stripeProvider;
   User? _user;
   SearchResult<Book>? _books;
   bool _isLoading = true;
@@ -46,7 +43,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (AuthProvider.isLoggedIn) {
       _usersProvider = context.read<UsersProvider>();
       _booksProvider = context.read<BooksProvider>();
-      _stripeProvider = context.read<StripeProvider>();
       _fetchUser();
       _fetchBooks();
       _scrollController.addListener(() {
@@ -173,23 +169,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       },
     );
-  }
-
-  Future _openStripeAccount() async {
-    try {
-      var accountLink = await _stripeProvider.getStripeAccountLink();
-      final uri = Uri.parse(accountLink.url);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        Helpers.showErrorMessage(
-          context,
-          "Cannot open an URL: ${uri.toString()}".tr(),
-        );
-      }
-    } catch (ex) {
-      Helpers.showErrorMessage(context, ex);
-    }
   }
 
   void _showSelectModeDialog() {
@@ -490,12 +469,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
               const Divider(),
-              ListTile(
-                leading: const Icon(Icons.account_balance_wallet),
-                title: Text("Stripe Account".tr()),
-                trailing: Icon(Icons.chevron_right_rounded),
-                onTap: () async => await _openStripeAccount(),
-              ),
               ListTile(
                 leading: const Icon(Icons.color_lens),
                 title: Text("Change Theme".tr()),

@@ -27,10 +27,6 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\" />
-    <Folder Include="wwwroot\images\books\" />
-    <Folder Include="wwwroot\images\users\" />
-    <Folder Include="wwwroot\pdfs\books\" />
-    <Folder Include="wwwroot\pdfs\summary\" />
   </ItemGroup>
 
 </Project>

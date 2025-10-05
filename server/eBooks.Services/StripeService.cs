@@ -25,18 +25,16 @@ namespace eBooks.Services
         protected IMapper _mapper;
         protected IHttpContextAccessor _httpContextAccessor;
         protected IBus _bus;
-        protected IConfiguration _config;
         protected ILogger<StripeService> _logger;
 
-        public StripeService(EBooksContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IBus bus, ILogger<StripeService> logger, IConfiguration config)
+        public StripeService(EBooksContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IBus bus, ILogger<StripeService> logger)
         {
             _db = db;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
             _bus = bus;
             _logger = logger;
-            _config = config;
-            StripeConfiguration.ApiKey = _config["Stripe:SecretKey"];
+            StripeConfiguration.ApiKey = Environment.GetEnvironmentVariable("_stripeSecretKey");
         }
 
         protected int GetUserId() => int.TryParse(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var id) ? id : 0;
@@ -64,7 +62,7 @@ namespace eBooks.Services
             {
                 using var httpClient = new HttpClient();
                 httpClient.BaseAddress = new Uri("https://api.stripe.com/v1/");
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _config["Stripe:SecretKey"]);
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", Environment.GetEnvironmentVariable("_stripeSecretKey"));
                 var response = await httpClient.PostAsync($"accounts/{user.StripeAccountId}/login_links", null);
                 var content = await response.Content.ReadAsStringAsync();
                 using var document = JsonDocument.Parse(content);
@@ -120,7 +118,7 @@ namespace eBooks.Services
                             {
                                 Name = book.Title,
                                 Description = book.Description,
-                                Images = new List<string> { $"{_config["AppSettings:ngrokURL"]}/images/{book.FilePath}.webp" }
+                                Images = new List<string> { $"{Environment.GetEnvironmentVariable("_ngrokURL")}/images/{book.FilePath}.webp" }
                             }
                         },
                         Quantity = 1
@@ -159,7 +157,7 @@ namespace eBooks.Services
         {
             try
             {
-                var stripeEvent = EventUtility.ConstructEvent(json, stripeSignature, _config["Stripe:WebhookSecret"]);
+                var stripeEvent = EventUtility.ConstructEvent(json, stripeSignature, Environment.GetEnvironmentVariable("_stripeWebhookSecret"));
                 if (stripeEvent.Type == "checkout.session.completed")
                 {
                     var session = stripeEvent.Data.Object as Session;
@@ -202,9 +200,17 @@ namespace eBooks.Services
                     };
                     _db.Set<Purchase>().Add(purchase);
                     _db.Set<AccessRight>().Add(accessRight);
-                    await _db.SaveChangesAsync();
                     _logger.LogInformation($"Payment successfull userId:{userId} bookId:{bookId} totalPrice:{totalPrice}");
-                    _bus.PubSub.Publish(new PaymentCompleted { Purchase = _mapper.Map<PurchasesRes>(purchase) });
+                    var message = _mapper.Map<PurchasesRes>(purchase);
+                    _bus.PubSub.Publish(new PaymentCompleted { Purchase = message });
+                    var notification = new Notification
+                    {
+                        UserId = message.User.UserId,
+                        BookId = message.Book.BookId,
+                        Message = $"Payment {message.PaymentStatus}. Purchased book: {message.Book.Title}. Total price: {message.TotalPrice}"
+                    };
+                    _db.Set<Notification>().Add(notification);
+                    await _db.SaveChangesAsync();
                 }
                 else if (stripeEvent.Type == "payment_intent.payment_failed")
                 {
@@ -240,9 +246,17 @@ namespace eBooks.Services
                         TransactionId = paymentIntent.Id
                     };
                     _db.Set<Purchase>().Add(purchase);
-                    await _db.SaveChangesAsync();
                     _logger.LogError($"Payment failed userId:{userId} bookId:{bookId} totalPrice:{totalPrice}");
-                    _bus.PubSub.Publish(new PaymentCompleted { Purchase = _mapper.Map<PurchasesRes>(purchase) });
+                    var message = _mapper.Map<PurchasesRes>(purchase);
+                    _bus.PubSub.Publish(new PaymentCompleted { Purchase = message });
+                    var notification = new Notification
+                    {
+                        UserId = message.User.UserId,
+                        BookId = message.Book.BookId,
+                        Message = $"Payment {message.PaymentStatus}. Purchased book: {message.Book.Title}. Total price: {message.TotalPrice}"
+                    };
+                    _db.Set<Notification>().Add(notification);
+                    await _db.SaveChangesAsync();
                 }
             }
             catch (StripeException ex)

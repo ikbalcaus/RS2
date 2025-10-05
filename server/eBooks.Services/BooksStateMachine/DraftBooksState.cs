@@ -20,7 +20,7 @@ namespace eBooks.Services.BooksStateMachine
         public DraftBooksState(EBooksContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IServiceProvider serviceProvider, ILogger<BooksService> logger, IConfiguration config)
             : base(db, mapper, httpContextAccessor, serviceProvider, logger)
         {
-            StripeConfiguration.ApiKey = config["Stripe:SecretKey"];
+            StripeConfiguration.ApiKey = config["_stripeSecretKey"];
             _stripeAccountService = new AccountService();
         }
 

@@ -64,9 +64,16 @@ namespace eBooks.Services
                 throw new ExceptionNotFound();
             entity.AnsweredById = GetUserId();
             entity.Answer = req.Message;
-            await _db.SaveChangesAsync();
             var result = _mapper.Map<QuestionsRes>(entity);
             _bus.PubSub.Publish(new QuestionAnswered { Question = result });
+            var notificationMessage = $"Your question \"{result.Question1}\" has been answered. Answer: \"{result.Answer}\"";
+            var notification = new Notification
+            {
+                UserId = result.User.UserId,
+                Message = notificationMessage
+            };
+            _db.Set<Notification>().Add(notification);
+            await _db.SaveChangesAsync();
             return result;
         }
     }

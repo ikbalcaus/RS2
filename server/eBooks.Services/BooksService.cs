@@ -278,10 +278,23 @@ namespace eBooks.Services
             if (entity == null)
                 throw new ExceptionNotFound();
             entity.RejectionReason = "Deleted by user";
-            await _db.SaveChangesAsync();
             _logger.LogInformation($"Book with title {entity.Title} deleted.");
             var result = _mapper.Map<BooksRes>(entity);
             _bus.PubSub.Publish(new BookDeactivated { Book = result });
+            string notificationMessage;
+            if (result.Publisher.DeletionReason != null)
+                notificationMessage = $"Your book has been deactivated. Reason: {result.DeletionReason}";
+            else
+                notificationMessage = "Your book has been reactivated";
+            var userId = result.Publisher.UserId;
+            var notification = new Notification
+            {
+                UserId = userId,
+                BookId = result.BookId,
+                Message = notificationMessage
+            };
+            _db.Set<Notification>().Add(notification);
+            await _db.SaveChangesAsync();
             return result;
         }
 
@@ -295,10 +308,23 @@ namespace eBooks.Services
             if (entity.DeletionReason != null && reason != null)
                 throw new ExceptionBadRequest("Already deleted");
             entity.DeletionReason = reason;
-            await _db.SaveChangesAsync();
             _logger.LogInformation($"Book with title {entity.Title} deleted.");
             var result = _mapper.Map<BooksRes>(entity);
             _bus.PubSub.Publish(new BookDeactivated { Book = result });
+            string notificationMessage;
+            if (result.Publisher.DeletionReason != null)
+                notificationMessage = $"Your book has been deactivated. Reason: {result.DeletionReason}";
+            else
+                notificationMessage = "Your book has been reactivated";
+            var userId = result.Publisher.UserId;
+            var notification = new Notification
+            {
+                UserId = userId,
+                BookId = result.BookId,
+                Message = notificationMessage
+            };
+            _db.Set<Notification>().Add(notification);
+            await _db.SaveChangesAsync();
             return result;
         }
 
@@ -317,11 +343,27 @@ namespace eBooks.Services
             if (errors.Count > 0)
                 throw new ExceptionBadRequest(errors);
             _mapper.Map(req, entity);
-            await _db.SaveChangesAsync();
             _logger.LogInformation($"Book with title {entity.Title} is discounted by {req.DiscountPercentage}%.");
             var result = _mapper.Map<BooksRes>(entity);
             _bus.PubSub.Publish(new PublisherFollowing { Book = result, Action = "added discount to a" });
             _bus.PubSub.Publish(new BookDiscounted { Book = result });
+            var userIds = await _db.Set<Wishlist>().Where(x => x.BookId == result.BookId).Select(x => x.UserId).ToListAsync();
+            var notifications = userIds.Select(userId => new Notification
+            {
+                UserId = userId,
+                BookId = result.BookId,
+                Message = $"Book \"{result.Title}\" is on discount, new price is {Helpers.CalculateDiscountedPrice(result.Price, result.DiscountPercentage, result.DiscountStart, result.DiscountEnd)}"
+            }).ToList();
+            _db.Set<Notification>().AddRange(notifications);
+            var userIds2 = await _db.Set<PublisherFollow>().Where(x => x.PublisherId == result.Publisher.UserId).Select(x => x.UserId).ToListAsync();
+            var notifications2 = userIds2.Select(userId => new Notification
+            {
+                PublisherId = result.Publisher.UserId,
+                UserId = userId,
+                Message = $"Publisher {result.Publisher.UserName} set discount to a book {result.Title}"
+            }).ToList();
+            _db.Set<Notification>().AddRange(notifications2);
+            await _db.SaveChangesAsync();
             return result;
         }
 

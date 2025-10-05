@@ -21,7 +21,6 @@ namespace eBooks.MessageHandlers
             var emails = await _db.Set<Wishlist>().Where(x => x.BookId == message.Book.BookId).Include(x => x.User).Select(x => x.User.Email).ToListAsync();
             foreach (var email in emails)
             {
-                Console.WriteLine($"Sending email to: {email}");
                 string subject = $"Book \"{message.Book.Title}\" is on discount";
                 string notificationMessage = $"Book \"{message.Book.Title}\" is on discount, new price is {Helpers.CalculateDiscountedPrice(message.Book.Price, message.Book.DiscountPercentage, message.Book.DiscountStart, message.Book.DiscountEnd)}";
                 await _emailService.SendEmailAsync(email, subject, notificationMessage);
@@ -31,7 +30,6 @@ namespace eBooks.MessageHandlers
         public async Task NotifyUser(BookDiscounted message)
         {
             var userIds = await _db.Set<Wishlist>().Where(x => x.BookId == message.Book.BookId).Select(x => x.UserId).ToListAsync();
-            Console.WriteLine($"Sending notification to users: {string.Join(", ", userIds)}");
             var notifications = userIds.Select(userId => new Notification
             {
                 UserId = userId,

@@ -200,14 +200,14 @@ namespace eBooks.Services
                     };
                     _db.Set<Purchase>().Add(purchase);
                     _db.Set<AccessRight>().Add(accessRight);
-                    _logger.LogInformation($"Payment successfull userId:{userId} bookId:{bookId} totalPrice:{totalPrice}");
+                    _logger.LogInformation($"Payment successfull userId:{userId} bookId:{bookId} totalPrice:{totalPrice * 100}");
                     var message = _mapper.Map<PurchasesRes>(purchase);
                     _bus.PubSub.Publish(new PaymentCompleted { Purchase = message });
                     var notification = new Notification
                     {
                         UserId = message.User.UserId,
                         BookId = message.Book.BookId,
-                        Message = $"Payment {message.PaymentStatus}. Purchased book: {message.Book.Title}. Total price: {message.TotalPrice}"
+                        Message = $"Payment {message.PaymentStatus}. Purchased book: {message.Book.Title}. Total price: {message.TotalPrice * 100}"
                     };
                     _db.Set<Notification>().Add(notification);
                     await _db.SaveChangesAsync();
@@ -246,14 +246,14 @@ namespace eBooks.Services
                         TransactionId = paymentIntent.Id
                     };
                     _db.Set<Purchase>().Add(purchase);
-                    _logger.LogError($"Payment failed userId:{userId} bookId:{bookId} totalPrice:{totalPrice}");
+                    _logger.LogError($"Payment failed userId:{userId} bookId:{bookId} totalPrice:{totalPrice * 100}");
                     var message = _mapper.Map<PurchasesRes>(purchase);
                     _bus.PubSub.Publish(new PaymentCompleted { Purchase = message });
                     var notification = new Notification
                     {
                         UserId = message.User.UserId,
                         BookId = message.Book.BookId,
-                        Message = $"Payment {message.PaymentStatus}. Purchased book: {message.Book.Title}. Total price: {message.TotalPrice}"
+                        Message = $"Payment {message.PaymentStatus}. Purchased book: {message.Book.Title}. Total price: {message.TotalPrice * 100}"
                     };
                     _db.Set<Notification>().Add(notification);
                     await _db.SaveChangesAsync();

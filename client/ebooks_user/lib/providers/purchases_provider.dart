@@ -21,7 +21,7 @@ class PurchasesProvider extends BaseProvider<Purchase> {
     Map<String, dynamic>? filter,
   }) async {
     try {
-      var url = "${Globals.apiAddress}/purchases";
+      var url = "${Globals.apiAddress}/purchases/$publisherId/payment-history";
       final queryParams = <String, String>{};
       queryParams["Page"] = page.toString();
       queryParams["PageSize"] = pageSize.toString();

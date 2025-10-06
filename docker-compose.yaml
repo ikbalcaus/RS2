@@ -46,13 +46,6 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - _connectionString=${_connectionString}
-      - _smtpSenderEmail=${_smtpSenderEmail}
-      - _smtpSenderPassword=${_smtpSenderPassword}
-      - _smtpServer=${_smtpServer}
-      - _enableSSL=${_enableSSL}
-      - _smtpSenderName=${_smtpSenderName}
-      - _timeout=${_timeout}
-      - _smtpPort=${_smtpPort}
       - _rabbitMqHost=${_rabbitMqHost}
       - _rabbitMqUser=${_rabbitMqUser}
       - _rabbitMqPassword=${_rabbitMqPassword}
@@ -89,18 +82,13 @@ services:
       - _smtpSenderEmail=${_smtpSenderEmail}
       - _smtpSenderPassword=${_smtpSenderPassword}
       - _smtpServer=${_smtpServer}
-      - _enableSSL=${_enableSSL}
       - _smtpSenderName=${_smtpSenderName}
-      - _timeout=${_timeout}
       - _smtpPort=${_smtpPort}
       - _rabbitMqHost=${_rabbitMqHost}
       - _rabbitMqUser=${_rabbitMqUser}
       - _rabbitMqPassword=${_rabbitMqPassword}
       - _rabbitMqPort=${_rabbitMqPort}
       - _saPassword=${_saPassword}
-      - _stripeSecretKey=${_stripeSecretKey}
-      - _stripePublishableKey=${_stripePublishableKey}
-      - _stripeWebhookSecret=${_stripeWebhookSecret}
       - _ngrokURL=${_ngrokURL}
     networks:
       - ebooksnet2025

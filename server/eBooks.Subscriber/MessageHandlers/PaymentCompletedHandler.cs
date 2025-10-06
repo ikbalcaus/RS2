@@ -17,7 +17,7 @@ namespace eBooks.MessageHandlers
         public async Task SendEmail(PaymentCompleted message)
         {
             var email = message.Purchase.User.Email;
-            var notificationMessage = $"Payment {message.Purchase.PaymentStatus}.<br>Purchased book: {message.Purchase.Book.Title}<br>Total price: {message.Purchase.TotalPrice}";
+            var notificationMessage = $"Payment {message.Purchase.PaymentStatus}.<br>Purchased book: {message.Purchase.Book.Title}<br>Total price: {message.Purchase.TotalPrice * 100}";
             await _emailService.SendEmailAsync(email, $"Payment {message.Purchase.PaymentStatus}", notificationMessage);
         }
 
@@ -27,7 +27,7 @@ namespace eBooks.MessageHandlers
             {
                 UserId = message.Purchase.User.UserId,
                 BookId = message.Purchase.Book.BookId,
-                Message = $"Payment {message.Purchase.PaymentStatus}. Purchased book: {message.Purchase.Book.Title}. Total price: {message.Purchase.TotalPrice}"
+                Message = $"Payment {message.Purchase.PaymentStatus}. Purchased book: {message.Purchase.Book.Title}. Total price: {message.Purchase.TotalPrice * 100}"
             };
             _db.Set<Notification>().Add(notification);
             await _db.SaveChangesAsync();

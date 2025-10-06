@@ -21,7 +21,6 @@ import "package:ebooks_user/screens/reset_password_screen.dart";
 import "package:ebooks_user/utils/globals.dart";
 import "package:flutter/material.dart";
 import "package:provider/provider.dart";
-import "package:uni_links/uni_links.dart";
 import "package:easy_localization/easy_localization.dart";
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -73,27 +72,12 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    _initUniLinks();
   }
 
   @override
   void dispose() {
     _sub?.cancel();
     super.dispose();
-  }
-
-  Future _initUniLinks() async {
-    try {
-      final initialUri = await getInitialUri();
-      if (initialUri != null) {
-        _handleIncomingUri(initialUri);
-      }
-    } catch (ex) {}
-    _sub = uriLinkStream.listen((Uri? uri) {
-      if (uri != null) {
-        _handleIncomingUri(uri);
-      }
-    }, onError: (err) {});
   }
 
   void _handleIncomingUri(Uri uri) {

@@ -135,7 +135,10 @@ namespace eBooks.API
             -- Purchases
             SET IDENTITY_INSERT Purchases ON;
             INSERT INTO Purchases (PurchaseId, UserId, PublisherId, BookId, CreatedAt, TotalPrice, PaymentStatus, PaymentMethod, TransactionId, FailureMessage, FailureCode, FailureReason) VALUES
-            (2, 2, 1, 4, '2025-10-05 19:00:18', 14.00, 'success', 'card', '1', NULL, NULL, NULL);
+            (1, 2, 1, 6, '2025-10-05 19:00:18', 23.00, 'success', 'card', '1', NULL, NULL, NULL),
+            (2, 6, 2, 4, '2025-10-05 19:00:18', 14.00, 'success', 'card', '2', NULL, NULL, NULL),
+            (3, 7, 2, 4, '2025-10-05 19:00:18', 14.00, 'success', 'card', '3', NULL, NULL, NULL),
+            (4, 8, 2, 4, '2025-10-05 19:00:18', 14.00, 'success', 'card', '4', NULL, NULL, NULL);
             SET IDENTITY_INSERT Purchases OFF;
 
             -- Notifications

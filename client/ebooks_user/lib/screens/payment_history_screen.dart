@@ -72,7 +72,10 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
   Future _fetchPurchases({bool append = false}) async {
     setState(() => _isLoading = true);
     try {
-      final purchases = await _purchasesProvider.getPaged(page: _currentPage);
+      final purchases = await _purchasesProvider.getAllByPublisherId(
+        widget.publisherId,
+        page: _currentPage,
+      );
       if (!mounted) return;
       setState(() {
         if (append && _purchases != null) {

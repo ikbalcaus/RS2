@@ -25,6 +25,7 @@ import "package:path_provider/path_provider.dart";
 import "package:provider/provider.dart";
 import "package:url_launcher/url_launcher.dart";
 import 'package:easy_localization/easy_localization.dart';
+import "package:url_launcher/url_launcher_string.dart";
 
 class BookDetailsScreen extends StatefulWidget {
   final int bookId;
@@ -285,17 +286,44 @@ class _BookDetailsScreenState extends State<BookDetailsScreen> {
       var paymentPageLink = await _stripeProvider.getPaymentPageLink(
         _book!.bookId!,
       );
-      final uri = Uri.parse(paymentPageLink.url);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        Helpers.showErrorMessage(
-          context,
-          "Cannot open an URL: ${uri.toString()}".tr(),
+      final rawUrl = paymentPageLink.url ?? '';
+      if (rawUrl.trim().isEmpty) {
+        final msg = "URL je prazan.";
+        Helpers.showErrorMessage(context, msg);
+        return;
+      }
+      try {
+        final launched = await launchUrlString(
+          rawUrl,
+          mode: LaunchMode.externalApplication,
         );
+        if (launched) {
+          return;
+        } else {}
+      } catch (e) {}
+      Uri? uri;
+      try {
+        uri = Uri.tryParse(rawUrl);
+      } catch (e) {
+        uri = null;
+      }
+      if (uri != null) {
+        try {
+          final can = await canLaunchUrl(uri);
+          if (can) {
+            try {
+              final launched = await launchUrl(
+                uri,
+                mode: LaunchMode.externalApplication,
+              );
+              if (launched) return;
+            } catch (ex) {}
+          } else {}
+        } catch (ex) {}
       }
     } catch (ex) {
-      Helpers.showErrorMessage(context, ex);
+      Helpers.showErrorMessage(context, "Greška: $ex");
+      return;
     }
   }
 

@@ -2,7 +2,7 @@ import "package:flutter/material.dart";
 
 class Globals {
   static const apiAddress = String.fromEnvironment(
-    "API_HOST",
+    "_ngrokURL",
     defaultValue: "https://monarch-innocent-impala.ngrok-free.app",
   );
   static const successMessage = "Action completed successfully";

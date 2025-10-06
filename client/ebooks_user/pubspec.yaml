@@ -50,9 +50,9 @@ dependencies:
   mime: ^2.0.0
   http_parser: ^4.1.2
   reorderables: ^0.6.0
-  uni_links: ^0.5.1
   easy_localization: ^3.0.8
   flutter_dotenv: ^5.1.0
+  webview_flutter: ^4.0.7
 
 dev_dependencies:
   flutter_test:

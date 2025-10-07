@@ -31,13 +31,15 @@ Before using the application, please read the notes below in this README:
 
 - The book owner can view the content of the book without purchasing it. Users who do not own the book must purchase it in order to access its content.
 
-- When a user wants to purchase a book and clicks the button displaying the price, they will be redirected to a web page where they must fill in their Stripe account details. The required information can be found in this README file. Once the transaction is successful, the book will appear in the user’s library.
+- When a user wants to purchase a book and clicks the button displaying the price, they will be redirected to a web page where they must fill in their Stripe account details. The required information can be found in this README file. Once the transaction is successful, the book will appear in the user’s library. After you buy a book, you must open app again and refresh a book details page.
+
+- Roles are made in hierarchy. Admin also has roles of moderator and user options, moderator also has user options, and user has only user options.
 
 - If you want to test review and report functionality, you have to press three dots icon on the top right corner of the book detail screen.
 
-- After you buy a book using stripe, you must open app again and refresh a book details page.
+- Instead of paypal, I implemented stripe that enables payment with credit card and link. I could implement paypal because of their strong policy.
 
-- **Please wait few seconds until app loads.**
+- **Please wait few seconds until app loads!**
 
 ## Credentials
 
